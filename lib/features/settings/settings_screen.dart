@@ -33,6 +33,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   DateTime? _lastAutoBackup;
   bool _allowNegativeStock = false;
   int _autoLockMinutes = 2;
+  DateTime? _accountingLockDate;
 
   @override
   void initState() {
@@ -53,6 +54,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _lastAutoBackup = lastAutoBackup;
       _allowNegativeStock = prefs.getBool('allow_negative_stock') ?? false;
       _autoLockMinutes = prefs.getInt('auto_lock_minutes') ?? 2;
+      final lockStr = prefs.getString('accounting_lock_date');
+      if (lockStr != null) {
+        _accountingLockDate = DateTime.tryParse(lockStr);
+      }
       _loading = false;
     });
   }
@@ -388,6 +393,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     },
                   ),
                 ),
+                if (Session.isOwner) ...[
+                  const Divider(),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+                    child: Text('Accounting Control',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.grey)),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.lock_outline, color: Colors.orange),
+                    title: const Text('Accounting Period Lock'),
+                    subtitle: Text(_accountingLockDate == null
+                        ? 'Koi lock nahi laga. Sabi transactions open hain.'
+                        : 'Transactions before ${_accountingLockDate!.toIso8601String().substring(0, 10)} are LOCKED.'),
+                    trailing: TextButton(
+                      onPressed: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: _accountingLockDate ?? DateTime.now(),
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime.now(),
+                          helpText: 'Sabi purani transactions ko lock karein',
+                        );
+                        if (picked != null) {
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.setString('accounting_lock_date', picked.toIso8601String());
+                          setState(() => _accountingLockDate = picked);
+                        }
+                      },
+                      child: Text(_accountingLockDate == null ? 'Set Lock' : 'Update'),
+                    ),
+                  ),
+                  if (_accountingLockDate != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: TextButton(
+                        onPressed: () async {
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.remove('accounting_lock_date');
+                          setState(() => _accountingLockDate = null);
+                        },
+                        child: const Text('Remove Lock', style: TextStyle(color: Colors.red)),
+                      ),
+                    ),
+                ],
                 const Divider(),
                 const Padding(
                   padding: EdgeInsets.fromLTRB(16, 8, 16, 4),

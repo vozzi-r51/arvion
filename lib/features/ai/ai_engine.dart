@@ -12,7 +12,17 @@ enum AIIntent {
   getPurchases,
   getSupplierCount,
   getProductCount,
+  createExpense,
   unknown
+}
+
+/// Represents a response from the AI, which can be simple text or a pending action.
+class AIResponse {
+  final String text;
+  final AIIntent? pendingIntent;
+  final Map<String, dynamic>? params;
+
+  AIResponse(this.text, {this.pendingIntent, this.params});
 }
 
 /// Abstract base for a "Business Tool" that the AI can execute.
@@ -110,6 +120,30 @@ class ProductCountTool extends AIBusinessTool {
   }
 }
 
+class CreateExpenseTool extends AIBusinessTool {
+  CreateExpenseTool(super.companyId);
+  
+  @override
+  Future<String> execute(Map<String, dynamic> params) async {
+    final amount = params['amount'] as double? ?? 0;
+    final category = params['category'] as String? ?? 'Operating Expenses';
+    
+    if (amount <= 0) return "Maaf kijiye, expense amount zero se zyada hona chahiye.";
+
+    await DBHelper.instance.insertExpense({
+      'company_id': companyId,
+      'category': category,
+      'amount': amount,
+      'expense_date': DateTime.now().toIso8601String(),
+      'payment_method': 'Cash',
+      'description': 'AI generated expense',
+      'created_at': DateTime.now().toIso8601String(),
+    });
+
+    return "Theek hai, Rs. ${amount.toStringAsFixed(0)} ka $category kharcha record kar liya gaya hai.";
+  }
+}
+
 /// The Orchestrator that manages Intent resolution and Tool execution.
 class AIEngine {
   final int companyId;
@@ -124,24 +158,55 @@ class AIEngine {
     AIIntent.getPurchases: PurchasesTool(companyId),
     AIIntent.getSupplierCount: SupplierCountTool(companyId),
     AIIntent.getProductCount: ProductCountTool(companyId),
+    AIIntent.createExpense: CreateExpenseTool(companyId),
   };
 
-  Future<String> processQuery(String query) async {
+  Future<AIResponse> processQuery(String query) async {
     final intent = _resolveIntentOffline(query);
     
     if (intent == AIIntent.unknown) {
-      return "Maaf kijiye, main ye samajh nahi saka. Aap sales, stock, udhaar ya kharchon ke baray mein pooch sakte hain. (Try: 'aaj ki sale' or 'low stock items')";
+      return AIResponse("Maaf kijiye, main ye samajh nahi saka. Aap sales, stock, udhaar ya kharchon ke baray mein pooch sakte hain. (Try: 'aaj ki sale' or 'low stock items')");
     }
 
     final tool = _registry[intent];
-    if (tool == null) return "System Error: Tool not found.";
+    if (tool == null) return AIResponse("System Error: Tool not found.");
 
     // RBAC Check
     if (tool.requiresOwner && !Session.isOwner) {
-      return "Maaf kijiye, aapko ye maloomat dekhne ki ijazat nahi hai.";
+      return AIResponse("Maaf kijiye, aapko ye maloomat dekhne ki ijazat nahi hai.");
     }
 
-    return await tool.execute({});
+    // Check if it's a write action that needs confirmation
+    if (intent == AIIntent.createExpense) {
+      final amount = _extractAmount(query);
+      if (amount == null) {
+        return AIResponse("Kharchay ka amount kya hai? (E.g. 'Add expense of 500')");
+      }
+      return AIResponse(
+        "Kya main Rs. ${amount.toStringAsFixed(0)} ka kharcha record kar loon?",
+        pendingIntent: intent,
+        params: {'amount': amount, 'category': 'Operating Expenses'},
+      );
+    }
+
+    final resultText = await tool.execute({});
+    return AIResponse(resultText);
+  }
+
+  Future<String> executeConfirmedAction(AIIntent intent, Map<String, dynamic> params) async {
+    final tool = _registry[intent];
+    if (tool == null) return "Error: Tool not found.";
+    return await tool.execute(params);
+  }
+
+  double? _extractAmount(String query) {
+    // Simple regex to find numbers in the string
+    final regExp = RegExp(r'\d+');
+    final match = regExp.firstMatch(query);
+    if (match != null) {
+      return double.tryParse(match.group(0)!);
+    }
+    return null;
   }
 
   /// Current keyword-based resolver. 
@@ -172,6 +237,9 @@ class AIEngine {
     }
     if (_matches(q, ['total product', 'kitne product', 'total items', 'آئٹم'])) {
       return AIIntent.getProductCount;
+    }
+    if (_matches(q, ['add expense', 'record kharcha', 'expense dalo'])) {
+      return AIIntent.createExpense;
     }
 
     return AIIntent.unknown;

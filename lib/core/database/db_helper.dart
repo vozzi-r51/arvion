@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Singleton SQLite helper for the whole app.
 ///
@@ -1225,6 +1226,7 @@ class DBHelper {
   }) async {
     final db = await database;
     return db.transaction<int>((txn) async {
+      await _enforcePeriodLock(sale['sale_date'] as String);
       await _validateInventoryItems(
         txn,
         sale['company_id'] as int,
@@ -1338,6 +1340,7 @@ class DBHelper {
       final rows = await txn.query('sales', where: 'id = ?', whereArgs: [saleId]);
       if (rows.isEmpty) return;
       final sale = rows.first;
+      await _enforcePeriodLock(sale['sale_date'] as String);
       if (sale['status'] == 'voided') return;
 
       final companyId = sale['company_id'] as int;
@@ -1397,6 +1400,10 @@ class DBHelper {
   Future<void> deleteSale(int saleId) async {
     final db = await database;
     await db.transaction((txn) async {
+      final rows = await txn.query('sales', where: 'id = ?', whereArgs: [saleId]);
+      if (rows.isNotEmpty) {
+        await _enforcePeriodLock(rows.first['sale_date'] as String);
+      }
       await txn.delete('sale_items', where: 'sale_id = ?', whereArgs: [saleId]);
       await txn.delete('sales', where: 'id = ?', whereArgs: [saleId]);
     });
@@ -1449,6 +1456,7 @@ class DBHelper {
   }) async {
     final db = await database;
     return db.transaction<int>((txn) async {
+      await _enforcePeriodLock(purchase['purchase_date'] as String);
       await _validateInventoryItems(
         txn,
         purchase['company_id'] as int,
@@ -1567,6 +1575,7 @@ class DBHelper {
       final rows = await txn.query('purchases', where: 'id = ?', whereArgs: [purchaseId]);
       if (rows.isEmpty) return;
       final purchase = rows.first;
+      await _enforcePeriodLock(purchase['purchase_date'] as String);
       if (purchase['status'] == 'voided') return;
 
       final companyId = purchase['company_id'] as int;
@@ -1626,6 +1635,10 @@ class DBHelper {
   Future<void> deletePurchase(int purchaseId) async {
     final db = await database;
     await db.transaction((txn) async {
+      final rows = await txn.query('purchases', where: 'id = ?', whereArgs: [purchaseId]);
+      if (rows.isNotEmpty) {
+        await _enforcePeriodLock(rows.first['purchase_date'] as String);
+      }
       await txn.delete('purchase_items',
           where: 'purchase_id = ?', whereArgs: [purchaseId]);
       await txn.delete('purchases', where: 'id = ?', whereArgs: [purchaseId]);
@@ -1649,6 +1662,7 @@ class DBHelper {
   Future<int> insertExpense(Map<String, dynamic> data) async {
     final db = await database;
     return db.transaction<int>((txn) async {
+      await _enforcePeriodLock(data['expense_date'] as String);
       final companyId = data['company_id'] as int;
       final amount = _validateLedgerAmount(data['amount'], 'Expense');
       final category = data['category'] as String;
@@ -1698,6 +1712,10 @@ class DBHelper {
       final rows = await txn.query('expenses', where: 'id = ?', whereArgs: [id], limit: 1);
       if (rows.isEmpty) return;
       final oldExpense = rows.first;
+      await _enforcePeriodLock(oldExpense['expense_date'] as String);
+      if (data.containsKey('expense_date')) {
+        await _enforcePeriodLock(data['expense_date'] as String);
+      }
       final updatedExpense = {...oldExpense, ...data};
       final amount = _validateLedgerAmount(updatedExpense['amount'], 'Expense');
       final companyId = updatedExpense['company_id'] as int;
@@ -1742,6 +1760,7 @@ class DBHelper {
       final rows = await txn.query('expenses', where: 'id = ?', whereArgs: [id], limit: 1);
       if (rows.isEmpty) return;
       final expense = rows.first;
+      await _enforcePeriodLock(expense['expense_date'] as String);
       await _reverseAutomatedEntry(
         txn,
         companyId: expense['company_id'] as int,
@@ -1770,6 +1789,7 @@ class DBHelper {
   Future<int> insertIncome(Map<String, dynamic> data) async {
     final db = await database;
     return db.transaction<int>((txn) async {
+      await _enforcePeriodLock(data['income_date'] as String);
       final companyId = data['company_id'] as int;
       final amount = _validateLedgerAmount(data['amount'], 'Income');
       final category = data['category'] as String;
@@ -1817,6 +1837,10 @@ class DBHelper {
       final rows = await txn.query('income', where: 'id = ?', whereArgs: [id], limit: 1);
       if (rows.isEmpty) return;
       final oldIncome = rows.first;
+      await _enforcePeriodLock(oldIncome['income_date'] as String);
+      if (data.containsKey('income_date')) {
+        await _enforcePeriodLock(data['income_date'] as String);
+      }
       final updatedIncome = {...oldIncome, ...data};
       final amount = _validateLedgerAmount(updatedIncome['amount'], 'Income');
       final companyId = updatedIncome['company_id'] as int;
@@ -1856,6 +1880,7 @@ class DBHelper {
       final rows = await txn.query('income', where: 'id = ?', whereArgs: [id], limit: 1);
       if (rows.isEmpty) return;
       final income = rows.first;
+      await _enforcePeriodLock(income['income_date'] as String);
       await _reverseAutomatedEntry(
         txn,
         companyId: income['company_id'] as int,
@@ -1874,6 +1899,7 @@ class DBHelper {
   Future<void> insertCustomerPayment(Map<String, dynamic> data) async {
     final db = await database;
     await db.transaction((txn) async {
+      await _enforcePeriodLock(data['payment_date'] as String);
       await _validateLedgerPayment(
         txn,
         companyId: data['company_id'] as int,
@@ -1929,6 +1955,7 @@ class DBHelper {
   Future<void> insertSupplierPayment(Map<String, dynamic> data) async {
     final db = await database;
     await db.transaction((txn) async {
+      await _enforcePeriodLock(data['payment_date'] as String);
       await _validateLedgerPayment(
         txn,
         companyId: data['company_id'] as int,
@@ -1983,6 +2010,7 @@ class DBHelper {
   Future<int> insertCashTransaction(Map<String, dynamic> data) async {
     final db = await database;
     return db.transaction<int>((txn) async {
+      await _enforcePeriodLock(data['transaction_date'] as String);
       _validateCashTransaction(data);
       return txn.insert('cash_transactions', data);
     });
@@ -1999,6 +2027,7 @@ class DBHelper {
     await db.transaction((txn) async {
       final rows = await txn.query('cash_transactions', where: 'id = ?', whereArgs: [id]);
       if (rows.isEmpty) return;
+      await _enforcePeriodLock(rows.first['transaction_date'] as String);
       _validateCashTransaction(rows.first);
       await txn.delete('cash_transactions', where: 'id = ?', whereArgs: [id]);
     });
@@ -2030,6 +2059,7 @@ class DBHelper {
   Future<void> insertBankTransaction(Map<String, dynamic> data) async {
     final db = await database;
     await db.transaction((txn) async {
+      await _enforcePeriodLock(data['transaction_date'] as String);
       final amount = _validateBankTransaction(data);
       final accountRows = await txn.query(
         'bank_accounts',
@@ -2066,6 +2096,7 @@ class DBHelper {
       final rows = await txn.query('bank_transactions', where: 'id = ?', whereArgs: [id]);
       if (rows.isEmpty) return;
       final transaction = rows.first;
+      await _enforcePeriodLock(transaction['transaction_date'] as String);
       final amount = _validateBankTransaction(transaction);
       final delta = transaction['type'] == 'deposit' ? -amount : amount;
       await txn.rawUpdate(
@@ -2468,6 +2499,7 @@ class DBHelper {
   }) async {
     final db = await database;
     return db.transaction<int>((txn) async {
+      await _enforcePeriodLock(salesReturn['return_date'] as String);
       await _validateSalesReturnItems(txn, salesReturn, items);
       await _validateInventoryItems(
         txn,
@@ -2559,6 +2591,7 @@ class DBHelper {
   }) async {
     final db = await database;
     return db.transaction<int>((txn) async {
+      await _enforcePeriodLock(purchaseReturn['return_date'] as String);
       await _validatePurchaseReturnItems(txn, purchaseReturn, items);
       await _validateInventoryItems(
         txn,
@@ -2773,6 +2806,7 @@ class DBHelper {
   Future<void> insertStockAdjustment(Map<String, dynamic> data) async {
     final db = await database;
     await db.transaction((txn) async {
+      await _enforcePeriodLock(data['adjustment_date'] as String);
       final quantity = _validateLedgerAmount(data['quantity'], 'Stock adjustment');
       final productId = data['product_id'];
       final companyId = data['company_id'];
@@ -2911,6 +2945,7 @@ class DBHelper {
     _validateJournalLines(lines);
     final db = await database;
     return db.transaction<int>((txn) async {
+      await _enforcePeriodLock(entry['entry_date'] as String);
       await _validateJournalAccounts(
         txn,
         entry['company_id'] as int,
@@ -2943,6 +2978,10 @@ class DBHelper {
   Future<void> deleteJournalEntry(int id) async {
     final db = await database;
     await db.transaction((txn) async {
+      final rows = await txn.query('journal_entries', where: 'id = ?', whereArgs: [id]);
+      if (rows.isNotEmpty) {
+        await _enforcePeriodLock(rows.first['entry_date'] as String);
+      }
       await txn.delete('journal_entry_lines', where: 'journal_entry_id = ?', whereArgs: [id]);
       await txn.delete('journal_entries', where: 'id = ?', whereArgs: [id]);
     });
@@ -3015,58 +3054,80 @@ class DBHelper {
     return rows.isNotEmpty;
   }
 
-  /// Permanently deletes a company and every record that belongs to it.
-  /// This cannot be undone — the caller must confirm with the user first.
   Future<void> deleteCompanyPermanently(int companyId) async {
     final db = await database;
-    await db.transaction((txn) async {
-      // 1. Delete data from all tables that have a 'company_id' column.
-      // This is more robust than a manual list as it handles new tables automatically.
-      final List<Map<String, dynamic>> tables = await txn.rawQuery(
-          "SELECT name FROM sqlite_master WHERE type='table' AND name NOT IN ('companies', 'app_security', 'sqlite_sequence')");
+    // Temporarily disable foreign keys for mass deletion.
+    // Note: This must happen outside a transaction in some SQLite versions.
+    await db.execute('PRAGMA foreign_keys = OFF');
+    
+    try {
+      await db.transaction((txn) async {
+        // 1. Delete data from all tables that have a 'company_id' column.
+        final List<Map<String, dynamic>> tables = await txn.rawQuery(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name NOT IN ('companies', 'app_security', 'sqlite_sequence')");
 
-      for (final tableMap in tables) {
-        final tableName = tableMap['name'] as String;
-        // Check if table has company_id column
-        final List<Map<String, dynamic>> columns =
-            await txn.rawQuery("PRAGMA table_info($tableName)");
-        final hasCompanyId =
-            columns.any((c) => c['name'] == 'company_id');
+        for (final tableMap in tables) {
+          final tableName = tableMap['name'] as String;
+          final List<Map<String, dynamic>> columns =
+              await txn.rawQuery("PRAGMA table_info($tableName)");
+          final hasCompanyId =
+              columns.any((c) => c['name'] == 'company_id');
 
-        if (hasCompanyId) {
-          await txn.delete(tableName,
-              where: 'company_id = ?', whereArgs: [companyId]);
+          if (hasCompanyId) {
+            await txn.delete(tableName,
+                where: 'company_id = ?', whereArgs: [companyId]);
+          }
         }
-      }
 
-      // 2. Specialized cleanup for line-item tables that might not have company_id
-      // but depend on a parent that does.
-      await txn.rawDelete(
-          'DELETE FROM sale_items WHERE sale_id NOT IN (SELECT id FROM sales)');
-      await txn.rawDelete(
-          'DELETE FROM purchase_items WHERE purchase_id NOT IN (SELECT id FROM purchases)');
-      await txn.rawDelete(
-          'DELETE FROM sales_return_items WHERE return_id NOT IN (SELECT id FROM sales_returns)');
-      await txn.rawDelete(
-          'DELETE FROM purchase_return_items WHERE return_id NOT IN (SELECT id FROM purchase_returns)');
-      await txn.rawDelete(
-          'DELETE FROM delivery_challan_items WHERE challan_id NOT IN (SELECT id FROM delivery_challans)');
-      await txn.rawDelete(
-          'DELETE FROM purchase_order_items WHERE po_id NOT IN (SELECT id FROM purchase_orders)');
-      await txn.rawDelete(
-          'DELETE FROM journal_entry_lines WHERE journal_entry_id NOT IN (SELECT id FROM journal_entries)');
-      await txn.rawDelete(
-          'DELETE FROM bank_transactions WHERE bank_account_id NOT IN (SELECT id FROM bank_accounts)');
-      await txn.rawDelete(
-          'DELETE FROM committee_installments WHERE committee_id NOT IN (SELECT id FROM committees)');
-      await txn.rawDelete(
-          'DELETE FROM committee_draws WHERE committee_id NOT IN (SELECT id FROM committees)');
-      await txn.rawDelete(
-          'DELETE FROM committee_members WHERE committee_id NOT IN (SELECT id FROM committees)');
+        // 2. Cleanup orphaned line-item tables (those without company_id)
+        await txn.rawDelete(
+            'DELETE FROM sale_items WHERE sale_id NOT IN (SELECT id FROM sales)');
+        await txn.rawDelete(
+            'DELETE FROM purchase_items WHERE purchase_id NOT IN (SELECT id FROM purchases)');
+        await txn.rawDelete(
+            'DELETE FROM sales_return_items WHERE return_id NOT IN (SELECT id FROM sales_returns)');
+        await txn.rawDelete(
+            'DELETE FROM purchase_return_items WHERE return_id NOT IN (SELECT id FROM purchase_returns)');
+        await txn.rawDelete(
+            'DELETE FROM delivery_challan_items WHERE challan_id NOT IN (SELECT id FROM delivery_challans)');
+        await txn.rawDelete(
+            'DELETE FROM purchase_order_items WHERE po_id NOT IN (SELECT id FROM purchase_orders)');
+        await txn.rawDelete(
+            'DELETE FROM journal_entry_lines WHERE journal_entry_id NOT IN (SELECT id FROM journal_entries)');
+        await txn.rawDelete(
+            'DELETE FROM bank_transactions WHERE bank_account_id NOT IN (SELECT id FROM bank_accounts)');
+        await txn.rawDelete(
+            'DELETE FROM committee_installments WHERE committee_id NOT IN (SELECT id FROM committees)');
+        await txn.rawDelete(
+            'DELETE FROM committee_draws WHERE committee_id NOT IN (SELECT id FROM committees)');
+        await txn.rawDelete(
+            'DELETE FROM committee_members WHERE committee_id NOT IN (SELECT id FROM committees)');
 
-      // 3. Finally, delete the company itself
-      await txn.delete('companies', where: 'id = ?', whereArgs: [companyId]);
-    });
+        // 3. Finally, delete the company itself
+        await txn.delete('companies', where: 'id = ?', whereArgs: [companyId]);
+      });
+    } finally {
+      // Always re-enable foreign keys
+      await db.execute('PRAGMA foreign_keys = ON');
+    }
+  }
+
+  Future<void> _enforcePeriodLock(String dateStr) async {
+    final prefs = await SharedPreferences.getInstance();
+    final lockStr = prefs.getString('accounting_lock_date');
+    if (lockStr == null) return;
+
+    final lockDate = DateTime.tryParse(lockStr);
+    final targetDate = DateTime.tryParse(dateStr);
+    if (lockDate == null || targetDate == null) return;
+
+    // Normalize both to date only for comparison
+    final normalizedLock = DateTime(lockDate.year, lockDate.month, lockDate.day);
+    final normalizedTarget = DateTime(targetDate.year, targetDate.month, targetDate.day);
+
+    if (normalizedTarget.isBefore(normalizedLock)) {
+      throw StateError('Ye transaction locked period mein hai (${lockStr.substring(0,10)} se pehle). Tabdeeli nahi ho sakti.');
+    }
   }
 
   // ---------------- Accounting Engine helpers ----------------

@@ -14,7 +14,18 @@ class _ChatMessage {
   final String text;
   final bool isUser;
   final DateTime time;
-  _ChatMessage({required this.text, required this.isUser, required this.time});
+  final AIIntent? pendingIntent;
+  final Map<String, dynamic>? params;
+  bool isActionTaken;
+
+  _ChatMessage({
+    required this.text,
+    required this.isUser,
+    required this.time,
+    this.pendingIntent,
+    this.params,
+    this.isActionTaken = false,
+  });
 }
 
 class _AIScreenState extends State<AIScreen> {
@@ -36,9 +47,15 @@ class _AIScreenState extends State<AIScreen> {
     _addSystemMessage("Asalam-o-Alaikum! Main ARVION AI hoon. Main aapke business data ko samajhne mein aapki madad kar sakta hoon.");
   }
 
-  void _addSystemMessage(String text) {
+  void _addSystemMessage(String text, {AIIntent? pendingIntent, Map<String, dynamic>? params}) {
     setState(() {
-      _messages.add(_ChatMessage(text: text, isUser: false, time: DateTime.now()));
+      _messages.add(_ChatMessage(
+        text: text, 
+        isUser: false, 
+        time: DateTime.now(),
+        pendingIntent: pendingIntent,
+        params: params,
+      ));
     });
     _scrollToBottom();
   }
@@ -56,10 +73,31 @@ class _AIScreenState extends State<AIScreen> {
     final response = await _engine.processQuery(text);
     
     if (mounted) {
-      _addSystemMessage(response);
+      _addSystemMessage(
+        response.text, 
+        pendingIntent: response.pendingIntent,
+        params: response.params,
+      );
       if (!_isListening) {
-        _voice.speak(response);
+        _voice.speak(response.text);
       }
+    }
+  }
+
+  Future<void> _handleAction(int messageIndex, bool confirm) async {
+    final msg = _messages[messageIndex];
+    if (msg.pendingIntent == null || msg.params == null) return;
+
+    setState(() {
+      msg.isActionTaken = true;
+    });
+
+    if (confirm) {
+      final result = await _engine.executeConfirmedAction(msg.pendingIntent!, msg.params!);
+      _addSystemMessage(result);
+      _voice.speak(result);
+    } else {
+      _addSystemMessage("Action cancel kar diya gaya.");
     }
   }
 
@@ -128,7 +166,7 @@ class _AIScreenState extends State<AIScreen> {
                     controller: _scrollController,
                     padding: const EdgeInsets.all(16),
                     itemCount: _messages.length,
-                    itemBuilder: (ctx, i) => _buildMessageBubble(_messages[i]),
+                    itemBuilder: (ctx, i) => _buildMessageBubble(_messages[i], i),
                   ),
           ),
           _buildInputArea(),
@@ -143,7 +181,7 @@ class _AIScreenState extends State<AIScreen> {
       "Aaj ki sales kitni hain?",
       "Low stock products dikhao",
       "Kitna udhaar lena hai?",
-      "Aaj ke kharchay kya hain?",
+      "Add expense of 500",
       "Total kitne products hain?",
     ];
 
@@ -174,29 +212,61 @@ class _AIScreenState extends State<AIScreen> {
     );
   }
 
-  Widget _buildMessageBubble(_ChatMessage msg) {
+  Widget _buildMessageBubble(_ChatMessage msg, int index) {
     return Align(
       alignment: msg.isUser ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
-        decoration: BoxDecoration(
-          color: msg.isUser ? const Color(0xFF2563EB) : Colors.grey.shade200,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
-            bottomLeft: Radius.circular(msg.isUser ? 16 : 0),
-            bottomRight: Radius.circular(msg.isUser ? 0 : 16),
+      child: Column(
+        crossAxisAlignment: msg.isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(bottom: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+            decoration: BoxDecoration(
+              color: msg.isUser ? const Color(0xFF2563EB) : Colors.grey.shade200,
+              borderRadius: BorderRadius.only(
+                topLeft: const Radius.circular(16),
+                topRight: const Radius.circular(16),
+                bottomLeft: Radius.circular(msg.isUser ? 16 : 0),
+                bottomRight: Radius.circular(msg.isUser ? 0 : 16),
+              ),
+            ),
+            child: Text(
+              msg.text,
+              style: TextStyle(
+                color: msg.isUser ? Colors.white : Colors.black87,
+                fontSize: 14,
+              ),
+            ),
           ),
-        ),
-        child: Text(
-          msg.text,
-          style: TextStyle(
-            color: msg.isUser ? Colors.white : Colors.black87,
-            fontSize: 14,
-          ),
-        ),
+          if (!msg.isUser && msg.pendingIntent != null && !msg.isActionTaken)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12.0, left: 4),
+              child: Row(
+                children: [
+                  ElevatedButton(
+                    onPressed: () => _handleAction(index, true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    child: const Text('Haan (Confirm)'),
+                  ),
+                  const SizedBox(width: 8),
+                  OutlinedButton(
+                    onPressed: () => _handleAction(index, false),
+                    style: OutlinedButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    child: const Text('Nahi (Cancel)'),
+                  ),
+                ],
+              ),
+            )
+          else
+            const SizedBox(height: 8),
+        ],
       ),
     );
   }

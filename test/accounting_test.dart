@@ -267,6 +267,100 @@ void main() {
       throwsStateError,
     );
 
+    // Test: Source Identification & Void Reversal Integrity
+    final saleId = await db.insertSaleWithItems(
+      sale: {
+        'company_id': companyId,
+        'invoice_number': 'TEST-VOID-001',
+        'sale_date': '2026-08-24T00:00:00.000',
+        'created_at': DateTime.now().toIso8601String(),
+        'paid_amount': 100,
+        'due_amount': 0,
+        'total_amount': 100,
+      },
+      items: [
+        {
+          'product_id': productId,
+          'product_name': 'Test Product',
+          'quantity': 1.0,
+          'unit_price': 100.0,
+          'purchase_price': 50.0,
+          'total': 100.0,
+        },
+      ],
+    );
+
+    final saleJournals = await db.getJournalEntries(companyId);
+    final saleJournal = saleJournals.firstWhere((j) => j['source_type'] == 'sale' && j['source_id'] == saleId);
+    expect(saleJournal['description'], contains('TEST-VOID-001'));
+
+    await db.voidSale(saleId);
+    final voidJournals = await db.getJournalEntries(companyId);
+    final reversal = voidJournals.firstWhere((j) => j['source_type'] == 'reversal' && j['source_id'] == saleJournal['id']);
+    expect(reversal['description'], contains('VOID'));
+
+    // Test: Accounting Configuration Guard (StateError on missing accounts)
+    // We rename a critical account so it's not found by the resolver
+    await (await db.database).update('chart_of_accounts', 
+        {'name': 'RENAME_ME'}, 
+        where: 'name = ? AND company_id = ?', 
+        whereArgs: ['Sales Revenue', companyId]);
+    
+    expect(
+      () => db.insertSaleWithItems(
+        sale: {
+          'company_id': companyId,
+          'invoice_number': 'TEST-FAIL-001',
+          'sale_date': '2026-08-24T00:00:00.000',
+          'created_at': DateTime.now().toIso8601String(),
+          'paid_amount': 100,
+          'due_amount': 0,
+          'total_amount': 100,
+        },
+        items: [
+          {
+            'product_id': productId,
+            'product_name': 'Test Product',
+            'quantity': 1.0,
+            'unit_price': 100.0,
+            'purchase_price': 50.0,
+            'total': 100.0,
+          },
+        ],
+      ),
+      throwsStateError,
+    );
+
+    // Rename an account required for Purchases
+    await (await db.database).update('chart_of_accounts', 
+        {'name': 'RENAME_ME_TOO'}, 
+        where: 'name = ? AND company_id = ?', 
+        whereArgs: ['Inventory', companyId]);
+
+    expect(
+      () => db.insertPurchaseWithItems(
+        purchase: {
+          'company_id': companyId,
+          'invoice_number': 'TEST-FAIL-PUR',
+          'purchase_date': '2026-08-24T00:00:00.000',
+          'created_at': DateTime.now().toIso8601String(),
+          'paid_amount': 100,
+          'due_amount': 0,
+          'total_amount': 100,
+        },
+        items: [
+          {
+            'product_id': productId,
+            'product_name': 'Test Product',
+            'quantity': 1.0,
+            'unit_cost': 100.0,
+            'total': 100.0,
+          },
+        ],
+      ),
+      throwsStateError,
+    );
+
     await db.deleteCompanyPermanently(companyId);
   });
 }
