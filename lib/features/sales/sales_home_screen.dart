@@ -4,6 +4,7 @@ import '../../core/audit/audit_logger.dart';
 import '../../core/auth/session.dart';
 import 'new_sale_screen.dart';
 import 'sale_detail_screen.dart';
+import '../shell/main_shell.dart';
 
 class SalesHomeScreen extends StatefulWidget {
   final int companyId;
@@ -85,7 +86,10 @@ class _SalesHomeScreenState extends State<SalesHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sales')),
+      appBar: AppBar(
+        leading: MainShell.getMenuButton(context),
+        title: const Text('Sales'),
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _sales.isEmpty

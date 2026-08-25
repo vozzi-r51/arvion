@@ -8,6 +8,8 @@ import '../sales/new_sale_screen.dart';
 import '../purchases/new_purchase_screen.dart';
 import '../../core/auth/session.dart';
 import '../search/global_search_screen.dart';
+import '../shell/main_shell.dart';
+import '../../core/widgets/arvion_logo.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -174,14 +176,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'ARVION',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w900,
-            fontSize: 20,
-            letterSpacing: 2,
-          ),
+        leading: MainShell.getMenuButton(context),
+        title: Row(
+          children: const [
+            ArvionLogo(size: 28),
+            SizedBox(width: 10),
+            Text(
+              'ARVION',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                fontSize: 18,
+                letterSpacing: 2,
+              ),
+            ),
+          ],
         ),
         centerTitle: false,
       ),

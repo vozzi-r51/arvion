@@ -15,6 +15,7 @@ import 'staff_users_screen.dart';
 import 'theme_settings_screen.dart';
 import '../auth/pin_login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../shell/main_shell.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -204,7 +205,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final themeProvider = context.watch<ThemeProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(
+        leading: MainShell.getMenuButton(context),
+        title: const Text('Settings'),
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/arvion_brand.dart';
 import 'core/auth/auth_service.dart';
+import 'core/widgets/arvion_logo.dart';
 import 'features/auth/pin_setup_screen.dart';
 import 'features/auth/pin_login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -155,9 +156,16 @@ class _ARVIONSplashScreenState extends State<_ARVIONSplashScreen>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Flying Falcon removed
+                    // New Arvion Brand Icon
+                    Opacity(
+                      opacity: _textReveal.value,
+                      child: Transform.scale(
+                        scale: _falconScale.value,
+                        child: const ArvionLogo(size: 120),
+                      ),
+                    ),
                     const SizedBox(height: 40),
-                    // "ARION" Text
+                    // "ARVION" Text
                     Opacity(
                       opacity: _textReveal.value,
                       child: Transform.scale(
@@ -165,7 +173,7 @@ class _ARVIONSplashScreenState extends State<_ARVIONSplashScreen>
                         child: Column(
                           children: [
                             const Text(
-                              'ARION',
+                              'ARVION',
                               style: TextStyle(
                                 fontSize: 48,
                                 fontWeight: FontWeight.w900,

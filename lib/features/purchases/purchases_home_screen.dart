@@ -3,6 +3,7 @@ import '../../core/database/db_helper.dart';
 import '../../core/audit/audit_logger.dart';
 import 'new_purchase_screen.dart';
 import 'purchase_detail_screen.dart';
+import '../shell/main_shell.dart';
 
 class PurchasesHomeScreen extends StatefulWidget {
   final int companyId;
@@ -84,7 +85,10 @@ class _PurchasesHomeScreenState extends State<PurchasesHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Purchases')),
+      appBar: AppBar(
+        leading: MainShell.getMenuButton(context),
+        title: const Text('Purchases'),
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _purchases.isEmpty

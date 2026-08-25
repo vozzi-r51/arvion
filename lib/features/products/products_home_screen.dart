@@ -3,6 +3,7 @@ import 'product_list_screen.dart';
 import 'category_list_screen.dart';
 import 'brand_list_screen.dart';
 import '../import_export/product_import_screen.dart';
+import '../shell/main_shell.dart';
 
 class ProductsHomeScreen extends StatelessWidget {
   final int companyId;
@@ -14,7 +15,8 @@ class ProductsHomeScreen extends StatelessWidget {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Products'),
+          leading: MainShell.getMenuButton(context),
+          title: const Text('Inventory'),
           actions: [
             IconButton(
               icon: const Icon(Icons.upload_file_outlined),

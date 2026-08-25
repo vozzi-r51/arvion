@@ -4,6 +4,7 @@ import '../../core/audit/audit_logger.dart';
 import '../../core/utils/error_handler.dart';
 import 'customer_form_screen.dart';
 import '../ledger/customer_ledger_screen.dart';
+import '../shell/main_shell.dart';
 
 class CustomerListScreen extends StatefulWidget {
   final int companyId;
@@ -90,6 +91,10 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        leading: MainShell.getMenuButton(context),
+        title: const Text('Customers'),
+      ),
       body: Column(
         children: [
           Padding(

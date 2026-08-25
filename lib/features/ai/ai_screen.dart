@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'ai_engine.dart';
 import 'voice_service.dart';
+import '../shell/main_shell.dart';
 
 class AIScreen extends StatefulWidget {
   final int companyId;
@@ -132,6 +133,7 @@ class _AIScreenState extends State<AIScreen> {
     
     return Scaffold(
       appBar: AppBar(
+        leading: MainShell.getMenuButton(context),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

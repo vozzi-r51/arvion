@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/audit/audit_logger.dart';
+import '../shell/main_shell.dart';
 
 class ExpenseListScreen extends StatefulWidget {
   final int companyId;
@@ -195,6 +196,10 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        leading: MainShell.getMenuButton(context),
+        title: const Text('Expenses'),
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _expenses.isEmpty

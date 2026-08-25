@@ -3,6 +3,7 @@ import '../../core/database/db_helper.dart';
 import '../../core/audit/audit_logger.dart';
 import 'supplier_form_screen.dart';
 import '../ledger/supplier_ledger_screen.dart';
+import '../shell/main_shell.dart';
 
 class SupplierListScreen extends StatefulWidget {
   final int companyId;
@@ -85,6 +86,10 @@ class _SupplierListScreenState extends State<SupplierListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        leading: MainShell.getMenuButton(context),
+        title: const Text('Vendors / Suppliers'),
+      ),
       body: Column(
         children: [
           Padding(

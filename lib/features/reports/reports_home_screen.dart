@@ -6,6 +6,7 @@ import 'expense_report_screen.dart';
 import 'stock_report_screen.dart';
 import 'customer_report_screen.dart';
 import 'supplier_report_screen.dart';
+import '../shell/main_shell.dart';
 
 class _ReportTile {
   final String title;
@@ -39,7 +40,10 @@ class ReportsHomeScreen extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Reports')),
+      appBar: AppBar(
+        leading: MainShell.getMenuButton(context),
+        title: const Text('Reports'),
+      ),
       body: GridView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: tiles.length,

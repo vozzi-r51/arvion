@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'journal_entries_tab.dart';
 import 'trial_balance_tab.dart';
 import 'balance_sheet_tab.dart';
+import '../shell/main_shell.dart';
 
 class JournalHomeScreen extends StatelessWidget {
   final int companyId;
@@ -13,6 +14,7 @@ class JournalHomeScreen extends StatelessWidget {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
+          leading: MainShell.getMenuButton(context),
           title: const Text('Journal & Accounts'),
           bottom: const TabBar(
             tabs: [
