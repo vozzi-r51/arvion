@@ -193,7 +193,7 @@ class DBHelper {
         pin_salt TEXT NOT NULL,
         role TEXT NOT NULL DEFAULT 'cashier',
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id)
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
       )
     ''');
   }
@@ -207,7 +207,7 @@ class DBHelper {
         name TEXT NOT NULL,
         type TEXT NOT NULL,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id)
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
       )
     ''');
 
@@ -220,7 +220,7 @@ class DBHelper {
         source_type TEXT,
         source_id INTEGER,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id)
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
       )
     ''');
 
@@ -231,7 +231,7 @@ class DBHelper {
         account_id INTEGER NOT NULL,
         debit REAL NOT NULL DEFAULT 0,
         credit REAL NOT NULL DEFAULT 0,
-        FOREIGN KEY (journal_entry_id) REFERENCES journal_entries (id),
+        FOREIGN KEY (journal_entry_id) REFERENCES journal_entries (id) ON DELETE CASCADE,
         FOREIGN KEY (account_id) REFERENCES chart_of_accounts (id)
       )
     ''');
@@ -249,7 +249,7 @@ class DBHelper {
         reason TEXT,
         adjustment_date TEXT NOT NULL,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id),
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
         FOREIGN KEY (product_id) REFERENCES products (id)
       )
     ''');
@@ -267,7 +267,7 @@ class DBHelper {
         description TEXT,
         status TEXT NOT NULL DEFAULT 'active',
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id),
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
         FOREIGN KEY (parent_id) REFERENCES categories (id)
       )
     ''');
@@ -289,7 +289,7 @@ class DBHelper {
         display_order INTEGER NOT NULL DEFAULT 0,
         status TEXT NOT NULL DEFAULT 'active',
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id)
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
       )
     ''');
 
@@ -321,7 +321,7 @@ class DBHelper {
         conversion_factor REAL DEFAULT 1,
         deleted_at TEXT,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id),
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
         FOREIGN KEY (category_id) REFERENCES categories (id),
         FOREIGN KEY (brand_id) REFERENCES brands (id)
       )
@@ -348,7 +348,7 @@ class DBHelper {
         deleted_at TEXT,
         notes TEXT,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id)
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
       )
     ''');
 
@@ -370,7 +370,7 @@ class DBHelper {
         status TEXT NOT NULL DEFAULT 'active',
         deleted_at TEXT,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id)
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
       )
     ''');
   }
@@ -394,7 +394,7 @@ class DBHelper {
         sale_date TEXT NOT NULL,
         status TEXT NOT NULL DEFAULT 'completed',
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id),
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
         FOREIGN KEY (customer_id) REFERENCES customers (id)
       )
     ''');
@@ -410,7 +410,7 @@ class DBHelper {
         purchase_price REAL NOT NULL DEFAULT 0,
         packing TEXT,
         total REAL NOT NULL,
-        FOREIGN KEY (sale_id) REFERENCES sales (id),
+        FOREIGN KEY (sale_id) REFERENCES sales (id) ON DELETE CASCADE,
         FOREIGN KEY (product_id) REFERENCES products (id)
       )
     ''');
@@ -434,7 +434,7 @@ class DBHelper {
         purchase_date TEXT NOT NULL,
         status TEXT NOT NULL DEFAULT 'completed',
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id),
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
         FOREIGN KEY (supplier_id) REFERENCES suppliers (id)
       )
     ''');
@@ -449,7 +449,7 @@ class DBHelper {
         unit_cost REAL NOT NULL,
         packing TEXT,
         total REAL NOT NULL,
-        FOREIGN KEY (purchase_id) REFERENCES purchases (id),
+        FOREIGN KEY (purchase_id) REFERENCES purchases (id) ON DELETE CASCADE,
         FOREIGN KEY (product_id) REFERENCES products (id)
       )
     ''');
@@ -466,7 +466,7 @@ class DBHelper {
         payment_method TEXT,
         description TEXT,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id)
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
       )
     ''');
 
@@ -479,7 +479,7 @@ class DBHelper {
         income_date TEXT NOT NULL,
         description TEXT,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id)
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
       )
     ''');
   }
@@ -495,7 +495,7 @@ class DBHelper {
         payment_method TEXT,
         notes TEXT,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id),
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
         FOREIGN KEY (customer_id) REFERENCES customers (id)
       )
     ''');
@@ -510,7 +510,7 @@ class DBHelper {
         payment_method TEXT,
         notes TEXT,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id),
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
         FOREIGN KEY (supplier_id) REFERENCES suppliers (id)
       )
     ''');
@@ -525,7 +525,7 @@ class DBHelper {
         description TEXT,
         transaction_date TEXT NOT NULL,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id)
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
       )
     ''');
 
@@ -539,7 +539,7 @@ class DBHelper {
         opening_balance REAL NOT NULL DEFAULT 0,
         current_balance REAL NOT NULL DEFAULT 0,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id)
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
       )
     ''');
 
@@ -553,7 +553,7 @@ class DBHelper {
         description TEXT,
         transaction_date TEXT NOT NULL,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id),
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
         FOREIGN KEY (bank_account_id) REFERENCES bank_accounts (id)
       )
     ''');
@@ -578,7 +578,7 @@ class DBHelper {
         notes TEXT,
         deleted_at TEXT,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id)
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
       )
     ''');
 
@@ -593,7 +593,7 @@ class DBHelper {
         check_out TEXT,
         notes TEXT,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id),
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
         FOREIGN KEY (employee_id) REFERENCES employees (id),
         UNIQUE (employee_id, date)
       )
@@ -609,7 +609,7 @@ class DBHelper {
         payment_date TEXT NOT NULL,
         notes TEXT,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id),
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
         FOREIGN KEY (employee_id) REFERENCES employees (id)
       )
     ''');
@@ -625,7 +625,7 @@ class DBHelper {
         reason TEXT,
         status TEXT NOT NULL DEFAULT 'pending',
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id),
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
         FOREIGN KEY (employee_id) REFERENCES employees (id)
       )
     ''');
@@ -639,7 +639,7 @@ class DBHelper {
         commission_date TEXT NOT NULL,
         notes TEXT,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id),
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
         FOREIGN KEY (employee_id) REFERENCES employees (id)
       )
     ''');
@@ -658,7 +658,7 @@ class DBHelper {
         status TEXT NOT NULL DEFAULT 'active',
         notes TEXT,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id)
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
       )
     ''');
 
@@ -672,7 +672,7 @@ class DBHelper {
         join_date TEXT NOT NULL,
         has_drawn INTEGER NOT NULL DEFAULT 0,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id),
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
         FOREIGN KEY (committee_id) REFERENCES committees (id)
       )
     ''');
@@ -687,7 +687,7 @@ class DBHelper {
         amount REAL NOT NULL DEFAULT 0,
         payment_date TEXT NOT NULL,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id),
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
         FOREIGN KEY (committee_id) REFERENCES committees (id),
         FOREIGN KEY (member_id) REFERENCES committee_members (id)
       )
@@ -703,7 +703,7 @@ class DBHelper {
         draw_date TEXT NOT NULL,
         notes TEXT,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id),
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
         FOREIGN KEY (committee_id) REFERENCES committees (id),
         FOREIGN KEY (member_id) REFERENCES committee_members (id)
       )
@@ -722,7 +722,7 @@ class DBHelper {
         status TEXT NOT NULL DEFAULT 'pending',
         notes TEXT,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id)
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
       )
     ''');
   }
@@ -741,7 +741,7 @@ class DBHelper {
         refund_method TEXT NOT NULL DEFAULT 'cash',
         notes TEXT,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id),
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
         FOREIGN KEY (sale_id) REFERENCES sales (id),
         FOREIGN KEY (customer_id) REFERENCES customers (id)
       )
@@ -756,7 +756,7 @@ class DBHelper {
         quantity REAL NOT NULL,
         unit_price REAL NOT NULL,
         total REAL NOT NULL,
-        FOREIGN KEY (return_id) REFERENCES sales_returns (id),
+        FOREIGN KEY (return_id) REFERENCES sales_returns (id) ON DELETE CASCADE,
         FOREIGN KEY (product_id) REFERENCES products (id)
       )
     ''');
@@ -773,7 +773,7 @@ class DBHelper {
         total_amount REAL NOT NULL DEFAULT 0,
         notes TEXT,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id),
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
         FOREIGN KEY (purchase_id) REFERENCES purchases (id),
         FOREIGN KEY (supplier_id) REFERENCES suppliers (id)
       )
@@ -788,7 +788,7 @@ class DBHelper {
         quantity REAL NOT NULL,
         unit_cost REAL NOT NULL,
         total REAL NOT NULL,
-        FOREIGN KEY (return_id) REFERENCES purchase_returns (id),
+        FOREIGN KEY (return_id) REFERENCES purchase_returns (id) ON DELETE CASCADE,
         FOREIGN KEY (product_id) REFERENCES products (id)
       )
     ''');
@@ -809,7 +809,7 @@ class DBHelper {
         signature_path TEXT,
         notes TEXT,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id),
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
         FOREIGN KEY (sale_id) REFERENCES sales (id),
         FOREIGN KEY (customer_id) REFERENCES customers (id)
       )
@@ -822,7 +822,7 @@ class DBHelper {
         product_id INTEGER,
         product_name TEXT NOT NULL,
         quantity REAL NOT NULL,
-        FOREIGN KEY (challan_id) REFERENCES delivery_challans (id),
+        FOREIGN KEY (challan_id) REFERENCES delivery_challans (id) ON DELETE CASCADE,
         FOREIGN KEY (product_id) REFERENCES products (id)
       )
     ''');
@@ -839,7 +839,7 @@ class DBHelper {
         total_amount REAL NOT NULL DEFAULT 0,
         notes TEXT,
         created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id),
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
         FOREIGN KEY (supplier_id) REFERENCES suppliers (id)
       )
     ''');
@@ -853,7 +853,7 @@ class DBHelper {
         quantity REAL NOT NULL,
         unit_cost REAL NOT NULL,
         total REAL NOT NULL,
-        FOREIGN KEY (po_id) REFERENCES purchase_orders (id),
+        FOREIGN KEY (po_id) REFERENCES purchase_orders (id) ON DELETE CASCADE,
         FOREIGN KEY (product_id) REFERENCES products (id)
       )
     ''');
@@ -868,7 +868,7 @@ class DBHelper {
         action TEXT NOT NULL,
         description TEXT NOT NULL,
         timestamp TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id)
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
       )
     ''');
   }
@@ -3028,71 +3028,51 @@ class DBHelper {
   Future<void> deleteCompanyPermanently(int companyId) async {
     final db = await database;
     await db.transaction((txn) async {
-      // 1. Line/child tables that hang off a parent row (Foreign Key children)
-      await txn.rawDelete(
-          'DELETE FROM sale_items WHERE sale_id IN (SELECT id FROM sales WHERE company_id = ?)',
-          [companyId]);
-      await txn.rawDelete(
-          'DELETE FROM purchase_items WHERE purchase_id IN (SELECT id FROM purchases WHERE company_id = ?)',
-          [companyId]);
-      await txn.rawDelete(
-          'DELETE FROM sales_return_items WHERE return_id IN (SELECT id FROM sales_returns WHERE company_id = ?)',
-          [companyId]);
-      await txn.rawDelete(
-          'DELETE FROM purchase_return_items WHERE return_id IN (SELECT id FROM purchase_returns WHERE company_id = ?)',
-          [companyId]);
-      await txn.rawDelete(
-          'DELETE FROM delivery_challan_items WHERE challan_id IN (SELECT id FROM delivery_challans WHERE company_id = ?)',
-          [companyId]);
-      await txn.rawDelete(
-          'DELETE FROM purchase_order_items WHERE po_id IN (SELECT id FROM purchase_orders WHERE company_id = ?)',
-          [companyId]);
-      await txn.rawDelete(
-          'DELETE FROM journal_entry_lines WHERE journal_entry_id IN (SELECT id FROM journal_entries WHERE company_id = ?)',
-          [companyId]);
-      await txn.rawDelete(
-          'DELETE FROM bank_transactions WHERE bank_account_id IN (SELECT id FROM bank_accounts WHERE company_id = ?)',
-          [companyId]);
-      await txn.rawDelete(
-          'DELETE FROM committee_installments WHERE committee_id IN (SELECT id FROM committees WHERE company_id = ?)',
-          [companyId]);
-      await txn.rawDelete(
-          'DELETE FROM committee_draws WHERE committee_id IN (SELECT id FROM committees WHERE company_id = ?)',
-          [companyId]);
-        await txn.rawDelete(
-          'DELETE FROM committee_members WHERE committee_id IN (SELECT id FROM committees WHERE company_id = ?)',
-          [companyId]);
+      // 1. Delete data from all tables that have a 'company_id' column.
+      // This is more robust than a manual list as it handles new tables automatically.
+      final List<Map<String, dynamic>> tables = await txn.rawQuery(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name NOT IN ('companies', 'app_security', 'sqlite_sequence')");
 
-      // 2. Secondary tables with company_id (Children of main masters)
-      const secondaryTables = [
-        'audit_log', 'attendance', 'salary_payments', 'advance_salary',
-        'commissions', 'customer_payments', 'supplier_payments',
-        'cash_transactions', 'stock_adjustments', 'journal_entries'
-      ];
-      for (final table in secondaryTables) {
-        await txn.delete(table, where: 'company_id = ?', whereArgs: [companyId]);
+      for (final tableMap in tables) {
+        final tableName = tableMap['name'] as String;
+        // Check if table has company_id column
+        final List<Map<String, dynamic>> columns =
+            await txn.rawQuery("PRAGMA table_info($tableName)");
+        final hasCompanyId =
+            columns.any((c) => c['name'] == 'company_id');
+
+        if (hasCompanyId) {
+          await txn.delete(tableName,
+              where: 'company_id = ?', whereArgs: [companyId]);
+        }
       }
 
-      // 3. Main Transactional/Entity tables
-      const mainTables = [
-        'sales', 'purchases', 'sales_returns', 'purchase_returns',
-        'delivery_challans', 'purchase_orders', 'bank_accounts',
-        'committees', 'employees', 'cheques', 'products'
-      ];
-      for (final table in mainTables) {
-        await txn.delete(table, where: 'company_id = ?', whereArgs: [companyId]);
-      }
+      // 2. Specialized cleanup for line-item tables that might not have company_id
+      // but depend on a parent that does.
+      await txn.rawDelete(
+          'DELETE FROM sale_items WHERE sale_id NOT IN (SELECT id FROM sales)');
+      await txn.rawDelete(
+          'DELETE FROM purchase_items WHERE purchase_id NOT IN (SELECT id FROM purchases)');
+      await txn.rawDelete(
+          'DELETE FROM sales_return_items WHERE return_id NOT IN (SELECT id FROM sales_returns)');
+      await txn.rawDelete(
+          'DELETE FROM purchase_return_items WHERE return_id NOT IN (SELECT id FROM purchase_returns)');
+      await txn.rawDelete(
+          'DELETE FROM delivery_challan_items WHERE challan_id NOT IN (SELECT id FROM delivery_challans)');
+      await txn.rawDelete(
+          'DELETE FROM purchase_order_items WHERE po_id NOT IN (SELECT id FROM purchase_orders)');
+      await txn.rawDelete(
+          'DELETE FROM journal_entry_lines WHERE journal_entry_id NOT IN (SELECT id FROM journal_entries)');
+      await txn.rawDelete(
+          'DELETE FROM bank_transactions WHERE bank_account_id NOT IN (SELECT id FROM bank_accounts)');
+      await txn.rawDelete(
+          'DELETE FROM committee_installments WHERE committee_id NOT IN (SELECT id FROM committees)');
+      await txn.rawDelete(
+          'DELETE FROM committee_draws WHERE committee_id NOT IN (SELECT id FROM committees)');
+      await txn.rawDelete(
+          'DELETE FROM committee_members WHERE committee_id NOT IN (SELECT id FROM committees)');
 
-      // 4. Master tables (Categories, Brands, Chart of Accounts, etc.)
-      const masterTables = [
-        'categories', 'brands', 'customers', 'suppliers', 'chart_of_accounts',
-        'expenses', 'income', 'staff_users'
-      ];
-      for (final table in masterTables) {
-        await txn.delete(table, where: 'company_id = ?', whereArgs: [companyId]);
-      }
-
-      // 5. Finally, delete the company itself
+      // 3. Finally, delete the company itself
       await txn.delete('companies', where: 'id = ?', whereArgs: [companyId]);
     });
   }

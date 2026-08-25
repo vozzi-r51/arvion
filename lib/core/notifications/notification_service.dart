@@ -36,7 +36,7 @@ class NotificationService {
   /// notification per day summarizing low stock and total receivables.
   static Future<void> maybeNotify(int companyId) async {
     final prefs = await SharedPreferences.getInstance();
-    final key = 'last_notify_date';
+    final key = 'last_notify_date_$companyId';
     final today = DateTime.now().toIso8601String().substring(0, 10);
     if (prefs.getString(key) == today) return;
 
