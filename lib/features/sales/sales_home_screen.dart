@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/audit/audit_logger.dart';
+import '../../core/auth/session.dart';
 import 'new_sale_screen.dart';
 import 'sale_detail_screen.dart';
 
@@ -132,7 +133,7 @@ class _SalesHomeScreenState extends State<SalesHomeScreen> {
                                     decoration: isVoided ? TextDecoration.lineThrough : null,
                                     color: isVoided ? Colors.grey : null),
                               ),
-                              if (!isVoided)
+                              if (!isVoided && Session.isOwner)
                                 IconButton(
                                   icon: const Icon(Icons.block, size: 18, color: Colors.orange),
                                   onPressed: () => _confirmVoid(sale),
@@ -140,7 +141,7 @@ class _SalesHomeScreenState extends State<SalesHomeScreen> {
                                   constraints: const BoxConstraints(),
                                   tooltip: 'Void (Cancel)',
                                 )
-                              else
+                              else if (isVoided)
                                 const Text('VOIDED',
                                     style: TextStyle(color: Colors.red, fontSize: 10, fontWeight: FontWeight.bold)),
                             ],

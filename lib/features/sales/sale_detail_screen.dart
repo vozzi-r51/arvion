@@ -95,11 +95,15 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
   }
 
   Future<void> _printViaBluetooth() async {
+    setState(() => _generating = true);
     final devices = await BluetoothPrinterService.getPairedDevices();
+    
     if (!mounted) return;
+    setState(() => _generating = false);
+
     if (devices.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Koi paired Bluetooth printer nahi mila. Pehle phone ki Bluetooth settings se printer pair karein.')),
+        const SnackBar(content: Text('Koi paired Bluetooth printer nahi mila. Bluetooth on karein aur phone settings se printer pair karein.')),
       );
       return;
     }

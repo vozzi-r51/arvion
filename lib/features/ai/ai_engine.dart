@@ -1,4 +1,5 @@
 import '../../core/database/db_helper.dart';
+import '../../core/auth/session.dart';
 
 class AIEngine {
   final int companyId;
@@ -6,6 +7,7 @@ class AIEngine {
 
   Future<String> processQuery(String query) async {
     final lowerQuery = query.toLowerCase();
+    final isOwner = Session.isOwner;
 
     // Today's Sales
     if (_matches(lowerQuery, ['today', 'aj', 'aaj', 'sales', 'sale'])) {
@@ -20,8 +22,9 @@ class AIEngine {
       return "Aapke $count products low stock par hain. Inhein reorder karne ki zaroorat ho sakti hai.";
     }
 
-    // Receivables (Who owes me?)
+    // Receivables (Who owes me?) - Restricted to Owner
     if (_matches(lowerQuery, ['owe', 'receivable', 'udhaar', 'paisa lena', 'customer balance'])) {
+      if (!isOwner) return "Maaf kijiye, aapko accounts receivable dekhne ki ijazat nahi hai.";
       final receivables = await DBHelper.instance.getReceivables(companyId);
       if (receivables.isEmpty) return "Mashallah, kisi customer se koi udhaar nahi lena.";
       final top = receivables.first;
@@ -29,16 +32,32 @@ class AIEngine {
       return "Total receivables Rs. ${total.toStringAsFixed(0)} hain. Sabse zyada udhaar ${top['name']} ka hai (Rs. ${top['current_balance']}).";
     }
 
-    // Expenses
+    // Expenses - Restricted to Owner
     if (_matches(lowerQuery, ['expense', 'kharcha', 'kharchay'])) {
+      if (!isOwner) return "Maaf kijiye, aapko kharchay dekhne ki ijazat nahi hai.";
       final total = await DBHelper.instance.getTodaysExpensesTotal(companyId);
       return "Aaj ke total kharchay Rs. ${total.toStringAsFixed(0)} hain.";
     }
 
-    // Profit
+    // Profit - Restricted to Owner
     if (_matches(lowerQuery, ['profit', 'munafa', 'kamai'])) {
+      if (!isOwner) return "Maaf kijiye, aapko munafa dekhne ki ijazat nahi hai.";
       final total = await DBHelper.instance.getTodaysProfit(companyId);
       return "Aaj ka estimated munafa Rs. ${total.toStringAsFixed(0)} hai.";
+    }
+
+    // Purchases - Restricted to Owner
+    if (_matches(lowerQuery, ['purchase', 'kharidari', 'maal kharida'])) {
+      if (!isOwner) return "Maaf kijiye, aapko kharidari ka data dekhne ki ijazat nahi hai.";
+      final total = await DBHelper.instance.getTodaysPurchaseTotal(companyId);
+      return "Aaj ki total purchase Rs. ${total.toStringAsFixed(0)} hai.";
+    }
+
+    // Suppliers - Restricted to Owner
+    if (_matches(lowerQuery, ['supplier', 'vendor'])) {
+      if (!isOwner) return "Maaf kijiye, aapko supplier ka data dekhne ki ijazat nahi hai.";
+      final count = await DBHelper.instance.getSupplierCount(companyId);
+      return "Aapke total $count suppliers hain.";
     }
 
     // Counts

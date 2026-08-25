@@ -48,32 +48,36 @@ class _MainShellState extends State<MainShell> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    final isOwner = Session.isOwner;
+
     final pages = [
       const DashboardScreen(),
       SalesHomeScreen(companyId: _companyId!),
-      ProductsHomeScreen(companyId: _companyId!),
-      MoreMenuScreen(companyId: _companyId!),
+      if (isOwner) ProductsHomeScreen(companyId: _companyId!),
+      if (isOwner) MoreMenuScreen(companyId: _companyId!),
       AIScreen(companyId: _companyId!),
     ];
 
-    final destinations = const [
-      NavigationDestination(
+    final destinations = [
+      const NavigationDestination(
           icon: Icon(Icons.dashboard_outlined),
           selectedIcon: Icon(Icons.dashboard),
           label: 'Home'),
-      NavigationDestination(
+      const NavigationDestination(
           icon: Icon(Icons.point_of_sale_outlined),
           selectedIcon: Icon(Icons.point_of_sale),
           label: 'Sales'),
-      NavigationDestination(
-          icon: Icon(Icons.inventory_2_outlined),
-          selectedIcon: Icon(Icons.inventory_2),
-          label: 'Stock'),
-      NavigationDestination(
-          icon: Icon(Icons.more_horiz_outlined),
-          selectedIcon: Icon(Icons.more_horiz),
-          label: 'More'),
-      NavigationDestination(
+      if (isOwner)
+        const NavigationDestination(
+            icon: Icon(Icons.inventory_2_outlined),
+            selectedIcon: Icon(Icons.inventory_2),
+            label: 'Stock'),
+      if (isOwner)
+        const NavigationDestination(
+            icon: Icon(Icons.more_horiz_outlined),
+            selectedIcon: Icon(Icons.more_horiz),
+            label: 'More'),
+      const NavigationDestination(
           icon: Icon(Icons.auto_awesome_outlined),
           selectedIcon: Icon(Icons.auto_awesome),
           label: 'AI'),

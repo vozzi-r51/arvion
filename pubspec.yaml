@@ -44,6 +44,7 @@ dependencies:
 
   # Bluetooth thermal receipt printing
   blue_thermal_printer: ^1.2.3
+  permission_handler: ^11.3.1
 
   # Local notifications (low stock / due payment reminders)
   flutter_local_notifications: ^18.0.1
@@ -74,3 +75,12 @@ flutter:
   uses-material-design: true
   assets:
     - assets/icon/app_icon.png
+
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter/static/Inter_18pt-Regular.ttf
+        - asset: assets/fonts/Inter/static/Inter_18pt-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Inter/static/Inter_18pt-Black.ttf
+          weight: 900

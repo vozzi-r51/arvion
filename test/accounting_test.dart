@@ -240,6 +240,33 @@ void main() {
       100,
     );
 
+    // Test: Negative stock enforcement
+    expect(
+      () => db.insertSaleWithItems(
+        sale: {
+          'company_id': companyId,
+          'invoice_number': 'TEST-NEG-001',
+          'sale_date': '2026-08-24T00:00:00.000',
+          'created_at': DateTime.now().toIso8601String(),
+          'paid_amount': 1000,
+          'due_amount': 0,
+          'total_amount': 1000,
+        },
+        items: [
+          {
+            'product_id': productId,
+            'product_name': 'Test Product',
+            'quantity': 100.0, // Exceeds stock (8.0)
+            'unit_price': 10.0,
+            'purchase_price': 5.0,
+            'total': 1000.0,
+          },
+        ],
+        allowNegativeStock: false,
+      ),
+      throwsStateError,
+    );
+
     await db.deleteCompanyPermanently(companyId);
   });
 }

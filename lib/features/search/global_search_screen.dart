@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/auth/session.dart';
 import '../products/product_form_screen.dart';
 import '../customers/customer_form_screen.dart';
 import '../customers/supplier_form_screen.dart';
@@ -50,6 +51,8 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
         _customers.isEmpty &&
         _suppliers.isEmpty;
 
+    final isOwner = Session.isOwner;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: isDark ? const Color(0xFF111827) : Colors.white,
@@ -80,25 +83,49 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                       'Products',
                       _products,
                       (p) => p['name'] as String,
-                      (p) => Navigator.of(context).push(MaterialPageRoute(
+                      (p) {
+                        if (!isOwner) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Cashier products edit nahi kar sakta'))
+                          );
+                          return;
+                        }
+                        Navigator.of(context).push(MaterialPageRoute(
                           builder: (_) => ProductFormScreen(
-                              companyId: widget.companyId, existing: p)))),
+                              companyId: widget.companyId, existing: p)));
+                      }),
                 if (_customers.isNotEmpty)
                   ..._section(
                       'Customers',
                       _customers,
                       (c) => c['name'] as String,
-                      (c) => Navigator.of(context).push(MaterialPageRoute(
+                      (c) {
+                        if (!isOwner) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Cashier customers edit nahi kar sakta'))
+                          );
+                          return;
+                        }
+                        Navigator.of(context).push(MaterialPageRoute(
                           builder: (_) => CustomerFormScreen(
-                              companyId: widget.companyId, existing: c)))),
+                              companyId: widget.companyId, existing: c)));
+                      }),
                 if (_suppliers.isNotEmpty)
                   ..._section(
                       'Suppliers',
                       _suppliers,
                       (s) => s['company_name'] as String,
-                      (s) => Navigator.of(context).push(MaterialPageRoute(
+                      (s) {
+                        if (!isOwner) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Cashier suppliers edit nahi kar sakta'))
+                          );
+                          return;
+                        }
+                        Navigator.of(context).push(MaterialPageRoute(
                           builder: (_) => SupplierFormScreen(
-                              companyId: widget.companyId, existing: s)))),
+                              companyId: widget.companyId, existing: s)));
+                      }),
               ],
             ),
     );

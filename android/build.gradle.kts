@@ -29,7 +29,7 @@ subprojects {
                 } else if (project.name == "flutter_local_notifications") {
                     android.namespace = "com.dexterous.flutterlocalnotifications"
                 } else {
-                    android.namespace = "com.example.${project.name.replace("-", "_")}"
+                    android.namespace = "com.arvion.plugins.${project.name.replace("-", "_")}"
                 }
             }
         }

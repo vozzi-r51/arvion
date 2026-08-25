@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 /// Central place for all colors, typography and theme data used across
 /// DukanEdge. Keeping this in one file makes it easy to re-skin the app
@@ -29,7 +28,9 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: lightBackground,
-      textTheme: GoogleFonts.interTextTheme(),
+      // Using standard fontFamily ensures 100% offline usage.
+      // Falls back to system fonts if assets/fonts/ files are missing.
+      fontFamily: 'Inter',
       appBarTheme: AppBarTheme(
         backgroundColor: primaryNavy,
         foregroundColor: Colors.white,
@@ -92,7 +93,8 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: darkBackground,
-      textTheme: GoogleFonts.notoSansTextTheme(ThemeData.dark().textTheme),
+      // Using 'Inter' as 'NotoSans' was not found in the assets.
+      fontFamily: 'Inter',
       appBarTheme: const AppBarTheme(
         backgroundColor: darkSurface,
         foregroundColor: Colors.white,

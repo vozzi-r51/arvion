@@ -21,6 +21,9 @@ class _CartItem {
   double conversionFactor;
   bool isSecondary;
 
+  late final TextEditingController priceController;
+  late final TextEditingController qtyController;
+
   _CartItem({
     required this.productId,
     required this.name,
@@ -35,7 +38,26 @@ class _CartItem {
     this.secondaryUnit,
     this.conversionFactor = 1,
     this.isSecondary = false,
-  });
+  }) {
+    priceController = TextEditingController(text: displayPrice.toStringAsFixed(0));
+    qtyController = TextEditingController(text: qty.toStringAsFixed(qty % 1 == 0 ? 0 : 1));
+  }
+
+  void updateControllers() {
+    final pStr = displayPrice.toStringAsFixed(0);
+    if (priceController.text != pStr) {
+      priceController.text = pStr;
+    }
+    final qStr = qty.toStringAsFixed(qty % 1 == 0 ? 0 : 1);
+    if (qtyController.text != qStr) {
+      qtyController.text = qStr;
+    }
+  }
+
+  void dispose() {
+    priceController.dispose();
+    qtyController.dispose();
+  }
 
   double get displayPrice => isSecondary ? unitPrice * conversionFactor : unitPrice;
   double get total => displayPrice * qty;
@@ -113,6 +135,7 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
     setState(() {
       if (existingIndex >= 0) {
         _cart[existingIndex].qty += 1;
+        _cart[existingIndex].updateControllers();
       } else {
         _cart.add(_CartItem(
           productId: productId,
@@ -132,12 +155,18 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
     });
   }
 
-  void _removeItem(int index) => setState(() => _cart.removeAt(index));
+  void _removeItem(int index) {
+    _cart[index].dispose();
+    setState(() => _cart.removeAt(index));
+  }
 
   void _changeQty(int index, double delta) {
     setState(() {
       final newQty = _cart[index].qty + delta;
-      if (newQty > 0) _cart[index].qty = newQty;
+      if (newQty > 0) {
+        _cart[index].qty = newQty;
+        _cart[index].updateControllers();
+      }
     });
   }
 
@@ -150,17 +179,6 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
 
     final prefs = await SharedPreferences.getInstance();
     final allowNegativeStock = prefs.getBool('allow_negative_stock') ?? false;
-    if (!allowNegativeStock) {
-      for (final item in _cart) {
-        if (item.baseQty > item.availableStock) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${item.name} ka stock kam hai (available: ${item.availableStock} ${item.baseUnit})')),
-          );
-          return;
-        }
-      }
-    }
 
     if (_saleType == 'due' && _selectedCustomerId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -220,6 +238,7 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
       saleId = await DBHelper.instance.insertSaleWithItems(
         sale: saleData,
         items: itemsData,
+        allowNegativeStock: allowNegativeStock,
       );
     } catch (error) {
       if (!mounted) return;
@@ -285,6 +304,9 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
 
   @override
   void dispose() {
+    for (final item in _cart) {
+      item.dispose();
+    }
     _discountCtrl.dispose();
     _taxPercentCtrl.dispose();
     _paidCtrl.dispose();
@@ -337,8 +359,7 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                                       decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(vertical: 8)),
                                       style: const TextStyle(fontSize: 13),
-                                      controller: TextEditingController(text: item.displayPrice.toStringAsFixed(0))
-                                        ..selection = TextSelection.collapsed(offset: item.displayPrice.toStringAsFixed(0).length),
+                                      controller: item.priceController,
                                       onChanged: (v) {
                                         final val = double.tryParse(v) ?? 0;
                                         setState(() {
@@ -357,7 +378,10 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                                       child: FilterChip(
                                         label: Text(item.isSecondary ? item.secondaryUnit! : item.baseUnit, style: const TextStyle(fontSize: 10)),
                                         selected: item.isSecondary,
-                                        onSelected: (v) => setState(() => item.isSecondary = v),
+                                        onSelected: (v) => setState(() {
+                                          item.isSecondary = v;
+                                          item.updateControllers();
+                                        }),
                                         padding: EdgeInsets.zero,
                                         visualDensity: VisualDensity.compact,
                                       ),
@@ -379,8 +403,7 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                                       decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(vertical: 8)),
                                       style: const TextStyle(fontSize: 13),
-                                      controller: TextEditingController(text: item.qty.toStringAsFixed(item.qty % 1 == 0 ? 0 : 1))
-                                        ..selection = TextSelection.collapsed(offset: item.qty.toStringAsFixed(item.qty % 1 == 0 ? 0 : 1).length),
+                                      controller: item.qtyController,
                                       onChanged: (v) {
                                         final val = double.tryParse(v) ?? 0;
                                         setState(() => item.qty = val);
@@ -479,6 +502,7 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                               setState(() {
                                 for (var item in _cart) {
                                   item.unitPrice = isWholesale ? item.wholesalePrice : item.retailPrice;
+                                  item.updateControllers();
                                 }
                               });
                             }

@@ -38,7 +38,7 @@ class DBHelper {
 
     return openDatabase(
       path,
-      version: 20,
+      version: 21,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
       onConfigure: (db) async {
@@ -123,6 +123,10 @@ class DBHelper {
       await db.execute('ALTER TABLE products ADD COLUMN base_unit TEXT DEFAULT "Pc"');
       await db.execute('ALTER TABLE products ADD COLUMN secondary_unit TEXT');
       await db.execute('ALTER TABLE products ADD COLUMN conversion_factor REAL DEFAULT 1');
+    }
+    if (oldVersion < 21) {
+      await db.execute('ALTER TABLE journal_entries ADD COLUMN source_type TEXT');
+      await db.execute('ALTER TABLE journal_entries ADD COLUMN source_id INTEGER');
     }
   }
 
@@ -213,6 +217,8 @@ class DBHelper {
         company_id INTEGER NOT NULL,
         entry_date TEXT NOT NULL,
         description TEXT NOT NULL,
+        source_type TEXT,
+        source_id INTEGER,
         created_at TEXT NOT NULL,
         FOREIGN KEY (company_id) REFERENCES companies (id)
       )
@@ -1215,6 +1221,7 @@ class DBHelper {
   Future<int> insertSaleWithItems({
     required Map<String, dynamic> sale,
     required List<Map<String, dynamic>> items,
+    bool allowNegativeStock = true,
   }) async {
     final db = await database;
     return db.transaction<int>((txn) async {
@@ -1223,6 +1230,7 @@ class DBHelper {
         sale['company_id'] as int,
         items,
         priceKey: 'unit_price',
+        allowNegativeStock: allowNegativeStock,
       );
       final saleId = await txn.insert('sales', sale);
       final companyId = sale['company_id'] as int;
@@ -1275,21 +1283,25 @@ class DBHelper {
       final cogsAcc = getAccId('Cost of Goods Sold');
       final invAcc = getAccId('Inventory');
 
+      if (cashAcc == null || recAcc == null || salesAcc == null || cogsAcc == null || invAcc == null) {
+        throw StateError('Accounting for Sales is not fully configured (Missing AR, Sales, COGS, or Inventory accounts).');
+      }
+
       final List<Map<String, dynamic>> journalLines = [];
 
       // 1. Revenue Entry
-      if (paidAmount > 0 && cashAcc != null) {
+      if (paidAmount > 0) {
         journalLines.add({'account_id': cashAcc, 'debit': paidAmount, 'credit': 0.0});
       }
-      if (dueAmount > 0 && recAcc != null) {
+      if (dueAmount > 0) {
         journalLines.add({'account_id': recAcc, 'debit': dueAmount, 'credit': 0.0});
       }
-      if (totalAmount > 0 && salesAcc != null) {
+      if (totalAmount > 0) {
         journalLines.add({'account_id': salesAcc, 'debit': 0.0, 'credit': totalAmount});
       }
 
       // 2. COGS Entry (if cost data exists)
-      if (totalCost > 0 && cogsAcc != null && invAcc != null) {
+      if (totalCost > 0) {
         journalLines.add({'account_id': cogsAcc, 'debit': totalCost, 'credit': 0.0});
         journalLines.add({'account_id': invAcc, 'debit': 0.0, 'credit': totalCost});
       }
@@ -1299,6 +1311,8 @@ class DBHelper {
             companyId: companyId,
             date: saleDate,
             description: 'Auto: Sale Invoice $invoiceNum',
+            sourceType: 'sale',
+            sourceId: saleId,
             lines: journalLines);
       }
 
@@ -1354,8 +1368,8 @@ class DBHelper {
 
       // Create Reversal Journal
       final journals = await txn.query('journal_entries', 
-          where: 'company_id = ? AND description LIKE ?', 
-          whereArgs: [companyId, '%Sale Invoice $invoiceNum%']);
+          where: 'company_id = ? AND source_type = ? AND source_id = ?', 
+          whereArgs: [companyId, 'sale', saleId]);
       
       if (journals.isNotEmpty) {
         final journalId = journals.first['id'] as int;
@@ -1370,7 +1384,9 @@ class DBHelper {
         await postAutomatedEntry(txn, 
             companyId: companyId, 
             date: DateTime.now().toIso8601String(), 
-            description: 'VOID: Sale Invoice $invoiceNum', 
+            description: 'VOID: Sale Invoice $invoiceNum',
+            sourceType: 'reversal',
+            sourceId: journalId,
             lines: reversalLines);
       }
 
@@ -1502,15 +1518,19 @@ class DBHelper {
       final payAcc = getAccId('Accounts Payable');
       final invAcc = getAccId('Inventory');
 
+      if (cashAcc == null || payAcc == null || invAcc == null) {
+        throw StateError('Accounting for Purchases is not fully configured (Missing Cash, AP, or Inventory accounts).');
+      }
+
       final List<Map<String, dynamic>> journalLines = [];
 
-      if (totalAmount > 0 && invAcc != null) {
+      if (totalAmount > 0) {
         journalLines.add({'account_id': invAcc, 'debit': totalAmount, 'credit': 0.0});
       }
-      if (paidAmount > 0 && cashAcc != null) {
+      if (paidAmount > 0) {
         journalLines.add({'account_id': cashAcc, 'debit': 0.0, 'credit': paidAmount});
       }
-      if (dueAmount > 0 && payAcc != null) {
+      if (dueAmount > 0) {
         journalLines.add({'account_id': payAcc, 'debit': 0.0, 'credit': dueAmount});
       }
 
@@ -1519,6 +1539,8 @@ class DBHelper {
             companyId: companyId,
             date: purchaseDate,
             description: 'Auto: Purchase Invoice $invoiceNum',
+            sourceType: 'purchase',
+            sourceId: purchaseId,
             lines: journalLines);
       }
 
@@ -1575,8 +1597,8 @@ class DBHelper {
 
       // Create Reversal Journal
       final journals = await txn.query('journal_entries', 
-          where: 'company_id = ? AND description LIKE ?', 
-          whereArgs: [companyId, '%Purchase Invoice $invoiceNum%']);
+          where: 'company_id = ? AND source_type = ? AND source_id = ?', 
+          whereArgs: [companyId, 'purchase', purchaseId]);
       
       if (journals.isNotEmpty) {
         final journalId = journals.first['id'] as int;
@@ -1591,7 +1613,9 @@ class DBHelper {
         await postAutomatedEntry(txn, 
             companyId: companyId, 
             date: DateTime.now().toIso8601String(), 
-            description: 'VOID: Purchase Invoice $invoiceNum', 
+            description: 'VOID: Purchase Invoice $invoiceNum',
+            sourceType: 'reversal',
+            sourceId: journalId,
             lines: reversalLines);
       }
 
@@ -1651,6 +1675,8 @@ class DBHelper {
           companyId: companyId,
           date: date,
           description: 'Auto: Expense #$expenseId - $category',
+          sourceType: 'expense',
+          sourceId: expenseId,
           lines: [
             {'account_id': expAccId, 'debit': amount, 'credit': 0.0},
             {'account_id': sourceAccId, 'debit': 0.0, 'credit': amount},
@@ -1681,7 +1707,8 @@ class DBHelper {
       await _reverseAutomatedEntry(
         txn,
         companyId: companyId,
-        description: 'Auto: Expense #$id - ${oldExpense['category']}',
+        sourceType: 'expense',
+        sourceId: id,
         date: DateTime.now().toIso8601String(),
         reversalDescription: 'REVERSAL: Expense #$id',
       );
@@ -1700,6 +1727,8 @@ class DBHelper {
           companyId: companyId,
           date: date,
           description: 'Auto: Expense #$id - $category',
+          sourceType: 'expense',
+          sourceId: id,
           lines: [
             {'account_id': expenseAccountId, 'debit': amount, 'credit': 0.0},
             {'account_id': sourceAccountId, 'debit': 0.0, 'credit': amount},
@@ -1716,7 +1745,8 @@ class DBHelper {
       await _reverseAutomatedEntry(
         txn,
         companyId: expense['company_id'] as int,
-        description: 'Auto: Expense #$id - ${expense['category']}',
+        sourceType: 'expense',
+        sourceId: id,
         date: DateTime.now().toIso8601String(),
         reversalDescription: 'REVERSAL: Expense #$id',
       );
@@ -1765,6 +1795,8 @@ class DBHelper {
           companyId: companyId,
           date: date,
           description: 'Auto: Income #$incomeRecordId - $category',
+          sourceType: 'income',
+          sourceId: incomeRecordId,
           lines: [
             {'account_id': cashId, 'debit': amount, 'credit': 0.0},
             {'account_id': incomeAccountId, 'debit': 0.0, 'credit': amount},
@@ -1793,7 +1825,8 @@ class DBHelper {
       await _reverseAutomatedEntry(
         txn,
         companyId: companyId,
-        description: 'Auto: Income #$id - ${oldIncome['category']}',
+        sourceType: 'income',
+        sourceId: id,
         date: DateTime.now().toIso8601String(),
         reversalDescription: 'REVERSAL: Income #$id',
       );
@@ -1808,6 +1841,8 @@ class DBHelper {
           companyId: companyId,
           date: date,
           description: 'Auto: Income #$id - $category',
+          sourceType: 'income',
+          sourceId: id,
           lines: [
             {'account_id': cashId, 'debit': amount, 'credit': 0.0},
             {'account_id': incomeAccountId, 'debit': 0.0, 'credit': amount},
@@ -1824,7 +1859,8 @@ class DBHelper {
       await _reverseAutomatedEntry(
         txn,
         companyId: income['company_id'] as int,
-        description: 'Auto: Income #$id - ${income['category']}',
+        sourceType: 'income',
+        sourceId: id,
         date: DateTime.now().toIso8601String(),
         reversalDescription: 'REVERSAL: Income #$id',
       );
@@ -1845,7 +1881,7 @@ class DBHelper {
         partyId: data['customer_id'],
         amount: data['amount'],
       );
-      await txn.insert('customer_payments', data);
+      final payId = await txn.insert('customer_payments', data);
       final companyId = data['company_id'] as int;
       final amount = (data['amount'] as num).toDouble();
       final customerId = data['customer_id'] as int;
@@ -1871,6 +1907,8 @@ class DBHelper {
             companyId: companyId,
             date: date,
             description: 'Auto: Payment Received (Customer ID $customerId)',
+            sourceType: 'customer_payment',
+            sourceId: payId,
             lines: [
               {'account_id': targetAccId, 'debit': amount, 'credit': 0.0},
               {'account_id': recAccId, 'debit': 0.0, 'credit': amount},
@@ -1898,7 +1936,7 @@ class DBHelper {
         partyId: data['supplier_id'],
         amount: data['amount'],
       );
-      await txn.insert('supplier_payments', data);
+      final payId = await txn.insert('supplier_payments', data);
       final companyId = data['company_id'] as int;
       final amount = (data['amount'] as num).toDouble();
       final supplierId = data['supplier_id'] as int;
@@ -1924,6 +1962,8 @@ class DBHelper {
             companyId: companyId,
             date: date,
             description: 'Auto: Payment Paid (Supplier ID $supplierId)',
+            sourceType: 'supplier_payment',
+            sourceId: payId,
             lines: [
               {'account_id': payAccId, 'debit': amount, 'credit': 0.0},
               {'account_id': sourceAccId, 'debit': 0.0, 'credit': amount},
@@ -2476,6 +2516,8 @@ class DBHelper {
           companyId: salesReturn['company_id'] as int,
           date: salesReturn['return_date'] as String,
           description: 'Auto: Sales Return ${salesReturn['return_number']}',
+          sourceType: 'sales_return',
+          sourceId: returnId,
           lines: [
             {'account_id': revenueId, 'debit': totalAmount, 'credit': 0.0},
             {'account_id': refundAccountId, 'debit': 0.0, 'credit': totalAmount},
@@ -2513,6 +2555,7 @@ class DBHelper {
   Future<int> insertPurchaseReturnWithItems({
     required Map<String, dynamic> purchaseReturn,
     required List<Map<String, dynamic>> items,
+    bool allowNegativeStock = true,
   }) async {
     final db = await database;
     return db.transaction<int>((txn) async {
@@ -2522,6 +2565,7 @@ class DBHelper {
         purchaseReturn['company_id'] as int,
         items,
         priceKey: 'unit_cost',
+        allowNegativeStock: allowNegativeStock,
       );
       final returnId = await txn.insert('purchase_returns', purchaseReturn);
 
@@ -2562,6 +2606,8 @@ class DBHelper {
           companyId: purchaseReturn['company_id'] as int,
           date: purchaseReturn['return_date'] as String,
           description: 'Auto: Purchase Return ${purchaseReturn['return_number']}',
+          sourceType: 'purchase_return',
+          sourceId: returnId,
           lines: [
             {'account_id': settlementAccountId, 'debit': totalAmount, 'credit': 0.0},
             {'account_id': inventoryId, 'debit': 0.0, 'credit': totalAmount},
@@ -2743,7 +2789,7 @@ class DBHelper {
       if (products.isEmpty) {
         throw ArgumentError('The adjusted product must belong to the selected company.');
       }
-      await txn.insert('stock_adjustments', data);
+      final adjId = await txn.insert('stock_adjustments', data);
       final type = data['type'] as String;
       final delta = type == 'increase' ? quantity : -quantity;
       await txn.rawUpdate(
@@ -2762,6 +2808,8 @@ class DBHelper {
           companyId: companyId,
           date: data['adjustment_date'] as String,
           description: 'Auto: Stock Adjustment ${data['product_name']}',
+          sourceType: 'stock_adjustment',
+          sourceId: adjId,
           lines: type == 'increase'
               ? [
                   {'account_id': inventoryId, 'debit': value, 'credit': 0.0},
@@ -2942,6 +2990,11 @@ class DBHelper {
     await db.delete('staff_users', where: 'id = ?', whereArgs: [id]);
   }
 
+  Future<void> updateStaffUser(int id, Map<String, dynamic> data) async {
+    final db = await database;
+    await db.update('staff_users', data, where: 'id = ?', whereArgs: [id]);
+  }
+
   /// Checks a PIN against every staff user for a company (cashier PINs are
   /// per-company since a device may hold multiple shops).
   Future<Map<String, dynamic>?> findStaffUserByCompany(int companyId) async {
@@ -3061,6 +3114,8 @@ class DBHelper {
     required String date,
     required String description,
     required List<Map<String, dynamic>> lines,
+    String? sourceType,
+    int? sourceId,
   }) async {
     _validateJournalLines(lines);
     await _validateJournalAccounts(txn, companyId, lines);
@@ -3069,6 +3124,8 @@ class DBHelper {
       'company_id': companyId,
       'entry_date': date,
       'description': description,
+      'source_type': sourceType,
+      'source_id': sourceId,
       'created_at': DateTime.now().toIso8601String(),
     });
 
@@ -3132,12 +3189,14 @@ class DBHelper {
     int companyId,
     List<Map<String, dynamic>> items, {
     required String priceKey,
+    bool allowNegativeStock = true,
   }) async {
     if (items.isEmpty) {
       throw ArgumentError('A transaction must contain at least one item.');
     }
 
     final productIds = <int>{};
+    final Map<int, double> requestedQtys = {};
     for (final item in items) {
       final quantity = (item['quantity'] as num?)?.toDouble();
       final price = (item[priceKey] as num?)?.toDouble();
@@ -3151,18 +3210,30 @@ class DBHelper {
           throw ArgumentError('Inventory product IDs must be integers.');
         }
         productIds.add(productId);
+        requestedQtys[productId] = (requestedQtys[productId] ?? 0) + quantity;
       }
     }
 
     if (productIds.isEmpty) return;
     final products = await txn.query(
       'products',
-      columns: ['id'],
+      columns: ['id', 'name', 'current_stock'],
       where: 'company_id = ? AND id IN (${List.filled(productIds.length, '?').join(',')})',
       whereArgs: [companyId, ...productIds],
     );
     if (products.length != productIds.length) {
       throw ArgumentError('Every inventory product must belong to the selected company.');
+    }
+
+    if (!allowNegativeStock) {
+      for (final p in products) {
+        final id = p['id'] as int;
+        final stock = (p['current_stock'] as num).toDouble();
+        final requested = requestedQtys[id]!;
+        if (requested > stock) {
+          throw StateError('Stock kam hai: ${p['name']} (Available: $stock, Requested: $requested)');
+        }
+      }
     }
   }
 
@@ -3284,14 +3355,15 @@ class DBHelper {
   Future<void> _reverseAutomatedEntry(
     Transaction txn, {
     required int companyId,
-    required String description,
+    required String sourceType,
+    required int sourceId,
     required String date,
     required String reversalDescription,
   }) async {
     final entries = await txn.query(
       'journal_entries',
-      where: 'company_id = ? AND description = ?',
-      whereArgs: [companyId, description],
+      where: 'company_id = ? AND source_type = ? AND source_id = ?',
+      whereArgs: [companyId, sourceType, sourceId],
       orderBy: 'id DESC',
       limit: 1,
     );
@@ -3313,6 +3385,8 @@ class DBHelper {
       companyId: companyId,
       date: date,
       description: reversalDescription,
+      sourceType: 'reversal',
+      sourceId: entries.first['id'] as int,
       lines: reversalLines,
     );
   }

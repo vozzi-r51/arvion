@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/database/db_helper.dart';
 
 class NewPurchaseReturnScreen extends StatefulWidget {
@@ -92,6 +93,9 @@ class _NewPurchaseReturnScreenState extends State<NewPurchaseReturnScreen> {
 
     setState(() => _saving = true);
 
+    final prefs = await SharedPreferences.getInstance();
+    final allowNegativeStock = prefs.getBool('allow_negative_stock') ?? false;
+
     final returnNumber =
         await DBHelper.instance.generatePurchaseReturnNumber(widget.companyId);
 
@@ -116,8 +120,20 @@ class _NewPurchaseReturnScreenState extends State<NewPurchaseReturnScreen> {
             })
         .toList();
 
-    await DBHelper.instance
-        .insertPurchaseReturnWithItems(purchaseReturn: returnData, items: itemsData);
+    try {
+      await DBHelper.instance.insertPurchaseReturnWithItems(
+        purchaseReturn: returnData,
+        items: itemsData,
+        allowNegativeStock: allowNegativeStock,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Return save nahi ho saka: $error')),
+      );
+      return;
+    }
 
     setState(() => _saving = false);
     if (!mounted) return;

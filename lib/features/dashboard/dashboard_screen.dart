@@ -80,32 +80,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  // Everything on this dashboard is now live (Phase 3 through 7).
-  List<_DashboardStat> get _stats => [
-        _DashboardStat('Today\'s Sales', 'Rs. ${_todaysSales.toStringAsFixed(0)}',
-            Icons.point_of_sale, Colors.teal),
+  // Filtered based on role
+  List<_DashboardStat> get _stats {
+    final isOwner = Session.isOwner;
+    return [
+      _DashboardStat('Today\'s Sales', 'Rs. ${_todaysSales.toStringAsFixed(0)}',
+          Icons.point_of_sale, Colors.teal),
+      if (isOwner)
         _DashboardStat('Today\'s Purchase', 'Rs. ${_todaysPurchase.toStringAsFixed(0)}',
             Icons.shopping_cart, Colors.indigo),
+      if (isOwner)
         _DashboardStat('Today\'s Profit', 'Rs. ${_todaysProfit.toStringAsFixed(0)}',
             Icons.trending_up, Colors.green),
+      if (isOwner)
         _DashboardStat('Today\'s Expenses', 'Rs. ${_todaysExpenses.toStringAsFixed(0)}',
             Icons.receipt_long, Colors.orange),
-        _DashboardStat('Total Customers', '$_customerCount', Icons.people,
-            Colors.blue),
+      _DashboardStat('Total Customers', '$_customerCount', Icons.people,
+          Colors.blue),
+      if (isOwner)
         _DashboardStat('Total Suppliers', '$_supplierCount',
             Icons.local_shipping, Colors.purple),
-        _DashboardStat('Total Products', '$_productCount', Icons.inventory_2,
-            Colors.brown),
-        _DashboardStat('Low Stock Alert', '$_lowStockCount',
-            Icons.warning_amber, Colors.red),
-      ];
+      _DashboardStat('Total Products', '$_productCount', Icons.inventory_2,
+          Colors.brown),
+      _DashboardStat('Low Stock Alert', '$_lowStockCount',
+          Icons.warning_amber, Colors.red),
+    ];
+  }
 
-  final List<_QuickAction> _quickActions = const [
-    _QuickAction('Add Product', Icons.add_box_outlined, 'Phase 3'),
-    _QuickAction('New Customer', Icons.person_add_alt, 'Phase 4'),
-    _QuickAction('New Sale', Icons.point_of_sale_outlined, 'Phase 5'),
-    _QuickAction('New Purchase', Icons.shopping_bag_outlined, 'Phase 6'),
-  ];
+  List<_QuickAction> get _quickActions {
+    final isOwner = Session.isOwner;
+    return [
+      if (isOwner) const _QuickAction('Add Product', Icons.add_box_outlined, 'Phase 3'),
+      const _QuickAction('New Customer', Icons.person_add_alt, 'Phase 4'),
+      const _QuickAction('New Sale', Icons.point_of_sale_outlined, 'Phase 5'),
+      if (isOwner) const _QuickAction('New Purchase', Icons.shopping_bag_outlined, 'Phase 6'),
+    ];
+  }
 
   void _showComingSoon(String phase) {
     ScaffoldMessenger.of(context).showSnackBar(

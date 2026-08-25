@@ -1,4 +1,6 @@
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'dart:io';
 
 /// Wraps blue_thermal_printer for simple text-based receipt printing on a
 /// paired 58mm/80mm Bluetooth thermal printer. Kept deliberately simple
@@ -9,8 +11,24 @@ class BluetoothPrinterService {
 
   static final BlueThermalPrinter _printer = BlueThermalPrinter.instance;
 
+  /// Requests necessary Bluetooth permissions for Android 12+ and older.
+  static Future<bool> requestPermissions() async {
+    if (Platform.isAndroid) {
+      final bluetoothScan = await Permission.bluetoothScan.request();
+      final bluetoothConnect = await Permission.bluetoothConnect.request();
+      
+      // On older Android, we might need Location too for scanning, 
+      // but blue_thermal_printer mostly deals with paired (bonded) devices.
+      return bluetoothScan.isGranted && bluetoothConnect.isGranted;
+    }
+    return true; // IOS handling can be added if needed
+  }
+
   static Future<List<BluetoothDevice>> getPairedDevices() async {
     try {
+      final hasPermission = await requestPermissions();
+      if (!hasPermission) return [];
+      
       return await _printer.getBondedDevices();
     } catch (_) {
       return [];

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/auth/session.dart';
 import '../finance/finance_home_screen.dart';
 import '../ledger/cash_book_screen.dart';
 import '../ledger/bank_accounts_screen.dart';
@@ -30,11 +31,15 @@ class MoreMenuScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isOwner = Session.isOwner;
+
     return Scaffold(
       appBar: AppBar(title: const Text('More')),
-      body: ListView(
-        padding: const EdgeInsets.all(12),
-        children: [
+      body: !isOwner 
+        ? const Center(child: Text('Access Denied: Only Owner can access this menu'))
+        : ListView(
+            padding: const EdgeInsets.all(12),
+            children: [
           Card(
             child: ListTile(
               leading: const CircleAvatar(

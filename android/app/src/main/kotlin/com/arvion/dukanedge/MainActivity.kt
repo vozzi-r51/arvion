@@ -1,4 +1,4 @@
-package com.example.dukanedge
+package com.arvion.dukanedge
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

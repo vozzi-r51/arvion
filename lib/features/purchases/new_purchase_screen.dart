@@ -14,6 +14,9 @@ class _PurchaseCartItem {
   double conversionFactor;
   bool isSecondary;
 
+  late final TextEditingController costController;
+  late final TextEditingController qtyController;
+
   _PurchaseCartItem({
     required this.productId,
     required this.name,
@@ -23,7 +26,26 @@ class _PurchaseCartItem {
     this.secondaryUnit,
     this.conversionFactor = 1,
     this.isSecondary = false,
-  });
+  }) {
+    costController = TextEditingController(text: displayCost.toStringAsFixed(0));
+    qtyController = TextEditingController(text: qty.toStringAsFixed(qty % 1 == 0 ? 0 : 1));
+  }
+
+  void updateControllers() {
+    final cStr = displayCost.toStringAsFixed(0);
+    if (costController.text != cStr) {
+      costController.text = cStr;
+    }
+    final qStr = qty.toStringAsFixed(qty % 1 == 0 ? 0 : 1);
+    if (qtyController.text != qStr) {
+      qtyController.text = qStr;
+    }
+  }
+
+  void dispose() {
+    costController.dispose();
+    qtyController.dispose();
+  }
 
   double get displayCost => isSecondary ? unitCost * conversionFactor : unitCost;
   double get total => displayCost * qty;
@@ -98,21 +120,29 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
     final existingIndex = _cart.indexWhere((c) => c.productId == productId);
 
       if (existingIndex >= 0) {
-        _cart[existingIndex].qty += 1;
+        setState(() {
+          _cart[existingIndex].qty += 1;
+          _cart[existingIndex].updateControllers();
+        });
       } else {
-        _cart.add(_PurchaseCartItem(
-          productId: productId,
-          name: selected['name'] as String,
-          unitCost: (selected['purchase_price'] as num).toDouble(),
-          qty: 1,
-          baseUnit: selected['base_unit'] as String? ?? 'Pc',
-          secondaryUnit: selected['secondary_unit'] as String?,
-          conversionFactor: (selected['conversion_factor'] as num?)?.toDouble() ?? 1,
-        ));
+        setState(() {
+          _cart.add(_PurchaseCartItem(
+            productId: productId,
+            name: selected['name'] as String,
+            unitCost: (selected['purchase_price'] as num).toDouble(),
+            qty: 1,
+            baseUnit: selected['base_unit'] as String? ?? 'Pc',
+            secondaryUnit: selected['secondary_unit'] as String?,
+            conversionFactor: (selected['conversion_factor'] as num?)?.toDouble() ?? 1,
+          ));
+        });
       }
   }
 
-  void _removeItem(int index) => setState(() => _cart.removeAt(index));
+  void _removeItem(int index) {
+    _cart[index].dispose();
+    setState(() => _cart.removeAt(index));
+  }
 
   Future<void> _savePurchase() async {
     if (_cart.isEmpty) {
@@ -210,6 +240,9 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
 
   @override
   void dispose() {
+    for (final item in _cart) {
+      item.dispose();
+    }
     _discountCtrl.dispose();
     _paidCtrl.dispose();
     super.dispose();
@@ -260,8 +293,7 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
                           children: [
                             Expanded(
                               child: TextField(
-                                controller: TextEditingController(text: item.qty.toStringAsFixed(item.qty % 1 == 0 ? 0 : 1))
-                                  ..selection = TextSelection.collapsed(offset: item.qty.toStringAsFixed(item.qty % 1 == 0 ? 0 : 1).length),
+                                controller: item.qtyController,
                                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                                 decoration: const InputDecoration(
                                     labelText: 'Quantity', isDense: true),
@@ -274,8 +306,7 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
                             const SizedBox(width: 10),
                             Expanded(
                               child: TextField(
-                                controller: TextEditingController(text: item.displayCost.toStringAsFixed(0))
-                                  ..selection = TextSelection.collapsed(offset: item.displayCost.toStringAsFixed(0).length),
+                                controller: item.costController,
                                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                                 decoration: const InputDecoration(
                                     labelText: 'Unit Cost (Rs.)', isDense: true),
@@ -297,7 +328,10 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
                                 child: FilterChip(
                                   label: Text(item.isSecondary ? item.secondaryUnit! : item.baseUnit, style: const TextStyle(fontSize: 10)),
                                   selected: item.isSecondary,
-                                  onSelected: (v) => setState(() => item.isSecondary = v),
+                                  onSelected: (v) => setState(() {
+                                    item.isSecondary = v;
+                                    item.updateControllers();
+                                  }),
                                   padding: EdgeInsets.zero,
                                   visualDensity: VisualDensity.compact,
                                 ),
