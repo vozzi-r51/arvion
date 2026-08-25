@@ -16,6 +16,8 @@ import 'theme_settings_screen.dart';
 import '../auth/pin_login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../shell/main_shell.dart';
+import '../../core/utils/image_generator.dart';
+import '../../core/widgets/arvion_logo.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -198,6 +200,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
       MaterialPageRoute(builder: (_) => const PinLoginScreen()),
       (_) => false,
     );
+  }
+
+  Future<void> _generateLauncherIcon() async {
+    final path = await ImageGenerator.generateFromWidget(
+      widget: const ArvionLogo(size: 512, showBackground: false), // Transparent for adaptive
+      context: context,
+      fileName: 'new_app_icon',
+    );
+    
+    if (mounted && path != null) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Icon Generated'),
+          content: SelectableText('Icon saved to:\n$path\n\nPlease move this file to assets/icon/app_icon.png and run launcher icons command.'),
+          actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
+        ),
+      );
+    }
   }
 
   @override
@@ -534,6 +555,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     subtitle: const Text(
                         'App ko lock karke PIN screen par wapas jayein'),
                     onTap: _signOut,
+                  ),
+                  const Divider(),
+                  ListTile(
+                    leading: const Icon(Icons.architecture, color: Colors.blue),
+                    title: const Text('Developer: Generate App Icon'),
+                    subtitle: const Text('Render Arvion logo to PNG for launcher'),
+                    onTap: _generateLauncherIcon,
                   ),
                 ],
               ],

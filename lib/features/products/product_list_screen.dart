@@ -3,6 +3,7 @@ import 'dart:io';
 import '../../core/database/db_helper.dart';
 import '../../core/scanner/barcode_scanner_screen.dart';
 import '../../core/audit/audit_logger.dart';
+import '../../core/utils/error_handler.dart';
 import 'product_form_screen.dart';
 import 'barcode_qr_screen.dart';
 
@@ -30,12 +31,17 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   Future<void> _load() async {
     setState(() => _loading = true);
-    final rows = await DBHelper.instance
-        .getProducts(widget.companyId, searchQuery: _query, limit: _pageSize, offset: 0);
-    setState(() {
-      _products = rows;
-      _hasMore = rows.length == _pageSize;
-      _loading = false;
+    await ErrorHandler.run(context, () async {
+      final rows = await DBHelper.instance
+          .getProducts(widget.companyId, searchQuery: _query, limit: _pageSize, offset: 0);
+      if (mounted) {
+        setState(() {
+          _products = rows;
+          _hasMore = rows.length == _pageSize;
+        });
+      }
+    }, onFinish: () {
+      if (mounted) setState(() => _loading = false);
     });
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:dukanedge/core/database/db_helper.dart';
 
@@ -9,6 +10,7 @@ void main() {
   setUpAll(() {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
+    SharedPreferences.setMockInitialValues({});
   });
 
   test('journal posting is atomic and balanced', () async {
@@ -362,5 +364,27 @@ void main() {
     );
 
     await db.deleteCompanyPermanently(companyId);
+  });
+
+  test('database schema upgrade handles new columns and indexes', () async {
+    final db = DBHelper.instance;
+    final database = await db.database;
+    
+    // Verify version
+    final version = await database.getVersion();
+    expect(version, 22);
+
+    // Verify presence of new source columns in journal_entries
+    final columns = await database.rawQuery("PRAGMA table_info(journal_entries)");
+    final hasSourceType = columns.any((c) => c['name'] == 'source_type');
+    final hasSourceId = columns.any((c) => c['name'] == 'source_id');
+    expect(hasSourceType, isTrue);
+    expect(hasSourceId, isTrue);
+
+    // Verify presence of indexes
+    final indexes = await database.rawQuery("SELECT name FROM sqlite_master WHERE type='index'");
+    final indexNames = indexes.map((i) => i['name'] as String).toList();
+    expect(indexNames, contains('idx_products_company'));
+    expect(indexNames, contains('idx_sales_date'));
   });
 }

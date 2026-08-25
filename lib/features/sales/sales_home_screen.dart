@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/audit/audit_logger.dart';
 import '../../core/auth/session.dart';
+import '../../core/utils/error_handler.dart';
 import 'new_sale_screen.dart';
 import 'sale_detail_screen.dart';
 import '../shell/main_shell.dart';
@@ -28,11 +29,16 @@ class _SalesHomeScreenState extends State<SalesHomeScreen> {
 
   Future<void> _load() async {
     setState(() => _loading = true);
-    final rows = await DBHelper.instance.getSales(widget.companyId, limit: _pageSize, offset: 0);
-    setState(() {
-      _sales = rows;
-      _hasMore = rows.length == _pageSize;
-      _loading = false;
+    await ErrorHandler.run(context, () async {
+      final rows = await DBHelper.instance.getSales(widget.companyId, limit: _pageSize, offset: 0);
+      if (mounted) {
+        setState(() {
+          _sales = rows;
+          _hasMore = rows.length == _pageSize;
+        });
+      }
+    }, onFinish: () {
+      if (mounted) setState(() => _loading = false);
     });
   }
 

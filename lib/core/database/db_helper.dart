@@ -39,7 +39,7 @@ class DBHelper {
 
     return openDatabase(
       path,
-      version: 21,
+      version: 22,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
       onConfigure: (db) async {
@@ -129,6 +129,9 @@ class DBHelper {
       await db.execute('ALTER TABLE journal_entries ADD COLUMN source_type TEXT');
       await db.execute('ALTER TABLE journal_entries ADD COLUMN source_id INTEGER');
     }
+    if (oldVersion < 22) {
+      await _createDatabaseIndexes(db);
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -182,6 +185,32 @@ class DBHelper {
     await _createStockAdjustmentsTable(db);
     await _createJournalTables(db);
     await _createStaffUsersTable(db);
+    await _createDatabaseIndexes(db);
+  }
+
+  Future<void> _createDatabaseIndexes(Database db) async {
+    // Company scoping indexes
+    await db.execute('CREATE INDEX idx_products_company ON products (company_id)');
+    await db.execute('CREATE INDEX idx_customers_company ON customers (company_id)');
+    await db.execute('CREATE INDEX idx_suppliers_company ON suppliers (company_id)');
+    await db.execute('CREATE INDEX idx_sales_company ON sales (company_id)');
+    await db.execute('CREATE INDEX idx_purchases_company ON purchases (company_id)');
+    await db.execute('CREATE INDEX idx_journal_company ON journal_entries (company_id)');
+
+    // Search indexes
+    await db.execute('CREATE INDEX idx_products_barcode ON products (company_id, barcode)');
+    await db.execute('CREATE INDEX idx_products_name ON products (company_id, name)');
+    await db.execute('CREATE INDEX idx_customers_mobile ON customers (company_id, mobile)');
+
+    // Date range indexes for reports
+    await db.execute('CREATE INDEX idx_sales_date ON sales (company_id, sale_date)');
+    await db.execute('CREATE INDEX idx_purchases_date ON purchases (company_id, purchase_date)');
+    await db.execute('CREATE INDEX idx_journal_date ON journal_entries (company_id, entry_date)');
+
+    // Foreign Key lookup indexes (line items)
+    await db.execute('CREATE INDEX idx_sale_items_parent ON sale_items (sale_id)');
+    await db.execute('CREATE INDEX idx_purchase_items_parent ON purchase_items (purchase_id)');
+    await db.execute('CREATE INDEX idx_journal_lines_parent ON journal_entry_lines (journal_entry_id)');
   }
 
   Future<void> _createStaffUsersTable(Database db) async {
