@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/audit/audit_logger.dart';
+import '../../core/utils/error_handler.dart';
 import 'customer_form_screen.dart';
 import '../ledger/customer_ledger_screen.dart';
 
@@ -25,11 +26,13 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
 
   Future<void> _load() async {
     setState(() => _loading = true);
-    final rows =
-    await DBHelper.instance.getCustomers(widget.companyId, searchQuery: _query);
-    setState(() {
-      _customers = rows;
-      _loading = false;
+    await ErrorHandler.run(context, () async {
+      final rows = await DBHelper.instance.getCustomers(widget.companyId, searchQuery: _query);
+      if (mounted) {
+        setState(() => _customers = rows);
+      }
+    }, onFinish: () {
+      if (mounted) setState(() => _loading = false);
     });
   }
 
@@ -71,14 +74,16 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
       ),
     );
     if (confirmed == true) {
-      await DBHelper.instance.deleteCustomer(c['id'] as int);
-      await AuditLogger.log(
-        companyId: widget.companyId,
-        module: 'Customer',
-        action: AuditLogger.delete,
-        description: 'Customer delete kiya: ${c['name']}',
-      );
-      _load();
+      await ErrorHandler.run(context, () async {
+        await DBHelper.instance.deleteCustomer(c['id'] as int);
+        await AuditLogger.log(
+          companyId: widget.companyId,
+          module: 'Customer',
+          action: AuditLogger.delete,
+          description: 'Customer delete kiya: ${c['name']}',
+        );
+        _load();
+      }, errorTitle: 'Delete fail ho gaya');
     }
   }
 

@@ -2995,14 +2995,6 @@ class DBHelper {
     await db.update('staff_users', data, where: 'id = ?', whereArgs: [id]);
   }
 
-  /// Checks a PIN against every staff user for a company (cashier PINs are
-  /// per-company since a device may hold multiple shops).
-  Future<Map<String, dynamic>?> findStaffUserByCompany(int companyId) async {
-    final db = await database;
-    final rows = await db.query('staff_users', where: 'company_id = ?', whereArgs: [companyId]);
-    return rows.isEmpty ? null : rows.first;
-  }
-
   Future<List<Map<String, dynamic>>> getAllStaffUsersAcrossCompanies() async {
     final db = await database;
     return db.query('staff_users');

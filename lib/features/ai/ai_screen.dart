@@ -24,12 +24,15 @@ class _AIScreenState extends State<AIScreen> {
   late final AIEngine _engine;
   final VoiceService _voice = VoiceService();
   bool _isListening = false;
+  bool _isVoiceReady = false;
 
   @override
   void initState() {
     super.initState();
     _engine = AIEngine(widget.companyId);
-    _voice.init();
+    _voice.init().then((_) {
+      if (mounted) setState(() => _isVoiceReady = true);
+    });
     _addSystemMessage("Asalam-o-Alaikum! Main ARVION AI hoon. Main aapke business data ko samajhne mein aapki madad kar sakta hoon.");
   }
 
@@ -98,6 +101,23 @@ class _AIScreenState extends State<AIScreen> {
             Text('Your private business assistant', style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.7))),
           ],
         ),
+        actions: [
+          if (_isVoiceReady && _voice.canUrdu)
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: ChoiceChip(
+                label: Text(_voice.isUrduMode ? 'Urdu' : 'English', style: const TextStyle(fontSize: 12)),
+                selected: _voice.isUrduMode,
+                onSelected: (val) {
+                  setState(() => _voice.setLocale(val));
+                },
+                selectedColor: Colors.white,
+                labelStyle: TextStyle(color: _voice.isUrduMode ? theme.colorScheme.primary : Colors.white),
+                backgroundColor: Colors.transparent,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: Colors.white)),
+              ),
+            ),
+        ],
       ),
       body: Column(
         children: [

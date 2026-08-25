@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/auth/session.dart';
@@ -18,6 +19,14 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
   List<Map<String, dynamic>> _customers = [];
   List<Map<String, dynamic>> _suppliers = [];
   bool _searched = false;
+  Timer? _debounce;
+
+  Future<void> _onQueryChanged(String query) async {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 350), () {
+      _search(query);
+    });
+  }
 
   Future<void> _search(String query) async {
     if (query.trim().length < 2) {
@@ -41,6 +50,12 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
       _suppliers = suppliers.take(20).toList();
       _searched = true;
     });
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
   }
 
   @override
@@ -70,7 +85,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
             enabledBorder: InputBorder.none,
             focusedBorder: InputBorder.none,
           ),
-          onChanged: _search,
+          onChanged: _onQueryChanged,
         ),
       ),
       body: noResults

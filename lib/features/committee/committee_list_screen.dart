@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/utils/error_handler.dart';
 import 'committee_detail_screen.dart';
 
 class CommitteeListScreen extends StatefulWidget {
@@ -22,10 +23,13 @@ class _CommitteeListScreenState extends State<CommitteeListScreen> {
 
   Future<void> _load() async {
     setState(() => _loading = true);
-    final rows = await DBHelper.instance.getCommittees(widget.companyId);
-    setState(() {
-      _committees = rows;
-      _loading = false;
+    await ErrorHandler.run(context, () async {
+      final rows = await DBHelper.instance.getCommittees(widget.companyId);
+      if (mounted) {
+        setState(() => _committees = rows);
+      }
+    }, onFinish: () {
+      if (mounted) setState(() => _loading = false);
     });
   }
 
@@ -125,8 +129,10 @@ class _CommitteeListScreenState extends State<CommitteeListScreen> {
       ),
     );
     if (confirmed == true) {
-      await DBHelper.instance.deleteCommittee(c['id'] as int);
-      _load();
+      await ErrorHandler.run(context, () async {
+        await DBHelper.instance.deleteCommittee(c['id'] as int);
+        _load();
+      }, errorTitle: 'Delete fail ho gaya');
     }
   }
 
