@@ -372,7 +372,11 @@ void main() {
     
     // Verify version
     final version = await database.getVersion();
-    expect(version, 22);
+    expect(version, 25);
+
+    // Verify presence of staff_users table
+    final tables = await database.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='staff_users'");
+    expect(tables, isNotEmpty);
 
     // Verify presence of new source columns in journal_entries
     final columns = await database.rawQuery("PRAGMA table_info(journal_entries)");

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/export/csv_export_service.dart';
+import '../../core/export/pdf_report_service.dart';
 import 'date_range_bar.dart';
+import 'package:printing/printing.dart';
 
 class PurchaseReportScreen extends StatefulWidget {
   final int companyId;
@@ -15,6 +17,7 @@ class _PurchaseReportScreenState extends State<PurchaseReportScreen> {
   DateTime _from = DateTime.now().subtract(const Duration(days: 30));
   DateTime _to = DateTime.now();
   List<Map<String, dynamic>> _purchases = [];
+  String _currency = 'Rs.';
   bool _loading = true;
 
   double get _totalPurchases =>
@@ -34,8 +37,10 @@ class _PurchaseReportScreenState extends State<PurchaseReportScreen> {
     setState(() => _loading = true);
     final rows = await DBHelper.instance
         .getPurchasesBetween(widget.companyId, _iso(_from), _iso(_to));
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
     setState(() {
       _purchases = rows;
+      if (company != null) _currency = company['currency_symbol'] ?? 'Rs.';
       _loading = false;
     });
   }
@@ -43,7 +48,7 @@ class _PurchaseReportScreenState extends State<PurchaseReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Purchase Report'), actions: [IconButton(icon: const Icon(Icons.ios_share), onPressed: _export)]),
+      appBar: AppBar(title: const Text('Purchase Report'), actions: [IconButton(icon: const Icon(Icons.ios_share), onPressed: _showExportMenu)]),
       body: Column(
         children: [
           DateRangeBar(
@@ -64,14 +69,14 @@ class _PurchaseReportScreenState extends State<PurchaseReportScreen> {
               children: [
                 Expanded(
                     child: _summaryCard(
-                        'Total Purchase', _totalPurchases, Colors.indigo)),
+                        'Total Purchase', _totalPurchases, Colors.indigo, _currency)),
                 const SizedBox(width: 10),
                 Expanded(
-                    child: _summaryCard('Total Due', _totalDue, Colors.red)),
+                    child: _summaryCard('Total Due', _totalDue, Colors.red, _currency)),
                 const SizedBox(width: 10),
                 Expanded(
                     child: _summaryCard(
-                        'Invoices', _purchases.length.toDouble(), Colors.blue,
+                        'Invoices', _purchases.length.toDouble(), Colors.blue, _currency,
                         isCount: true)),
               ],
             ),
@@ -93,7 +98,7 @@ class _PurchaseReportScreenState extends State<PurchaseReportScreen> {
                               subtitle: Text(
                                   '${(p['purchase_date'] as String).substring(0, 10)}  •  ${p['supplier_name'] ?? 'Not Selected'}'),
                               trailing: Text(
-                                'Rs. ${(p['total_amount'] as num).toStringAsFixed(0)}',
+                                '$_currency ${(p['total_amount'] as num).toStringAsFixed(0)}',
                                 style: const TextStyle(fontWeight: FontWeight.bold),
                               ),
                             ),
@@ -106,7 +111,7 @@ class _PurchaseReportScreenState extends State<PurchaseReportScreen> {
     );
   }
 
-  Widget _summaryCard(String label, double value, Color color, {bool isCount = false}) {
+  Widget _summaryCard(String label, double value, Color color, String currency, {bool isCount = false}) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -115,7 +120,7 @@ class _PurchaseReportScreenState extends State<PurchaseReportScreen> {
             Text(label, style: const TextStyle(fontSize: 11)),
             const SizedBox(height: 4),
             Text(
-              isCount ? value.toStringAsFixed(0) : 'Rs. ${value.toStringAsFixed(0)}',
+              isCount ? value.toStringAsFixed(0) : '$currency ${value.toStringAsFixed(0)}',
               style: TextStyle(fontWeight: FontWeight.bold, color: color, fontSize: 14),
             ),
           ],
@@ -125,7 +130,33 @@ class _PurchaseReportScreenState extends State<PurchaseReportScreen> {
   }
 
 
-  Future<void> _export() async {
+  Future<void> _showExportMenu() async {
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.table_chart),
+              title: const Text('Export as CSV'),
+              onTap: () => Navigator.pop(ctx, 'csv'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.picture_as_pdf),
+              title: const Text('Export as PDF'),
+              onTap: () => Navigator.pop(ctx, 'pdf'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (choice == 'csv') _exportCsv();
+    if (choice == 'pdf') _exportPdf();
+  }
+
+  Future<void> _exportCsv() async {
     await CsvExportService.exportAndShare(
       fileName: 'Purchase_Report',
       headers: ['Invoice', 'Date', 'Supplier', 'Total', 'Due'],
@@ -134,5 +165,32 @@ class _PurchaseReportScreenState extends State<PurchaseReportScreen> {
                 p['supplier_name'] ?? 'Not Selected', p['total_amount'], p['due_amount']])
           .toList(),
     );
+  }
+
+  Future<void> _exportPdf() async {
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
+    if (company == null) return;
+
+    final columns = ['Invoice', 'Date', 'Supplier', 'Total'];
+    final rows = _purchases.map((p) => [
+      p['invoice_number'].toString(),
+      (p['purchase_date'] as String).substring(0, 10),
+      p['supplier_name'] ?? 'Not Selected',
+      '$_currency ${p['total_amount']}',
+    ]).toList();
+
+    final pdfBytes = await PdfReportService.generateReport(
+      company: company,
+      title: 'Purchase Report',
+      columns: columns,
+      rows: rows,
+      summary: {
+        'Total Purchase': '$_currency ${_totalPurchases.toStringAsFixed(0)}',
+        'Total Due': '$_currency ${_totalDue.toStringAsFixed(0)}',
+        'Invoice Count': _purchases.length.toString(),
+      },
+    );
+
+    await Printing.sharePdf(bytes: pdfBytes, filename: 'purchase_report.pdf');
   }
 }

@@ -19,7 +19,8 @@ class _PoCartItem {
 
 class NewPurchaseOrderScreen extends StatefulWidget {
   final int companyId;
-  const NewPurchaseOrderScreen({super.key, required this.companyId});
+  final List<Map<String, dynamic>>? initialItems;
+  const NewPurchaseOrderScreen({super.key, required this.companyId, this.initialItems});
 
   @override
   State<NewPurchaseOrderScreen> createState() => _NewPurchaseOrderScreenState();
@@ -38,6 +39,16 @@ class _NewPurchaseOrderScreenState extends State<NewPurchaseOrderScreen> {
   void initState() {
     super.initState();
     _loadSuppliers();
+    if (widget.initialItems != null) {
+      for (var it in widget.initialItems!) {
+        _cart.add(_PoCartItem(
+          productId: it['productId'] as int,
+          name: it['name'] as String,
+          unitCost: it['unitCost'] as double,
+          qty: it['qty'] as double,
+        ));
+      }
+    }
   }
 
   Future<void> _loadSuppliers() async {

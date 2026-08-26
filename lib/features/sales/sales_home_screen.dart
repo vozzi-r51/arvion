@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/audit/audit_logger.dart';
 import '../../core/auth/session.dart';
 import '../../core/utils/error_handler.dart';
+import '../../core/providers/terminology_provider.dart';
 import 'new_sale_screen.dart';
 import 'sale_detail_screen.dart';
 import '../shell/main_shell.dart';
@@ -91,15 +93,18 @@ class _SalesHomeScreenState extends State<SalesHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final term = context.watch<TerminologyProvider>();
+    final saleLabel = term.get('sale');
+
     return Scaffold(
       appBar: AppBar(
         leading: MainShell.getMenuButton(context),
-        title: const Text('Sales'),
+        title: Text(saleLabel + 's'),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _sales.isEmpty
-              ? const Center(child: Text('Abhi koi sale nahi hui'))
+              ? Center(child: Text('Abhi koi $saleLabel nahi hui'))
               : RefreshIndicator(
                   onRefresh: _load,
                   child: ListView.builder(
@@ -177,7 +182,7 @@ class _SalesHomeScreenState extends State<SalesHomeScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openNewSale,
         icon: const Icon(Icons.point_of_sale),
-        label: const Text('New Sale'),
+        label: Text('New $saleLabel'),
       ),
     );
   }

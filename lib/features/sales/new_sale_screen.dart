@@ -15,11 +15,15 @@ class _CartItem {
   double qty;
   final double availableStock;
   String? packing;
+  final int? categoryId;
 
   String baseUnit;
   String? secondaryUnit;
   double conversionFactor;
   bool isSecondary;
+  
+  String? promoLabel;
+  double promoDiscount = 0;
 
   late final TextEditingController priceController;
   late final TextEditingController qtyController;
@@ -34,6 +38,7 @@ class _CartItem {
     required this.qty,
     required this.availableStock,
     this.packing,
+    this.categoryId,
     this.baseUnit = 'Pc',
     this.secondaryUnit,
     this.conversionFactor = 1,
@@ -75,11 +80,18 @@ class NewSaleScreen extends StatefulWidget {
 class _NewSaleScreenState extends State<NewSaleScreen> {
   final List<_CartItem> _cart = [];
   List<Map<String, dynamic>> _customers = [];
+  List<Map<String, dynamic>> _activePromos = [];
   int? _selectedCustomerId;
   String _saleType = 'cash'; // 'cash' or 'due'
   final _discountCtrl = TextEditingController(text: '0');
   final _taxPercentCtrl = TextEditingController(text: '0');
   final _paidCtrl = TextEditingController(text: '0');
+  final _redeemPointsCtrl = TextEditingController(text: '0');
+  
+  double _customerPoints = 0;
+  double _pointValue = 1.0;
+  String _currency = 'Rs.';
+  
   DateTime _saleDate = DateTime.now();
   bool _saving = false;
 
@@ -87,17 +99,26 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
   void initState() {
     super.initState();
     _loadCustomers();
+    _loadPromotions();
+  }
+
+  Future<void> _loadPromotions() async {
+    final promos = await DBHelper.instance.getActivePromotions(widget.companyId);
+    setState(() => _activePromos = promos);
   }
 
   Future<void> _loadCustomers() async {
     try {
       final rows = await DBHelper.instance.getCustomers(widget.companyId);
       final company = await DBHelper.instance.getCompanyById(widget.companyId);
+      final prefs = await SharedPreferences.getInstance();
       if (!mounted) return;
       setState(() {
         _customers = rows;
+        _pointValue = prefs.getDouble('loyalty_point_value') ?? 1.0;
         if (company != null) {
           _taxPercentCtrl.text = '${company['default_tax_percent'] ?? 0}';
+          _currency = company['currency_symbol'] ?? 'Rs.';
         }
       });
     } catch (error) {
@@ -110,9 +131,11 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
 
   double get _subtotal => _cart.fold(0, (sum, item) => sum + item.total);
   double get _discount => double.tryParse(_discountCtrl.text.trim()) ?? 0;
+  double get _redeemedPoints => double.tryParse(_redeemPointsCtrl.text.trim()) ?? 0;
+  double get _pointsDiscount => _redeemedPoints * _pointValue;
   double get _taxPercent => double.tryParse(_taxPercentCtrl.text.trim()) ?? 0;
-  double get _taxAmount => ((_subtotal - _discount).clamp(0, double.infinity)) * _taxPercent / 100;
-  double get _grandTotal => (_subtotal - _discount + _taxAmount).clamp(0, double.infinity);
+  double get _taxAmount => ((_subtotal - _discount - _pointsDiscount).clamp(0, double.infinity)) * _taxPercent / 100;
+  double get _grandTotal => (_subtotal - _discount - _pointsDiscount + _taxAmount).clamp(0, double.infinity);
 
   Future<void> _openProductPicker() async {
     final selected = await showModalBottomSheet<Map<String, dynamic>>(
@@ -137,7 +160,7 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
         _cart[existingIndex].qty += 1;
         _cart[existingIndex].updateControllers();
       } else {
-        _cart.add(_CartItem(
+        final newItem = _CartItem(
           productId: productId,
           name: selected['name'] as String,
           unitPrice: isWholesale ? wholesalePrice : retailPrice,
@@ -147,12 +170,36 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
           qty: 1,
           availableStock: stock,
           packing: selected['packing'] as String?,
+          categoryId: selected['category_id'] as int?,
           baseUnit: selected['base_unit'] as String? ?? 'Pc',
           secondaryUnit: selected['secondary_unit'] as String?,
           conversionFactor: (selected['conversion_factor'] as num?)?.toDouble() ?? 1,
-        ));
+        );
+        _applyPromoToItem(newItem);
+        _cart.add(newItem);
       }
     });
+  }
+
+  void _applyPromoToItem(_CartItem item) {
+    for (var promo in _activePromos) {
+      final applicableCat = promo['applicable_category_id'] as int?;
+      if (applicableCat != null && applicableCat == item.categoryId) {
+        final type = promo['type'] as String;
+        final val = (promo['value'] as num).toDouble();
+        if (type == 'percent') {
+          item.promoDiscount = item.unitPrice * (val / 100);
+          item.unitPrice -= item.promoDiscount;
+          item.promoLabel = '${promo['name']} (-${val.toStringAsFixed(0)}%)';
+        } else if (type == 'flat') {
+          item.promoDiscount = val;
+          item.unitPrice -= val;
+          item.promoLabel = '${promo['name']} (-Rs.${val.toStringAsFixed(0)})';
+        }
+        item.updateControllers();
+        break; // Apply only one promo for now
+      }
+    }
   }
 
   void _removeItem(int index) {
@@ -215,6 +262,7 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
       'total_amount': _grandTotal,
       'paid_amount': paidAmount,
       'due_amount': dueAmount,
+      'redeemed_points': _redeemedPoints,
       'payment_method': _saleType == 'cash' ? 'Cash' : 'Due',
       'sale_date': _saleDate.toIso8601String(),
       'status': 'completed',
@@ -343,6 +391,12 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                                     Padding(
                                       padding: const EdgeInsets.only(right: 8.0),
                                       child: Text('(${item.packing})', style: const TextStyle(fontSize: 12, color: Colors.blueGrey)),
+                                    ),
+                                  if (item.promoLabel != null)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(4)),
+                                      child: Text(item.promoLabel!, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                                     ),
                                   IconButton(
                                     icon: const Icon(Icons.close, size: 18, color: Colors.red),
@@ -480,7 +534,16 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                               )),
                         ],
                         onChanged: (v) async {
-                          setState(() => _selectedCustomerId = v);
+                          setState(() {
+                            _selectedCustomerId = v;
+                            if (v != null) {
+                              final customer = _customers.firstWhere((c) => c['id'] == v);
+                              _customerPoints = (customer['loyalty_points'] as num?)?.toDouble() ?? 0;
+                            } else {
+                              _customerPoints = 0;
+                              _redeemPointsCtrl.text = '0';
+                            }
+                          });
                           
                           if (v != null && _cart.isNotEmpty) {
                             final customer = _customers.firstWhere((c) => c['id'] == v);
@@ -509,6 +572,25 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                           }
                         },
                       ),
+                      if (_selectedCustomerId != null && _customerPoints > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Row(
+                            children: [
+                              Icon(Icons.star, size: 16, color: Colors.amber.shade700),
+                              const SizedBox(width: 4),
+                              Text('Points: ${_customerPoints.toStringAsFixed(1)} (Value: $_currency ${(_customerPoints * _pointValue).toStringAsFixed(0)})',
+                                style: TextStyle(fontSize: 12, color: Colors.amber.shade900, fontWeight: FontWeight.bold)),
+                              const Spacer(),
+                              TextButton(
+                                onPressed: () {
+                                  setState(() => _redeemPointsCtrl.text = _customerPoints.toStringAsFixed(0));
+                                },
+                                child: const Text('Redeem All', style: TextStyle(fontSize: 11)),
+                              ),
+                            ],
+                          ),
+                        ),
                       const SizedBox(height: 10),
                       Row(
                         children: [
@@ -551,6 +633,23 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                               onChanged: (_) => setState(() {}),
                             ),
                           ),
+                          if (_selectedCustomerId != null && _customerPoints > 0) ...[
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: TextField(
+                                controller: _redeemPointsCtrl,
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                decoration: const InputDecoration(labelText: 'Redeem Pts', isDense: true),
+                                onChanged: (v) {
+                                  final val = double.tryParse(v) ?? 0;
+                                  if (val > _customerPoints) {
+                                    _redeemPointsCtrl.text = _customerPoints.toStringAsFixed(0);
+                                  }
+                                  setState(() {});
+                                },
+                              ),
+                            ),
+                          ],
                           if (_saleType == 'due') ...[
                             const SizedBox(width: 10),
                             Expanded(
@@ -570,7 +669,7 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                         children: [
                           const Text('Total', style: TextStyle(fontSize: 16)),
                           Text(
-                            'Rs. ${_grandTotal.toStringAsFixed(0)}',
+                            '$_currency ${_grandTotal.toStringAsFixed(0)}',
                             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                           ),
                         ],

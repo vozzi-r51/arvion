@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:provider/provider.dart';
+import 'dart:convert';
 import '../../core/database/db_helper.dart';
+import '../../core/theme/app_theme.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../products/products_home_screen.dart';
 import '../sales/sales_home_screen.dart';
@@ -11,10 +15,13 @@ import '../journal/journal_home_screen.dart';
 import '../reports/reports_home_screen.dart';
 import '../settings/settings_screen.dart';
 import '../ai/ai_screen.dart';
+import '../quotations/quotation_list_screen.dart';
 import '../../core/widgets/arvion_logo.dart';
 import '../../core/backup/backup_service.dart';
 import '../../core/auth/session.dart';
 import '../../core/notifications/notification_service.dart';
+import '../../core/providers/terminology_provider.dart';
+import '../../core/providers/branding_provider.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -44,6 +51,7 @@ class _MainShellState extends State<MainShell> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _index = 0;
   int? _companyId;
+  List<String> _enabledModules = [];
   bool _loading = true;
 
   @override
@@ -54,6 +62,25 @@ class _MainShellState extends State<MainShell> {
 
   Future<void> _loadCompany() async {
     final company = await DBHelper.instance.getActiveCompany();
+    if (company != null) {
+      final modulesStr = company['enabled_modules'] as String?;
+      if (modulesStr != null) {
+        try {
+          _enabledModules = List<String>.from(jsonDecode(modulesStr));
+        } catch (_) {}
+      }
+      
+      final colorInt = company['branding_color'] as int?;
+      if (colorInt != null && mounted) {
+        context.read<ThemeProvider>().setPrimaryColor(Color(colorInt));
+      }
+
+      final templateId = company['business_type'] as String? ?? 'general_retail';
+      if (mounted) {
+        context.read<TerminologyProvider>().updateTemplate(templateId);
+        context.read<BrandingProvider>().loadBranding();
+      }
+    }
     setState(() {
       _companyId = company?['id'] as int?;
       _loading = false;
@@ -61,6 +88,36 @@ class _MainShellState extends State<MainShell> {
     BackupService.maybeRunAutoBackup();
     if (company != null) {
       NotificationService.maybeNotify(company['id'] as int);
+      _checkRecurring();
+    }
+  }
+
+  Future<void> _checkRecurring() async {
+    if (_companyId == null) return;
+    final due = await DBHelper.instance.getDueRecurringTemplates(_companyId!);
+    if (due.isEmpty || !mounted) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Recurring Items Due'),
+        content: Text('${due.length} recurring items (Rent, Bills etc.) ki date aa gayi hai. Kya inhein aaj record kar liya jaye?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Nahi, Baad Mein')),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Haan, Record Karein')),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      for (var item in due) {
+        await DBHelper.instance.processRecurringItem(item);
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${due.length} recurring items record ho gaye hain.'))
+        );
+      }
     }
   }
 
@@ -75,33 +132,41 @@ class _MainShellState extends State<MainShell> {
     }
 
     final isOwner = Session.isOwner;
+    final term = context.watch<TerminologyProvider>();
 
     // Define all possible navigation items
     final List<_NavItemData> navItems = [
       _NavItemData('Dashboard', Icons.dashboard, Icons.dashboard_outlined),
-      _NavItemData('Sales', Icons.point_of_sale, Icons.point_of_sale_outlined),
-      _NavItemData('Purchases', Icons.shopping_cart, Icons.shopping_cart_outlined),
+      _NavItemData(term.get('sale'), Icons.point_of_sale, Icons.point_of_sale_outlined, moduleName: 'sales'),
+      _NavItemData('Quotations', Icons.request_quote, Icons.request_quote_outlined, moduleName: 'quotations'),
+      _NavItemData('Purchases', Icons.shopping_cart, Icons.shopping_cart_outlined, moduleName: 'purchases'),
       _NavItemData('Customers', Icons.people, Icons.people_outline),
       _NavItemData('Vendors / Suppliers', Icons.business, Icons.business_outlined),
-      _NavItemData('Inventory', Icons.inventory_2, Icons.inventory_2_outlined, isOwnerOnly: true),
-      _NavItemData('Expenses', Icons.payments, Icons.payments_outlined, isOwnerOnly: true),
-      _NavItemData('Accounting', Icons.account_balance, Icons.account_balance_outlined, isOwnerOnly: true),
+      _NavItemData('Inventory', Icons.inventory_2, Icons.inventory_2_outlined, isOwnerOnly: true, moduleName: 'inventory'),
+      _NavItemData('Expenses', Icons.payments, Icons.payments_outlined, isOwnerOnly: true, moduleName: 'expenses'),
+      _NavItemData('Accounting', Icons.account_balance, Icons.account_balance_outlined, isOwnerOnly: true, moduleName: 'accounting'),
       _NavItemData('Reports', Icons.bar_chart, Icons.bar_chart_outlined, isOwnerOnly: true),
       _NavItemData('AI Assistant', Icons.auto_awesome, Icons.auto_awesome_outlined),
       _NavItemData('Settings', Icons.settings, Icons.settings_outlined),
     ];
 
-    // Filter items based on permissions
-    final visibleNavItems = navItems.where((item) => !item.isOwnerOnly || isOwner).toList();
+    // Filter items based on permissions AND enabled modules
+    final visibleNavItems = navItems.where((item) {
+      if (item.isOwnerOnly && !isOwner) return false;
+      if (item.moduleName != null && !_enabledModules.contains(item.moduleName)) return false;
+      return true;
+    }).toList();
 
     // Ensure _index is within bounds after filtering (though items are usually static)
     if (_index >= visibleNavItems.length) _index = 0;
 
     // Map visible items to their screens
-    final List<Widget> pages = visibleNavItems.map((item) {
+    final List<Widget> pages = visibleNavItems.map<Widget>((item) {
+      if (item.title == 'Dashboard') return const DashboardScreen();
+      if (item.title == term.get('sale')) return SalesHomeScreen(companyId: _companyId!);
+      
       switch (item.title) {
-        case 'Dashboard': return const DashboardScreen();
-        case 'Sales': return SalesHomeScreen(companyId: _companyId!);
+        case 'Quotations': return QuotationListScreen(companyId: _companyId!);
         case 'Purchases': return PurchasesHomeScreen(companyId: _companyId!);
         case 'Customers': return CustomerListScreen(companyId: _companyId!);
         case 'Vendors / Suppliers': return SupplierListScreen(companyId: _companyId!);
@@ -198,6 +263,8 @@ class _MainShellState extends State<MainShell> {
   }
 
   Widget _buildSidebarHeader(bool isDesktop) {
+    final branding = context.watch<BrandingProvider>();
+    
     return Container(
       padding: EdgeInsets.only(
         top: isDesktop ? 40 : 20,
@@ -208,15 +275,21 @@ class _MainShellState extends State<MainShell> {
       alignment: Alignment.centerLeft,
       child: Row(
         children: [
-          const ArvionLogo(size: 32),
+          if (branding.logoPath != null)
+             Image.file(File(branding.logoPath!), width: 32, height: 32)
+          else
+            const ArvionLogo(size: 32),
           const SizedBox(width: 12),
-          const Text(
-            'ARVION',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.5,
-              color: Color(0xFF2563EB),
+          Expanded(
+            child: Text(
+              branding.companyName.toUpperCase(),
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.0,
+                color: branding.primaryColor,
+              ),
             ),
           ),
         ],
@@ -241,6 +314,7 @@ class _NavItemData {
   final IconData selectedIcon;
   final IconData icon;
   final bool isOwnerOnly;
+  final String? moduleName;
 
-  _NavItemData(this.title, this.selectedIcon, this.icon, {this.isOwnerOnly = false});
+  _NavItemData(this.title, this.selectedIcon, this.icon, {this.isOwnerOnly = false, this.moduleName});
 }

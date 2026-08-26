@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/export/csv_export_service.dart';
+import '../../core/export/pdf_report_service.dart';
+import 'package:printing/printing.dart';
 
 class StockReportScreen extends StatefulWidget {
   final int companyId;
@@ -13,6 +15,7 @@ class StockReportScreen extends StatefulWidget {
 class _StockReportScreenState extends State<StockReportScreen> {
   List<Map<String, dynamic>> _products = [];
   double _valuation = 0;
+  String _currency = 'Rs.';
   bool _loading = true;
 
   @override
@@ -25,11 +28,13 @@ class _StockReportScreenState extends State<StockReportScreen> {
     setState(() => _loading = true);
     final products = await DBHelper.instance.getProducts(widget.companyId);
     final valuation = await DBHelper.instance.getStockValuation(widget.companyId);
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
     products.sort((a, b) =>
         (a['current_stock'] as num).compareTo(b['current_stock'] as num));
     setState(() {
       _products = products;
       _valuation = valuation;
+      if (company != null) _currency = company['currency_symbol'] ?? 'Rs.';
       _loading = false;
     });
   }
@@ -37,7 +42,7 @@ class _StockReportScreenState extends State<StockReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Stock Report'), actions: [IconButton(icon: const Icon(Icons.ios_share), onPressed: _export)]),
+      appBar: AppBar(title: const Text('Stock Report'), actions: [IconButton(icon: const Icon(Icons.ios_share), onPressed: _showExportMenu)]),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : Column(
@@ -53,7 +58,7 @@ class _StockReportScreenState extends State<StockReportScreen> {
                           const Text('Total Stock Valuation (Purchase Price)',
                               style: TextStyle(fontSize: 13)),
                           Text(
-                            'Rs. ${_valuation.toStringAsFixed(0)}',
+                            '$_currency ${_valuation.toStringAsFixed(0)}',
                             style: const TextStyle(
                                 fontSize: 24, fontWeight: FontWeight.bold, color: Colors.brown),
                           ),
@@ -82,7 +87,7 @@ class _StockReportScreenState extends State<StockReportScreen> {
                                   color: lowStock ? Colors.red : Colors.grey,
                                 ),
                                 title: Text(p['name'] as String),
-                                subtitle: Text('Stock: $stock  •  Value: Rs. ${value.toStringAsFixed(0)}'),
+                                subtitle: Text('Stock: $stock  •  Value: $_currency ${value.toStringAsFixed(0)}'),
                                 trailing: lowStock
                                     ? const Text('Low Stock',
                                         style: TextStyle(color: Colors.red, fontSize: 12))
@@ -98,14 +103,72 @@ class _StockReportScreenState extends State<StockReportScreen> {
   }
 
 
-  Future<void> _export() async {
+  Future<void> _showExportMenu() async {
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.table_chart),
+              title: const Text('Export as CSV'),
+              onTap: () => Navigator.pop(ctx, 'csv'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.picture_as_pdf),
+              title: const Text('Export as PDF'),
+              onTap: () => Navigator.pop(ctx, 'pdf'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (choice == 'csv') _exportCsv();
+    if (choice == 'pdf') _exportPdf();
+  }
+
+  Future<void> _exportCsv() async {
     await CsvExportService.exportAndShare(
       fileName: 'Stock_Report',
       headers: ['Product', 'Stock', 'Purchase Price', 'Value'],
       rows: _products
-          .map((p) => [p['name'], p['current_stock'], p['purchase_price'],
-                (p['current_stock'] as num) * (p['purchase_price'] as num)])
+          .map((p) => [
+                p['name'],
+                p['current_stock'],
+                p['purchase_price'],
+                (p['current_stock'] as num) * (p['purchase_price'] as num)
+              ])
           .toList(),
     );
+  }
+
+  Future<void> _exportPdf() async {
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
+    if (company == null) return;
+
+    final columns = ['Product', 'Stock', 'Cost', 'Value'];
+    final rows = _products
+        .map((p) => [
+              p['name'].toString(),
+              p['current_stock'].toString(),
+              p['purchase_price'].toString(),
+              ((p['current_stock'] as num) * (p['purchase_price'] as num)).toStringAsFixed(0),
+            ])
+        .toList();
+
+    final pdfBytes = await PdfReportService.generateReport(
+      company: company,
+      title: 'Stock Report',
+      columns: columns,
+      rows: rows,
+      summary: {
+        'Total Valuation': '$_currency ${_valuation.toStringAsFixed(0)}',
+        'Product Count': _products.length.toString(),
+      },
+    );
+
+    await Printing.sharePdf(bytes: pdfBytes, filename: 'stock_report.pdf');
   }
 }

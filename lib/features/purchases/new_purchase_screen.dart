@@ -67,6 +67,7 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
   String _purchaseType = 'cash'; // 'cash' or 'due'
   DateTime _purchaseDate = DateTime.now();
   final _discountCtrl = TextEditingController(text: '0');
+  final _taxCtrl = TextEditingController(text: '0');
   final _paidCtrl = TextEditingController(text: '0');
   bool _saving = false;
 
@@ -91,7 +92,8 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
 
   double get _subtotal => _cart.fold(0, (sum, item) => sum + item.total);
   double get _discount => double.tryParse(_discountCtrl.text.trim()) ?? 0;
-  double get _grandTotal => (_subtotal - _discount).clamp(0, double.infinity);
+  double get _taxAmount => double.tryParse(_taxCtrl.text.trim()) ?? 0;
+  double get _grandTotal => (_subtotal - _discount + _taxAmount).clamp(0, double.infinity);
 
   Future<void> _pickPurchaseDate() async {
     final picked = await showDatePicker(
@@ -182,6 +184,7 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
       'purchase_type': _purchaseType,
       'subtotal': _subtotal,
       'discount_amount': _discount,
+      'tax_amount': _taxAmount,
       'total_amount': _grandTotal,
       'paid_amount': paidAmount,
       'due_amount': dueAmount,
@@ -244,6 +247,7 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
       item.dispose();
     }
     _discountCtrl.dispose();
+    _taxCtrl.dispose();
     _paidCtrl.dispose();
     super.dispose();
   }
@@ -416,6 +420,15 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
                         controller: _discountCtrl,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         decoration: const InputDecoration(labelText: 'Discount (Rs.)'),
+                        onChanged: (_) => setState(() {}),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: TextField(
+                        controller: _taxCtrl,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        decoration: const InputDecoration(labelText: 'Tax (GST)'),
                         onChanged: (_) => setState(() {}),
                       ),
                     ),

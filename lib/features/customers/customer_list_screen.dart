@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/audit/audit_logger.dart';
 import '../../core/utils/error_handler.dart';
+import '../../core/theme/design_tokens.dart';
+import '../../core/widgets/app_skeleton.dart';
+import '../../core/widgets/app_empty_state.dart';
 import 'customer_form_screen.dart';
 import '../ledger/customer_ledger_screen.dart';
 import '../shell/main_shell.dart';
@@ -98,11 +101,14 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(AppSpacing.l),
             child: TextField(
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.search),
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.search),
                 hintText: 'Naam ya mobile se search karein',
+                border: OutlineInputBorder(borderRadius: AppRadius.medium),
+                filled: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.m),
               ),
               onChanged: (v) {
                 _query = v;
@@ -112,49 +118,91 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
           ),
           Expanded(
             child: _loading
-                ? const Center(child: CircularProgressIndicator())
+                ? ListView.builder(
+                    itemCount: 8,
+                    itemBuilder: (_, __) => AppSkeleton.listTile(),
+                  )
                 : _customers.isEmpty
-                ? const Center(child: Text('Abhi koi customer nahi bana'))
-                : ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              itemCount: _customers.length,
-              itemBuilder: (ctx, i) {
-                final c = _customers[i];
-                final balance = (c['current_balance'] as num).toDouble();
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      child: Text(
-                        (c['name'] as String).isNotEmpty
-                            ? (c['name'] as String)[0].toUpperCase()
-                            : '?',
-                        style: const TextStyle(color: Colors.white),
+                    ? AppEmptyState(
+                        icon: Icons.people_outline,
+                        title: 'Abhi koi customer nahi bana',
+                        message: _query.isEmpty
+                            ? 'Apni shop ke customers add karein taake udhaar aur loyalty points track ho sakein.'
+                            : 'Aapki search ke mutabiq koi customer nahi mila.',
+                        actionLabel: _query.isEmpty ? 'Naya Customer' : null,
+                        onAction: _query.isEmpty ? () => _openForm() : null,
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.l),
+                        itemCount: _customers.length,
+                        itemBuilder: (ctx, i) {
+                          final c = _customers[i];
+                          final balance = (c['current_balance'] as num).toDouble();
+                          return Card(
+                            elevation: 0,
+                            margin: const EdgeInsets.only(bottom: AppSpacing.m),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: AppRadius.medium,
+                              side: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+                            ),
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                                child: Text(
+                                  (c['name'] as String).isNotEmpty ? (c['name'] as String)[0].toUpperCase() : '?',
+                                  style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              title: Text(
+                                c['name'] as String,
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              subtitle: Text(
+                                  '${c['mobile'] ?? ''}  •  ${c['customer_type'] ?? ''}\nBalance: ${balance.toStringAsFixed(0)}',
+                                  style: TextStyle(color: balance > 0 ? Colors.red : Colors.green)),
+                              isThreeLine: true,
+                              trailing: const Icon(Icons.chevron_right, size: 18),
+                              onTap: () => _openLedger(c),
+                              onLongPress: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  builder: (_) => SafeArea(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        ListTile(
+                                          leading: const Icon(Icons.history),
+                                          title: const Text('Ledger Dekhein'),
+                                          onTap: () {
+                                            Navigator.pop(context);
+                                            _openLedger(c);
+                                          },
+                                        ),
+                                        ListTile(
+                                          leading: const Icon(Icons.edit_outlined),
+                                          title: const Text('Edit Karein'),
+                                          onTap: () {
+                                            Navigator.pop(context);
+                                            _openForm(existing: c);
+                                          },
+                                        ),
+                                        ListTile(
+                                          leading: const Icon(Icons.delete_outline, color: Colors.red),
+                                          title: const Text('Delete Karein', style: TextStyle(color: Colors.red)),
+                                          onTap: () {
+                                            Navigator.pop(context);
+                                            _confirmDelete(c);
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        },
                       ),
-                    ),
-                    title: Text(c['name'] as String),
-                    subtitle: Text(
-                        '${c['mobile'] ?? ''}  •  ${c['customer_type'] ?? ''}\nBalance: Rs. ${balance.toStringAsFixed(0)}',
-                        style: TextStyle(color: balance > 0 ? Colors.red : Colors.green)),
-                    isThreeLine: true,
-                    trailing: PopupMenuButton<String>(
-                      onSelected: (value) {
-                        if (value == 'ledger') _openLedger(c);
-                        if (value == 'edit') _openForm(existing: c);
-                        if (value == 'delete') _confirmDelete(c);
-                      },
-                      itemBuilder: (ctx) => const [
-                        PopupMenuItem(value: 'ledger', child: Text('Ledger Dekhein')),
-                        PopupMenuItem(value: 'edit', child: Text('Edit Karein')),
-                        PopupMenuItem(value: 'delete', child: Text('Delete Karein')),
-                      ],
-                    ),
-                    onTap: () => _openLedger(c),
-                  ),
-                );
-              },
-            ),
           ),
         ],
       ),

@@ -3,6 +3,7 @@ import '../../core/database/db_helper.dart';
 import '../../core/audit/audit_logger.dart';
 import '../shell/main_shell.dart';
 import 'company_profile_screen.dart';
+import 'onboarding_wizard_screen.dart';
 
 class CompanySelectionScreen extends StatefulWidget {
   const CompanySelectionScreen({super.key});
@@ -45,59 +46,9 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
   }
 
   void _showAddCompanyDialog() {
-    final nameController = TextEditingController();
-    final ownerController = TextEditingController();
-    final phoneController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Nayi Company Banayein'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Company / Shop Naam'),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: ownerController,
-              decoration: const InputDecoration(labelText: 'Owner Naam'),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: phoneController,
-              keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(labelText: 'Phone'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (nameController.text.trim().isEmpty) return;
-              final id = await DBHelper.instance.insertCompany({
-                'name': nameController.text.trim(),
-                'owner_name': ownerController.text.trim(),
-                'phone': phoneController.text.trim(),
-                'is_active': 0,
-                'created_at': DateTime.now().toIso8601String(),
-              });
-              if (!mounted) return;
-              Navigator.pop(ctx);
-              await _loadCompanies();
-              await _selectCompany(id);
-            },
-            child: const Text('Banayein'),
-          ),
-        ],
-      ),
-    );
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const OnboardingWizardScreen())
+    ).then((_) => _loadCompanies());
   }
 
   Future<void> _confirmDeleteCompany(Map<String, dynamic> company) async {
@@ -166,7 +117,9 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
               ),
               const SizedBox(height: 20),
               ElevatedButton.icon(
-                onPressed: _showAddCompanyDialog,
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const OnboardingWizardScreen())
+                ).then((_) => _loadCompanies()),
                 icon: const Icon(Icons.add),
                 label: const Text('Company Banayein'),
               ),

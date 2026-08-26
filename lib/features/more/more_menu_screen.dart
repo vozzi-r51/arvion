@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import '../../core/auth/session.dart';
+import '../../core/database/db_helper.dart';
 import '../finance/finance_home_screen.dart';
 import '../ledger/cash_book_screen.dart';
 import '../ledger/bank_accounts_screen.dart';
@@ -14,6 +16,12 @@ import '../audit/audit_log_screen.dart';
 import '../products/stock_adjustment_screen.dart';
 import '../journal/journal_home_screen.dart';
 import '../recycle_bin/recycle_bin_screen.dart';
+import '../promotions/promotions_list_screen.dart';
+import '../finance/recurring_templates_screen.dart';
+import '../../core/theme/design_tokens.dart';
+import '../../core/export/full_data_export_service.dart';
+import '../../core/providers/terminology_provider.dart';
+import 'package:provider/provider.dart';
 
 class _MoreMenuItem {
   final String title;
@@ -23,250 +31,240 @@ class _MoreMenuItem {
   const _MoreMenuItem(this.title, this.icon, this.available, this.phaseNote);
 }
 
-class MoreMenuScreen extends StatelessWidget {
+class MoreMenuScreen extends StatefulWidget {
   final int companyId;
   const MoreMenuScreen({super.key, required this.companyId});
+
+  @override
+  State<MoreMenuScreen> createState() => _MoreMenuScreenState();
+}
+
+class _MoreMenuScreenState extends State<MoreMenuScreen> {
+  List<String> _enabledModules = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
+    if (company != null) {
+      final modulesStr = company['enabled_modules'] as String?;
+      if (modulesStr != null) {
+        try {
+          _enabledModules = List<String>.from(jsonDecode(modulesStr));
+        } catch (_) {}
+      }
+    }
+    setState(() => _loading = false);
+  }
 
   static const _upcoming = <_MoreMenuItem>[];
 
   @override
   Widget build(BuildContext context) {
+    if (_loading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final isOwner = Session.isOwner;
+    final term = context.watch<TerminologyProvider>();
+
+    bool isEnabled(String module) => _enabledModules.contains(module.toLowerCase());
 
     return Scaffold(
       appBar: AppBar(title: const Text('More')),
       body: !isOwner 
         ? const Center(child: Text('Access Denied: Only Owner can access this menu'))
         : ListView(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(AppSpacing.l),
             children: [
-          Card(
-            child: ListTile(
-              leading: const CircleAvatar(
-                backgroundColor: Colors.teal,
-                child: Icon(Icons.bar_chart, color: Colors.white),
-              ),
-              title: const Text('Reports'),
-              subtitle: const Text('Sales, Purchase, P&L, Stock, Customer & Supplier'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => ReportsHomeScreen(companyId: companyId),
-                ),
-              ),
+          _buildMenuCard(
+            context,
+            icon: Icons.bar_chart,
+            color: Colors.teal,
+            title: 'Reports',
+            subtitle: 'Sales, Purchase, P&L, Stock, Customer & Supplier',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => ReportsHomeScreen(companyId: widget.companyId)),
             ),
           ),
-          Card(
-            child: ListTile(
-              leading: const CircleAvatar(
-                backgroundColor: Colors.orange,
-                child: Icon(Icons.receipt_long, color: Colors.white),
-              ),
-              title: const Text('Expenses & Income'),
-              subtitle: const Text('Daily expenses, other income, categories'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => FinanceHomeScreen(companyId: companyId),
-                ),
-              ),
+          if (isEnabled('expenses'))
+          _buildMenuCard(
+            context,
+            icon: Icons.receipt_long,
+            color: Colors.orange,
+            title: 'Expenses & Income',
+            subtitle: 'Daily expenses, other income, categories',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => FinanceHomeScreen(companyId: widget.companyId)),
             ),
           ),
-          Card(
-            child: ListTile(
-              leading: const CircleAvatar(
-                backgroundColor: Colors.green,
-                child: Icon(Icons.point_of_sale_outlined, color: Colors.white),
-              ),
-              title: const Text('Cash Book'),
-              subtitle: const Text('Manual cash in / cash out entries'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => CashBookScreen(companyId: companyId),
-                ),
-              ),
+          _buildMenuCard(
+            context,
+            icon: Icons.point_of_sale_outlined,
+            color: Colors.green,
+            title: 'Cash Book',
+            subtitle: 'Manual cash in / cash out entries',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => CashBookScreen(companyId: widget.companyId)),
             ),
           ),
-          Card(
-            child: ListTile(
-              leading: const CircleAvatar(
-                backgroundColor: Colors.indigo,
-                child: Icon(Icons.account_balance, color: Colors.white),
-              ),
-              title: const Text('Bank Book'),
-              subtitle: const Text('Bank accounts, deposits, withdrawals'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => BankAccountsScreen(companyId: companyId),
-                ),
-              ),
+          _buildMenuCard(
+            context,
+            icon: Icons.account_balance,
+            color: Colors.indigo,
+            title: 'Bank Book',
+            subtitle: 'Bank accounts, deposits, withdrawals',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => BankAccountsScreen(companyId: widget.companyId)),
             ),
           ),
-          Card(
-            child: ListTile(
-              leading: const CircleAvatar(
-                backgroundColor: Colors.brown,
-                child: Icon(Icons.badge, color: Colors.white),
-              ),
-              title: const Text('Employees / HR'),
-              subtitle: const Text('Attendance, salary, advance, commission'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => EmployeeListScreen(companyId: companyId),
-                ),
-              ),
+          if (isEnabled('hr'))
+          _buildMenuCard(
+            context,
+            icon: Icons.badge,
+            color: Colors.brown,
+            title: 'Employees / HR',
+            subtitle: 'Attendance, salary, advance, commission',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => EmployeeListScreen(companyId: widget.companyId)),
             ),
           ),
-          Card(
-            child: ListTile(
-              leading: const CircleAvatar(
-                backgroundColor: Colors.deepPurple,
-                child: Icon(Icons.groups, color: Colors.white),
-              ),
-              title: const Text('Committee (BC System)'),
-              subtitle: const Text('Members, monthly installments, draws'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => CommitteeListScreen(companyId: companyId),
-                ),
-              ),
+          if (isEnabled('committee'))
+          _buildMenuCard(
+            context,
+            icon: Icons.groups,
+            color: Colors.deepPurple,
+            title: 'Committee (BC System)',
+            subtitle: 'Members, monthly installments, draws',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => CommitteeListScreen(companyId: widget.companyId)),
             ),
           ),
-          Card(
-            child: ListTile(
-              leading: const CircleAvatar(
-                backgroundColor: Colors.blueGrey,
-                child: Icon(Icons.receipt_long, color: Colors.white),
-              ),
-              title: const Text('Cheque Management'),
-              subtitle: const Text('Received & issued cheques, status tracking'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => ChequeHomeScreen(companyId: companyId),
-                ),
-              ),
+          if (isEnabled('cheque'))
+          _buildMenuCard(
+            context,
+            icon: Icons.receipt_long,
+            color: Colors.blueGrey,
+            title: 'Cheque Management',
+            subtitle: 'Received & issued cheques, status tracking',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => ChequeHomeScreen(companyId: widget.companyId)),
             ),
           ),
-          Card(
-            child: ListTile(
-              leading: const CircleAvatar(
-                backgroundColor: Colors.red,
-                child: Icon(Icons.keyboard_return, color: Colors.white),
-              ),
-              title: const Text('Returns'),
-              subtitle: const Text('Sales return & purchase return'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => ReturnsHomeScreen(companyId: companyId),
-                ),
-              ),
+          _buildMenuCard(
+            context,
+            icon: Icons.keyboard_return,
+            color: Colors.red,
+            title: 'Returns',
+            subtitle: '${term.get('sale')} return & purchase return',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => ReturnsHomeScreen(companyId: widget.companyId)),
             ),
           ),
-          Card(
-            child: ListTile(
-              leading: const CircleAvatar(
-                backgroundColor: Colors.blue,
-                child: Icon(Icons.local_shipping, color: Colors.white),
-              ),
-              title: const Text('Delivery Challan'),
-              subtitle: const Text('Delivery note, customer signature, tracking'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => ChallansListScreen(companyId: companyId),
-                ),
-              ),
+          _buildMenuCard(
+            context,
+            icon: Icons.local_shipping,
+            color: Colors.blue,
+            title: 'Delivery Challan',
+            subtitle: 'Delivery note, customer signature, tracking',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => ChallansListScreen(companyId: widget.companyId)),
             ),
           ),
-          Card(
-            child: ListTile(
-              leading: const CircleAvatar(
-                backgroundColor: Colors.cyan,
-                child: Icon(Icons.description_outlined, color: Colors.white),
-              ),
-              title: const Text('Purchase Order'),
-              subtitle: const Text('Create PO, approvals, PO history'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => PurchaseOrdersListScreen(companyId: companyId),
-                ),
-              ),
+          _buildMenuCard(
+            context,
+            icon: Icons.description_outlined,
+            color: Colors.cyan,
+            title: 'Purchase Order',
+            subtitle: 'Create PO, approvals, PO history',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => PurchaseOrdersListScreen(companyId: widget.companyId)),
             ),
           ),
-          Card(
-            child: ListTile(
-              leading: const CircleAvatar(
-                backgroundColor: Colors.black54,
-                child: Icon(Icons.history, color: Colors.white),
-              ),
-              title: const Text('Audit Log'),
-              subtitle: const Text('Login history, adds/edits/deletes, stock changes'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => AuditLogScreen(companyId: companyId),
-                ),
-              ),
+          _buildMenuCard(
+            context,
+            icon: Icons.history,
+            color: Colors.black54,
+            title: 'Audit Log',
+            subtitle: 'Login history, adds/edits/deletes, stock changes',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => AuditLogScreen(companyId: widget.companyId)),
             ),
           ),
-          Card(
-            child: ListTile(
-              leading: const CircleAvatar(
-                backgroundColor: Colors.brown,
-                child: Icon(Icons.tune, color: Colors.white),
-              ),
-              title: const Text('Inventory Adjustment'),
-              subtitle: const Text('Increase, decrease, damage, lost stock'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => StockAdjustmentScreen(companyId: companyId),
-                ),
-              ),
+          _buildMenuCard(
+            context,
+            icon: Icons.tune,
+            color: Colors.brown,
+            title: 'Inventory Adjustment',
+            subtitle: 'Increase, decrease, damage, lost stock',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => StockAdjustmentScreen(companyId: widget.companyId)),
             ),
           ),
-          Card(
-            child: ListTile(
-              leading: const CircleAvatar(
-                backgroundColor: Colors.teal,
-                child: Icon(Icons.menu_book, color: Colors.white),
-              ),
-              title: const Text('Journal & Accounts'),
-              subtitle: const Text('Journal entries, Trial Balance, Balance Sheet'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => JournalHomeScreen(companyId: companyId)),
-              ),
+          if (isEnabled('accounting'))
+          _buildMenuCard(
+            context,
+            icon: Icons.menu_book,
+            color: Colors.teal,
+            title: 'Journal & Accounts',
+            subtitle: 'Journal entries, Trial Balance, Balance Sheet',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => JournalHomeScreen(companyId: widget.companyId)),
             ),
           ),
-          Card(
-            child: ListTile(
-              leading: const CircleAvatar(
-                backgroundColor: Colors.grey,
-                child: Icon(Icons.delete_outline, color: Colors.white),
-              ),
-              title: const Text('Recycle Bin'),
-              subtitle: const Text('Deleted products, customers, suppliers, employees'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => RecycleBinScreen(companyId: companyId)),
-              ),
+          if (isEnabled('promotions'))
+          _buildMenuCard(
+            context,
+            icon: Icons.local_offer,
+            color: Colors.pink,
+            title: 'Promotions & Discounts',
+            subtitle: 'Manage sales offers and category discounts',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => PromotionsListScreen(companyId: widget.companyId)),
             ),
+          ),
+          _buildMenuCard(
+            context,
+            icon: Icons.repeat,
+            color: Colors.blueGrey,
+            title: 'Recurring Items',
+            subtitle: 'Automate monthly rent, bills, or fixed income',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => RecurringTemplatesScreen(companyId: widget.companyId)),
+            ),
+          ),
+          _buildMenuCard(
+            context,
+            icon: Icons.delete_outline,
+            color: Colors.grey,
+            title: 'Recycle Bin',
+            subtitle: 'Deleted ${term.get('product')}s, customers, suppliers, employees',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => RecycleBinScreen(companyId: widget.companyId)),
+            ),
+          ),
+          _buildMenuCard(
+            context,
+            icon: Icons.table_view_outlined,
+            color: Colors.teal,
+            title: 'Full Data Export (CSV)',
+            subtitle: 'Products, Customers aur Sales history Excel mein le jayein',
+            onTap: () => FullDataExportService.exportAllToCsv(widget.companyId),
           ),
           if (_upcoming.isNotEmpty) ...[
-            const Padding(
-              padding: EdgeInsets.fromLTRB(4, 16, 4, 4),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(AppSpacing.xs, AppSpacing.l, AppSpacing.xs, AppSpacing.s),
               child: Text('Aane Wale Modules',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                  style: AppTypography.labelLarge(context).copyWith(color: Colors.grey)),
             ),
             ..._upcoming.map((item) => Card(
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: AppRadius.medium,
+                    side: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+                  ),
                   child: ListTile(
                     leading: Icon(item.icon, color: Colors.grey),
                     title: Text(item.title, style: const TextStyle(color: Colors.grey)),
@@ -276,6 +274,34 @@ class MoreMenuScreen extends StatelessWidget {
                 )),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildMenuCard(
+    BuildContext context, {
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: AppSpacing.m),
+      shape: RoundedRectangleBorder(
+        borderRadius: AppRadius.medium,
+        side: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+      ),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: color.withValues(alpha: 0.12),
+          child: Icon(icon, color: color, size: 20, semanticLabel: title),
+        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
+        trailing: const Icon(Icons.chevron_right, size: 18),
+        onTap: onTap,
       ),
     );
   }

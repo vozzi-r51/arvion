@@ -54,6 +54,32 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
           .showSnackBar(const SnackBar(content: Text('Customer naam zaroori hai')));
       return;
     }
+
+    // --- DUPLICATE DETECTION ---
+    final duplicate = await DBHelper.instance.findDuplicateCustomer(
+      widget.companyId,
+      _nameCtrl.text.trim(),
+      _mobileCtrl.text.trim(),
+      excludeId: widget.existing?['id'],
+    );
+
+    if (duplicate != null && mounted) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Duplicate Customer?'),
+          content: Text('Is naam ya mobile se aik customer pehle hi mojood hai:\n\n'
+              '${duplicate['name']} - ${duplicate['mobile']}\n\n'
+              'Kya aap phir bhi naya customer banana chahte hain?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Nahi, Cancel')),
+            TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Haan, Save Karein')),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+    }
+
     setState(() => _saving = true);
 
     final openingBalance = _num(_openingBalanceCtrl.text);

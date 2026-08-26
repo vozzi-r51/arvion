@@ -60,6 +60,7 @@ class InvoicePdfService {
     pw.MemoryImage? stamp,
     pw.MemoryImage? signature,
   ) {
+    final currency = company['currency_symbol'] ?? 'Rs.';
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
@@ -167,12 +168,12 @@ class InvoicePdfService {
           child: pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
-              _totalRow('Subtotal', sale['subtotal'] as num),
-              _totalRow('Discount', sale['discount_amount'] as num),
-              _totalRow('Tax', (sale['tax_amount'] as num?) ?? 0),
-              _totalRow('Total', sale['total_amount'] as num, bold: true),
-              _totalRow('Paid', sale['paid_amount'] as num),
-              _totalRow('Due', sale['due_amount'] as num),
+              _totalRow('Subtotal', sale['subtotal'] as num, currency),
+              _totalRow('Discount', sale['discount_amount'] as num, currency),
+              _totalRow('Tax', (sale['tax_amount'] as num?) ?? 0, currency),
+              _totalRow('Total', sale['total_amount'] as num, currency, bold: true),
+              _totalRow('Paid', sale['paid_amount'] as num, currency),
+              _totalRow('Due', sale['due_amount'] as num, currency),
             ],
           ),
         ),
@@ -214,6 +215,7 @@ class InvoicePdfService {
     pw.MemoryImage? stamp,
     pw.MemoryImage? signature,
   ) {
+    final currency = company['currency_symbol'] ?? 'Rs.';
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.center,
       children: [
@@ -277,12 +279,12 @@ class InvoicePdfService {
               ),
             )),
         pw.Text('--------------------------------'),
-        _thermalRow('Subtotal', sale['subtotal'] as num),
-        _thermalRow('Discount', sale['discount_amount'] as num),
-        _thermalRow('Tax', (sale['tax_amount'] as num?) ?? 0),
-        _thermalRow('Total', sale['total_amount'] as num, bold: true),
-        _thermalRow('Paid', sale['paid_amount'] as num),
-        _thermalRow('Due', sale['due_amount'] as num),
+        _thermalRow('Subtotal', sale['subtotal'] as num, currency),
+        _thermalRow('Discount', sale['discount_amount'] as num, currency),
+        _thermalRow('Tax', (sale['tax_amount'] as num?) ?? 0, currency),
+        _thermalRow('Total', sale['total_amount'] as num, currency, bold: true),
+        _thermalRow('Paid', sale['paid_amount'] as num, currency),
+        _thermalRow('Due', sale['due_amount'] as num, currency),
         pw.SizedBox(height: 10),
         if (stamp != null || signature != null) ...[
           pw.Row(
@@ -353,7 +355,7 @@ class InvoicePdfService {
     );
   }
 
-  static pw.Widget _totalRow(String label, num value, {bool bold = false}) {
+  static pw.Widget _totalRow(String label, num value, String currency, {bool bold = false}) {
     final style = bold
         ? pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13)
         : const pw.TextStyle(fontSize: 11);
@@ -365,14 +367,14 @@ class InvoicePdfService {
           pw.SizedBox(width: 100, child: pw.Text(label, style: style)),
           pw.SizedBox(
               width: 80,
-              child: pw.Text('Rs. ${value.toStringAsFixed(0)}',
+              child: pw.Text('$currency ${value.toStringAsFixed(0)}',
                   style: style, textAlign: pw.TextAlign.right)),
         ],
       ),
     );
   }
 
-  static pw.Widget _thermalRow(String label, num value, {bool bold = false}) {
+  static pw.Widget _thermalRow(String label, num value, String currency, {bool bold = false}) {
     final style = bold
         ? pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)
         : const pw.TextStyle(fontSize: 9);
@@ -380,7 +382,7 @@ class InvoicePdfService {
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       children: [
         pw.Text(label, style: style),
-        pw.Text('Rs. ${value.toStringAsFixed(0)}', style: style),
+        pw.Text('$currency ${value.toStringAsFixed(0)}', style: style),
       ],
     );
   }

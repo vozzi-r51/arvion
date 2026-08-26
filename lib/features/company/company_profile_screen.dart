@@ -1,11 +1,14 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../../core/database/db_helper.dart';
 import '../../core/utils/image_generator.dart';
 import '../../core/auth/auth_service.dart';
+import '../../core/theme/app_theme.dart';
 import 'company_selection_screen.dart';
 
 class CompanyProfileScreen extends StatefulWidget {
@@ -27,6 +30,20 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
   final _footerCtrl = TextEditingController();
   final _detailsCtrl = TextEditingController();
   final _taxCtrl = TextEditingController(text: '0');
+
+  String _businessType = 'Mixed';
+  String _currency = 'Rs.';
+  Color _brandingColor = AppTheme.primaryBlue;
+  
+  final Map<String, bool> _modules = {
+    'Quotations': true,
+    'Promotions': true,
+    'HR': true,
+    'Committee': true,
+    'Cheque': true,
+    'Expenses': true,
+    'Accounting': true,
+  };
 
   String? _logoPath;
   String? _stampPath;
@@ -56,6 +73,23 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
       _footerCtrl.text = c['invoice_footer'] as String? ?? '';
       _detailsCtrl.text = c['company_details'] as String? ?? '';
       _taxCtrl.text = '${c['default_tax_percent'] ?? 0}';
+      _businessType = c['business_type'] as String? ?? 'Mixed';
+      _currency = c['currency_symbol'] as String? ?? 'Rs.';
+      
+      if (c['branding_color'] != null) {
+        _brandingColor = Color(c['branding_color'] as int);
+      }
+      
+      final modulesStr = c['enabled_modules'] as String?;
+      if (modulesStr != null) {
+        try {
+          final List<dynamic> enabled = jsonDecode(modulesStr);
+          for (var m in _modules.keys) {
+            _modules[m] = enabled.contains(m);
+          }
+        } catch (_) {}
+      }
+
       _logoPath = c['logo_path'] as String?;
       _stampPath = c['shop_stamp_path'] as String?;
       _signaturePath = c['signature_path'] as String?;
@@ -97,6 +131,11 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
 
     setState(() => _saving = true);
 
+    final enabledModules = _modules.entries
+        .where((e) => e.value)
+        .map((e) => e.key)
+        .toList();
+
     await DBHelper.instance.updateCompany(widget.companyId, {
       'name': _nameCtrl.text.trim(),
       'owner_name': _ownerCtrl.text.trim(),
@@ -108,6 +147,10 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
       'invoice_footer': _footerCtrl.text.trim(),
       'company_details': _detailsCtrl.text.trim(),
       'default_tax_percent': double.tryParse(_taxCtrl.text.trim()) ?? 0,
+      'business_type': _businessType,
+      'currency_symbol': _currency,
+      'branding_color': _brandingColor.value,
+      'enabled_modules': jsonEncode(enabledModules),
       'logo_path': _logoPath,
       'shop_stamp_path': _stampPath,
       'signature_path': _signaturePath,
@@ -115,6 +158,8 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
 
     setState(() => _saving = false);
     if (!mounted) return;
+
+    context.read<ThemeProvider>().setPrimaryColor(_brandingColor);
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Company profile save ho gayi')),
@@ -338,6 +383,64 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                   decoration: const InputDecoration(
                       labelText: 'Company Details (extra notes)'),
                 ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: _businessType,
+                        decoration: const InputDecoration(labelText: 'Business Type'),
+                        items: ['Retail', 'Wholesale', 'Mixed'].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                        onChanged: (v) => setState(() => _businessType = v!),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: _currency,
+                        decoration: const InputDecoration(labelText: 'Currency'),
+                        items: ['Rs.', '\$', '€', '£', 'AED'].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                        onChanged: (v) => setState(() => _currency = v!),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                const Text('App Branding Color', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 44,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      _colorOption(const Color(0xFF2563EB)), // Default Blue
+                      _colorOption(const Color(0xFF0D9488)), // Teal
+                      _colorOption(const Color(0xFF7C3AED)), // Purple
+                      _colorOption(const Color(0xFFDB2777)), // Pink
+                      _colorOption(const Color(0xFFEA580C)), // Orange
+                      _colorOption(const Color(0xFF16A34A)), // Green
+                      _colorOption(const Color(0xFF1E293B)), // Charcoal
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text('Enabled Modules', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: _modules.keys.map((key) => CheckboxListTile(
+                      title: Text(key, style: const TextStyle(fontSize: 14)),
+                      value: _modules[key],
+                      onChanged: (v) => setState(() => _modules[key] = v!),
+                      dense: true,
+                      visualDensity: VisualDensity.compact,
+                    )).toList(),
+                  ),
+                ),
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _saving ? null : _save,
@@ -359,6 +462,25 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                 ),
               ],
             ),
+    );
+  }
+
+  Widget _colorOption(Color color) {
+    final isSelected = _brandingColor.value == color.value;
+    return GestureDetector(
+      onTap: () => setState(() => _brandingColor = color),
+      child: Container(
+        width: 44,
+        height: 44,
+        margin: const EdgeInsets.only(right: 8),
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: isSelected ? Border.all(color: Colors.white, width: 3) : null,
+          boxShadow: isSelected ? [const BoxShadow(color: Colors.black26, blurRadius: 4)] : null,
+        ),
+        child: isSelected ? const Icon(Icons.check, color: Colors.white, size: 20) : null,
+      ),
     );
   }
 }

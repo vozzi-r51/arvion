@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/notifications/sms_service.dart';
 
 class SupplierLedgerScreen extends StatefulWidget {
   final Map<String, dynamic> supplier;
@@ -15,6 +17,7 @@ class SupplierLedgerScreen extends StatefulWidget {
 class _SupplierLedgerScreenState extends State<SupplierLedgerScreen> {
   List<Map<String, dynamic>> _entries = [];
   double _currentBalance = 0;
+  String _currency = 'Rs.';
   bool _loading = true;
 
   int get _supplierId => widget.supplier['id'] as int;
@@ -59,6 +62,7 @@ class _SupplierLedgerScreenState extends State<SupplierLedgerScreen> {
     entries.sort((a, b) => (b['date'] as String).compareTo(a['date'] as String));
 
     final freshSupplier = await DBHelper.instance.getSupplierById(_supplierId);
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
     final balance = freshSupplier != null
         ? (freshSupplier['current_balance'] as num).toDouble()
         : (widget.supplier['current_balance'] as num).toDouble();
@@ -66,6 +70,7 @@ class _SupplierLedgerScreenState extends State<SupplierLedgerScreen> {
     setState(() {
       _entries = entries;
       _currentBalance = balance;
+      if (company != null) _currency = company['currency_symbol'] ?? 'Rs.';
       _loading = false;
     });
   }
@@ -113,7 +118,53 @@ class _SupplierLedgerScreenState extends State<SupplierLedgerScreen> {
       message = "URGENT: $supplierName, aapka balance Rs. $balanceStr kafi arsay se pending hai. Ye final reminder hai. - $shopName";
     }
 
-    await Share.share(message, subject: 'Payment Enquiry');
+    final String mobile = widget.supplier['phone'] ?? '';
+    final String whatsapp = widget.supplier['whatsapp'] ?? mobile;
+
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (whatsapp.isNotEmpty)
+              ListTile(
+                leading: const Icon(Icons.message, color: Colors.green),
+                title: const Text('WhatsApp Direct Message'),
+                onTap: () => Navigator.pop(ctx, 'wa'),
+              ),
+            ListTile(
+              leading: const Icon(Icons.sms, color: Colors.blue),
+              title: const Text('SMS Notification (Gateway)'),
+              onTap: () => Navigator.pop(ctx, 'sms'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.share, color: Colors.grey),
+              title: const Text('Other Share Options'),
+              onTap: () => Navigator.pop(ctx, 'share'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (choice == 'wa') {
+      String cleanPhone = whatsapp.replaceAll(RegExp(r'[^0-9]'), '');
+      if (cleanPhone.startsWith('0')) cleanPhone = '92' + cleanPhone.substring(1);
+      final url = "https://wa.me/$cleanPhone?text=${Uri.encodeComponent(message)}";
+      if (await canLaunchUrl(Uri.parse(url))) {
+        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      }
+    } else if (choice == 'sms') {
+      final success = await SMSService.sendSMS(mobile: mobile, message: message);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(success ? 'SMS bhej diya gaya' : 'SMS fail ho gaya (Check settings/internet)'))
+        );
+      }
+    } else if (choice == 'share') {
+      await Share.share(message, subject: 'Payment Enquiry');
+    }
   }
 
   Future<void> _recordPayment() async {
@@ -218,7 +269,7 @@ class _SupplierLedgerScreenState extends State<SupplierLedgerScreen> {
                     children: [
                       const Text('Current Balance', style: TextStyle(fontSize: 13)),
                       Text(
-                        'Rs. ${_currentBalance.toStringAsFixed(0)}',
+                        '$_currency ${_currentBalance.toStringAsFixed(0)}',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -248,7 +299,7 @@ class _SupplierLedgerScreenState extends State<SupplierLedgerScreen> {
                                 subtitle: Text(
                                     '${(e['date'] as String).substring(0, 10)}  •  ${e['detail']}'),
                                 trailing: Text(
-                                  'Rs. ${(e['amount'] as double).toStringAsFixed(0)}',
+                                  '$_currency ${(e['amount'] as double).toStringAsFixed(0)}',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: isPurchase ? Colors.red : Colors.green,

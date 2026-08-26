@@ -50,6 +50,32 @@ class _SupplierFormScreenState extends State<SupplierFormScreen> {
           .showSnackBar(const SnackBar(content: Text('Company naam zaroori hai')));
       return;
     }
+
+    // --- DUPLICATE DETECTION ---
+    final duplicate = await DBHelper.instance.findDuplicateSupplier(
+      widget.companyId,
+      _companyNameCtrl.text.trim(),
+      _phoneCtrl.text.trim(),
+      excludeId: widget.existing?['id'],
+    );
+
+    if (duplicate != null && mounted) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Duplicate Supplier?'),
+          content: Text('Is naam ya mobile se aik supplier pehle hi mojood hai:\n\n'
+              '${duplicate['company_name']} - ${duplicate['phone']}\n\n'
+              'Kya aap phir bhi naya supplier banana chahte hain?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Nahi, Cancel')),
+            TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Haan, Save Karein')),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+    }
+
     setState(() => _saving = true);
 
     final openingBalance = _num(_openingBalanceCtrl.text);

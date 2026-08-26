@@ -7,6 +7,7 @@ import '../company/company_selection_screen.dart';
 import '../shell/main_shell.dart';
 import '../../core/auth/session.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/theme/design_tokens.dart';
 
 class PinLoginScreen extends StatefulWidget {
   const PinLoginScreen({super.key});
@@ -246,51 +247,49 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
     final isLocked = _lockoutSeconds > 0;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F7FB),
+      backgroundColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(AppSpacing.xl),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 430),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.xl),
                   Text('ARVION',
                       textAlign: TextAlign.center,
-                      style: theme.textTheme.headlineMedium?.copyWith(
+                      style: AppTypography.displaySmall(context).copyWith(
                           fontWeight: FontWeight.w900,
                           letterSpacing: 2.4,
-                          color: const Color(0xFF0F172A))),
-                  const SizedBox(height: 8),
+                          color: theme.colorScheme.primary)),
+                  const SizedBox(height: AppSpacing.s),
                   Text('Business, clearly managed.',
                       textAlign: TextAlign.center,
-                      style: theme.textTheme.bodyLarge
-                          ?.copyWith(color: const Color(0xFF475569))),
-                  const SizedBox(height: 28),
+                      style: AppTypography.bodyLarge(context).copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                  const SizedBox(height: AppSpacing.xxl),
                   Card(
-                    elevation: 0,
+                    elevation: AppElevation.none,
                     margin: EdgeInsets.zero,
-                    color: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: AppRadius.large),
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
+                      padding: const EdgeInsets.all(AppSpacing.xl),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text('Sign in',
-                              style: theme.textTheme.titleLarge
-                                  ?.copyWith(fontWeight: FontWeight.w800)),
-                          const SizedBox(height: 4),
+                              style: AppTypography.titleLarge(context).copyWith(fontWeight: FontWeight.w800)),
+                          const SizedBox(height: AppSpacing.xs),
                           Text(
                             isLocked 
                               ? 'Security lockout active. Please wait.'
                               : 'Enter your secure PIN to continue',
                             style: TextStyle(
-                              color: isLocked ? Colors.red : const Color(0xFF64748B)
+                              color: isLocked ? theme.colorScheme.error : theme.colorScheme.onSurfaceVariant
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: AppSpacing.xl),
                           TextField(
                             controller: _pinController,
                             enabled: !isLocked,
@@ -298,36 +297,35 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
                             obscureText: true,
                             maxLength: 6,
                             textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 24, 
+                            style: AppTypography.headlineMedium(context).copyWith(
                               letterSpacing: 8,
-                              color: isLocked ? Colors.grey : Colors.black,
+                              color: isLocked ? theme.disabledColor : null,
                             ),
                             decoration: InputDecoration(
                               labelText: isLocked ? 'LOCKED' : 'PIN', 
                               counterText: '',
-                              prefixIcon: isLocked ? const Icon(Icons.timer, color: Colors.red) : null,
+                              prefixIcon: isLocked ? Icon(Icons.timer, color: theme.colorScheme.error) : null,
                             ),
                             onSubmitted: (_) => _verifyPin(),
                           ),
                           if (isLocked)
                             Padding(
-                              padding: const EdgeInsets.only(top: 12),
+                              padding: const EdgeInsets.only(top: AppSpacing.m),
                               child: Text(
                                 'Intezar karein: $_lockoutSeconds seconds',
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                                style: TextStyle(color: theme.colorScheme.error, fontWeight: FontWeight.bold),
                               ),
                             )
                           else if (_error != null)
                             Padding(
-                              padding: const EdgeInsets.only(top: 12),
+                              padding: const EdgeInsets.only(top: AppSpacing.m),
                               child: Text(_error!,
                                   textAlign: TextAlign.center,
-                                  style: const TextStyle(color: Colors.red)),
+                                  style: TextStyle(color: theme.colorScheme.error)),
                             ),
-                          const SizedBox(height: 24),
-                          ElevatedButton(
+                          const SizedBox(height: AppSpacing.xl),
+                          FilledButton(
                             onPressed: (_checking || isLocked) ? null : _verifyPin,
                             child: _checking
                                 ? const SizedBox(
@@ -337,7 +335,7 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
                                         strokeWidth: 2, color: Colors.white))
                                 : Text(isLocked ? 'Locked' : 'Sign In'),
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: AppSpacing.s),
                           TextButton(
                               onPressed: isLocked ? null : _forgotPin,
                               child: const Text('Forgot Password')),
@@ -350,10 +348,10 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 22),
-                  const Text('Developed by ARVION Technologies',
+                  const SizedBox(height: AppSpacing.xl),
+                  Text('Developed by ARVION Technologies',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                      style: AppTypography.bodySmall(context).copyWith(color: theme.colorScheme.onSurfaceVariant)),
                 ],
               ),
             ),

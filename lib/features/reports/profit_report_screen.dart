@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/export/pdf_report_service.dart';
 import 'date_range_bar.dart';
+import 'package:printing/printing.dart';
 
 class ProfitReportScreen extends StatefulWidget {
   final int companyId;
@@ -19,6 +21,7 @@ class _ProfitReportScreenState extends State<ProfitReportScreen> {
   double _grossProfit = 0;
   double _expenses = 0;
   double _otherIncome = 0;
+  String _currency = 'Rs.';
 
   double get _netProfit => _grossProfit + _otherIncome - _expenses;
 
@@ -49,11 +52,14 @@ class _ProfitReportScreenState extends State<ProfitReportScreen> {
     final otherIncome =
         incomeRows.fold(0.0, (sum, e) => sum + (e['amount'] as num));
 
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
+
     setState(() {
       _revenue = revenue;
       _grossProfit = grossProfit;
       _expenses = expenses;
       _otherIncome = otherIncome;
+      if (company != null) _currency = company['currency_symbol'] ?? 'Rs.';
       _loading = false;
     });
   }
@@ -61,7 +67,7 @@ class _ProfitReportScreenState extends State<ProfitReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Profit & Loss')),
+      appBar: AppBar(title: const Text('Profit & Loss'), actions: [IconButton(icon: const Icon(Icons.picture_as_pdf), onPressed: _exportPdf)]),
       body: Column(
         children: [
           DateRangeBar(
@@ -106,7 +112,7 @@ class _ProfitReportScreenState extends State<ProfitReportScreen> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Rs. ${_netProfit.toStringAsFixed(0)}',
+                                '$_currency ${_netProfit.toStringAsFixed(0)}',
                                 style: TextStyle(
                                   fontSize: 26,
                                   fontWeight: FontWeight.bold,
@@ -137,9 +143,34 @@ class _ProfitReportScreenState extends State<ProfitReportScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: style),
-          Text('Rs. ${value.toStringAsFixed(0)}', style: style.copyWith(color: color)),
+          Text('$_currency ${value.toStringAsFixed(0)}', style: style.copyWith(color: color)),
         ],
       ),
     );
+  }
+
+  Future<void> _exportPdf() async {
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
+    if (company == null) return;
+
+    final columns = ['Description', 'Amount (Rs.)'];
+    final rows = [
+      ['Revenue (Sales)', _revenue.toStringAsFixed(2)],
+      ['Gross Profit', _grossProfit.toStringAsFixed(2)],
+      ['Other Income', _otherIncome.toStringAsFixed(2)],
+      ['Expenses', (-_expenses).toStringAsFixed(2)],
+    ];
+
+    final pdfBytes = await PdfReportService.generateReport(
+      company: company,
+      title: 'Profit & Loss Report',
+      columns: columns,
+      rows: rows,
+      summary: {
+        'Net Profit/Loss': '$_currency ${_netProfit.toStringAsFixed(2)}',
+      },
+    );
+
+    await Printing.sharePdf(bytes: pdfBytes, filename: 'profit_loss_report.pdf');
   }
 }

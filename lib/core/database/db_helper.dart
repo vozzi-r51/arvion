@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../templates/business_templates.dart';
 
 /// Singleton SQLite helper for the whole app.
 ///
@@ -39,7 +40,7 @@ class DBHelper {
 
     return openDatabase(
       path,
-      version: 22,
+      version: 29,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
       onConfigure: (db) async {
@@ -132,6 +133,37 @@ class DBHelper {
     if (oldVersion < 22) {
       await _createDatabaseIndexes(db);
     }
+    if (oldVersion < 23) {
+      await _createQuotationTables(db);
+      await _createPromotionTable(db);
+      await db.execute('CREATE INDEX idx_quotations_company ON quotations (company_id)');
+      await db.execute('CREATE INDEX idx_promotions_company ON promotions (company_id)');
+    }
+    if (oldVersion < 24) {
+      await db.execute('ALTER TABLE purchases ADD COLUMN tax_amount REAL DEFAULT 0');
+      await db.execute('ALTER TABLE purchase_items ADD COLUMN tax_amount REAL DEFAULT 0');
+      await db.execute('ALTER TABLE bank_transactions ADD COLUMN is_reconciled INTEGER DEFAULT 0');
+      await _createRecurringTemplatesTable(db);
+    }
+    if (oldVersion < 25) {
+      // Fix: Ensure staff_users table exists for existing installs
+      await _createStaffUsersTable(db);
+    }
+    if (oldVersion < 26) {
+      await db.execute('ALTER TABLE customers ADD COLUMN loyalty_points REAL DEFAULT 0');
+    }
+    if (oldVersion < 27) {
+      await db.execute('ALTER TABLE companies ADD COLUMN enabled_modules TEXT');
+      await db.execute("ALTER TABLE companies ADD COLUMN currency_symbol TEXT DEFAULT 'Rs.'");
+      await db.execute('ALTER TABLE companies ADD COLUMN business_type TEXT');
+    }
+    if (oldVersion < 28) {
+      await db.execute('ALTER TABLE companies ADD COLUMN branding_color INTEGER');
+    }
+    if (oldVersion < 29) {
+      await db.execute('ALTER TABLE companies ADD COLUMN business_category TEXT');
+      await db.execute('ALTER TABLE companies ADD COLUMN terminology_profile TEXT');
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -152,6 +184,12 @@ class DBHelper {
         company_details TEXT,
         ntn_gst TEXT,
         default_tax_percent REAL DEFAULT 0,
+        currency_symbol TEXT DEFAULT 'Rs.',
+        business_type TEXT,
+        business_category TEXT,
+        terminology_profile TEXT,
+        enabled_modules TEXT,
+        branding_color INTEGER,
         is_active INTEGER NOT NULL DEFAULT 0,
         created_at TEXT NOT NULL
       )
@@ -185,7 +223,12 @@ class DBHelper {
     await _createStockAdjustmentsTable(db);
     await _createJournalTables(db);
     await _createStaffUsersTable(db);
+    await _createQuotationTables(db);
+    await _createPromotionTable(db);
+    await _createRecurringTemplatesTable(db);
     await _createDatabaseIndexes(db);
+    await db.execute('CREATE INDEX idx_quotations_company ON quotations (company_id)');
+    await db.execute('CREATE INDEX idx_promotions_company ON promotions (company_id)');
   }
 
   Future<void> _createDatabaseIndexes(Database db) async {
@@ -215,7 +258,7 @@ class DBHelper {
 
   Future<void> _createStaffUsersTable(Database db) async {
     await db.execute('''
-      CREATE TABLE staff_users (
+      CREATE TABLE IF NOT EXISTS staff_users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         company_id INTEGER NOT NULL,
         name TEXT NOT NULL,
@@ -373,6 +416,7 @@ class DBHelper {
         credit_limit REAL NOT NULL DEFAULT 0,
         opening_balance REAL NOT NULL DEFAULT 0,
         current_balance REAL NOT NULL DEFAULT 0,
+        loyalty_points REAL DEFAULT 0,
         customer_type TEXT,
         status TEXT NOT NULL DEFAULT 'active',
         deleted_at TEXT,
@@ -464,6 +508,7 @@ class DBHelper {
         purchase_date TEXT NOT NULL,
         status TEXT NOT NULL DEFAULT 'completed',
         created_at TEXT NOT NULL,
+        tax_amount REAL DEFAULT 0,
         FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
         FOREIGN KEY (supplier_id) REFERENCES suppliers (id)
       )
@@ -479,6 +524,7 @@ class DBHelper {
         unit_cost REAL NOT NULL,
         packing TEXT,
         total REAL NOT NULL,
+        tax_amount REAL DEFAULT 0,
         FOREIGN KEY (purchase_id) REFERENCES purchases (id) ON DELETE CASCADE,
         FOREIGN KEY (product_id) REFERENCES products (id)
       )
@@ -583,6 +629,7 @@ class DBHelper {
         description TEXT,
         transaction_date TEXT NOT NULL,
         created_at TEXT NOT NULL,
+        is_reconciled INTEGER DEFAULT 0,
         FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
         FOREIGN KEY (bank_account_id) REFERENCES bank_accounts (id)
       )
@@ -903,13 +950,134 @@ class DBHelper {
     ''');
   }
 
+  Future<void> _createQuotationTables(Database db) async {
+    await db.execute('''
+      CREATE TABLE quotations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        quote_number TEXT NOT NULL,
+        customer_id INTEGER,
+        customer_name TEXT,
+        quote_date TEXT NOT NULL,
+        valid_until TEXT,
+        subtotal REAL NOT NULL DEFAULT 0,
+        discount_amount REAL NOT NULL DEFAULT 0,
+        tax_amount REAL NOT NULL DEFAULT 0,
+        total_amount REAL NOT NULL DEFAULT 0,
+        status TEXT NOT NULL DEFAULT 'draft',
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
+        FOREIGN KEY (customer_id) REFERENCES customers (id)
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE quotation_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        quote_id INTEGER NOT NULL,
+        product_id INTEGER,
+        product_name TEXT NOT NULL,
+        quantity REAL NOT NULL,
+        unit_price REAL NOT NULL,
+        purchase_price REAL NOT NULL DEFAULT 0,
+        packing TEXT,
+        total REAL NOT NULL,
+        FOREIGN KEY (quote_id) REFERENCES quotations (id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products (id)
+      )
+    ''');
+  }
+
+  Future<void> _createPromotionTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE promotions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL, -- 'percent', 'flat', 'buy_x_get_y'
+        value REAL NOT NULL DEFAULT 0,
+        applicable_category_id INTEGER,
+        start_date TEXT NOT NULL,
+        end_date TEXT NOT NULL,
+        active INTEGER NOT NULL DEFAULT 1,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
+        FOREIGN KEY (applicable_category_id) REFERENCES categories (id)
+      )
+    ''');
+  }
+
+  Future<void> _createRecurringTemplatesTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE recurring_templates (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        type TEXT NOT NULL, -- 'expense', 'income'
+        category TEXT NOT NULL,
+        amount REAL NOT NULL DEFAULT 0,
+        frequency TEXT NOT NULL, -- 'monthly', 'weekly'
+        next_due_date TEXT NOT NULL,
+        active INTEGER NOT NULL DEFAULT 1,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
+      )
+    ''');
+  }
+
   // ---------------- Company helpers ----------------
 
-  Future<int> insertCompany(Map<String, dynamic> company) async {
+  Future<int> insertCompany(Map<String, dynamic> data) async {
     final db = await database;
-    final id = await db.insert('companies', company);
-    await ensureChartOfAccounts(id);
+    int id = 0;
+    await db.transaction((txn) async {
+      id = await txn.insert('companies', data);
+      
+      // Seed data based on business type template
+      final templateId = data['business_type'] as String? ?? 'general_retail';
+      final template = BusinessTemplates.getById(templateId);
+      
+      final now = DateTime.now().toIso8601String();
+      
+      // 1. Seed Categories
+      for (final cat in template.defaultCategories) {
+        await txn.insert('categories', {
+          'company_id': id,
+          'name': cat,
+          'status': 'active',
+          'created_at': now,
+        });
+      }
+      
+      // 2. Seed Units
+      for (final unit in template.defaultUnits) {
+        await txn.insert('units', {
+          'company_id': id,
+          'name': unit,
+          'created_at': now,
+        });
+      }
+      
+      // 3. Seed Chart of Accounts
+      for (final accName in template.defaultCoa) {
+        await txn.insert('chart_of_accounts', {
+          'company_id': id,
+          'code': accName.toUpperCase().replaceAll(' ', '_'),
+          'name': accName,
+          'type': _guessAccountType(accName),
+          'created_at': now,
+        });
+      }
+    });
     return id;
+  }
+
+  String _guessAccountType(String name) {
+    final n = name.toLowerCase();
+    if (n.contains('sale') || n.contains('income')) return 'Revenue';
+    if (n.contains('cost') || n.contains('expense') || n.contains('wage')) return 'Expense';
+    if (n.contains('asset') || n.contains('inventory') || n.contains('cash') || n.contains('bank')) return 'Asset';
+    if (n.contains('payable') || n.contains('loan')) return 'Liability';
+    return 'Equity';
   }
 
   Future<List<Map<String, dynamic>>> getAllCompanies() async {
@@ -1107,6 +1275,14 @@ class DBHelper {
     return Sqflite.firstIntValue(result) ?? 0;
   }
 
+  Future<List<Map<String, dynamic>>> getLowStockProducts(int companyId) async {
+    final db = await database;
+    return db.query('products',
+        where: 'company_id = ? AND current_stock <= low_stock_level AND deleted_at IS NULL',
+        whereArgs: [companyId],
+        orderBy: 'current_stock ASC');
+  }
+
   // ---------------- Customer helpers ----------------
 
   Future<int> insertCustomer(Map<String, dynamic> data) async {
@@ -1167,6 +1343,19 @@ class DBHelper {
   Future<Map<String, dynamic>?> getCustomerById(int id) async {
     final db = await database;
     final rows = await db.query('customers', where: 'id = ?', whereArgs: [id]);
+    return rows.isEmpty ? null : rows.first;
+  }
+
+  Future<Map<String, dynamic>?> findDuplicateCustomer(int companyId, String name, String mobile, {int? excludeId}) async {
+    final db = await database;
+    final rows = await db.query(
+      'customers',
+      where: 'company_id = ? AND (LOWER(name) = ? OR mobile = ?) AND deleted_at IS NULL' + (excludeId != null ? ' AND id != ?' : ''),
+      whereArgs: excludeId != null 
+        ? [companyId, name.toLowerCase(), mobile, excludeId]
+        : [companyId, name.toLowerCase(), mobile],
+      limit: 1,
+    );
     return rows.isEmpty ? null : rows.first;
   }
 
@@ -1235,6 +1424,19 @@ class DBHelper {
     return rows.isEmpty ? null : rows.first;
   }
 
+  Future<Map<String, dynamic>?> findDuplicateSupplier(int companyId, String name, String phone, {int? excludeId}) async {
+    final db = await database;
+    final rows = await db.query(
+      'suppliers',
+      where: 'company_id = ? AND (LOWER(company_name) = ? OR phone = ?) AND deleted_at IS NULL' + (excludeId != null ? ' AND id != ?' : ''),
+      whereArgs: excludeId != null 
+        ? [companyId, name.toLowerCase(), phone, excludeId]
+        : [companyId, name.toLowerCase(), phone],
+      limit: 1,
+    );
+    return rows.isEmpty ? null : rows.first;
+  }
+
   // ---------------- Sales helpers ----------------
 
   Future<String> generateInvoiceNumber(int companyId) async {
@@ -1299,6 +1501,28 @@ class DBHelper {
           'UPDATE customers SET current_balance = current_balance + ? WHERE id = ?',
           [dueAmount, customerId],
         );
+      }
+
+      // --- LOYALTY POINTS ---
+      if (customerId != null && totalAmount > 0) {
+        final prefs = await SharedPreferences.getInstance();
+        final double rate = prefs.getDouble('loyalty_points_rate') ?? 100.0; // 1 point per 100 Rs
+        if (rate > 0) {
+          final pointsEarned = totalAmount / rate;
+          await txn.rawUpdate(
+            'UPDATE customers SET loyalty_points = loyalty_points + ? WHERE id = ?',
+            [pointsEarned, customerId],
+          );
+        }
+        
+        // Handle Point Redemption (Redeemed as discount)
+        final double redeemedPoints = (sale['redeemed_points'] as num?)?.toDouble() ?? 0;
+        if (redeemedPoints > 0) {
+          await txn.rawUpdate(
+            'UPDATE customers SET loyalty_points = loyalty_points - ? WHERE id = ?',
+            [redeemedPoints, customerId],
+          );
+        }
       }
 
       // --- AUTOMATED ACCOUNTING ENTRIES ---
@@ -1462,7 +1686,30 @@ class DBHelper {
       WHERE s.company_id = ? AND substr(s.sale_date, 1, 10) = ?
     ''', [companyId, today]);
     final value = result.first['profit'];
-    return value == null ? 0.0 : (value as num).toDouble();
+    if (value != null) return (value as num).toDouble();
+    return 0.0;
+  }
+
+  Future<double> getTodaysPurchaseTotal(int companyId) async {
+    final db = await database;
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    final result = await db.rawQuery(
+      "SELECT SUM(total_amount) as total FROM purchases WHERE company_id = ? AND substr(purchase_date, 1, 10) = ? AND status != 'voided'",
+      [companyId, today],
+    );
+    final val = result.first['total'];
+    return val == null ? 0.0 : (val as num).toDouble();
+  }
+
+  Future<double> getTodaysExpensesTotal(int companyId) async {
+    final db = await database;
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    final result = await db.rawQuery(
+      "SELECT SUM(amount) as total FROM expenses WHERE company_id = ? AND substr(expense_date, 1, 10) = ?",
+      [companyId, today],
+    );
+    final val = result.first['total'];
+    return val == null ? 0.0 : (val as num).toDouble();
   }
 
   // ---------------- Purchase helpers ----------------
@@ -1554,15 +1801,25 @@ class DBHelper {
       final cashAcc = getAccId('Cash');
       final payAcc = getAccId('Accounts Payable');
       final invAcc = getAccId('Inventory');
+      final taxAcc = getAccId('Taxes Payable');
 
-      if (cashAcc == null || payAcc == null || invAcc == null) {
-        throw StateError('Accounting for Purchases is not fully configured (Missing Cash, AP, or Inventory accounts).');
+      if (cashAcc == null || payAcc == null || invAcc == null || taxAcc == null) {
+        throw StateError('Accounting for Purchases is not fully configured (Missing Cash, AP, Inventory, or Taxes accounts).');
       }
 
       final List<Map<String, dynamic>> journalLines = [];
+      final taxAmount = (purchase['tax_amount'] as num?)?.toDouble() ?? 0.0;
 
       if (totalAmount > 0) {
-        journalLines.add({'account_id': invAcc, 'debit': totalAmount, 'credit': 0.0});
+        // Inventory is recorded at cost BEFORE tax (if tax is recoverable) 
+        // or total inclusive (if tax is expense). 
+        // For standard GST/VAT, Inventory is at subtotal.
+        final subtotal = (purchase['subtotal'] as num).toDouble();
+        journalLines.add({'account_id': invAcc, 'debit': subtotal, 'credit': 0.0});
+      }
+      if (taxAmount > 0) {
+        // Tax paid on purchase is an asset (input credit) or reduction of liability.
+        journalLines.add({'account_id': taxAcc, 'debit': taxAmount, 'credit': 0.0});
       }
       if (paidAmount > 0) {
         journalLines.add({'account_id': cashAcc, 'debit': 0.0, 'credit': paidAmount});
@@ -1674,18 +1931,6 @@ class DBHelper {
     });
   }
 
-  /// Sum of today's purchase totals for this company.
-  Future<double> getTodaysPurchaseTotal(int companyId) async {
-    final db = await database;
-    final today = DateTime.now().toIso8601String().substring(0, 10);
-    final result = await db.rawQuery(
-      "SELECT SUM(total_amount) as total FROM purchases WHERE company_id = ? AND substr(purchase_date, 1, 10) = ?",
-      [companyId, today],
-    );
-    final value = result.first['total'];
-    return value == null ? 0.0 : (value as num).toDouble();
-  }
-
   // ---------------- Expense helpers ----------------
 
   Future<int> insertExpense(Map<String, dynamic> data) async {
@@ -1706,10 +1951,10 @@ class DBHelper {
       }
 
       int? expAccId = getAccId(category);
-      if (expAccId == null) expAccId = getAccId('Operating Expenses');
+      expAccId ??= getAccId('Operating Expenses');
       
       int? sourceAccId = getAccId(method);
-      if (sourceAccId == null) sourceAccId = getAccId('Cash');
+      sourceAccId ??= getAccId('Cash');
 
       if (expAccId == null || sourceAccId == null) {
         throw StateError('Expense accounts are not configured.');
@@ -1800,17 +2045,6 @@ class DBHelper {
       );
       await txn.delete('expenses', where: 'id = ?', whereArgs: [id]);
     });
-  }
-
-  Future<double> getTodaysExpensesTotal(int companyId) async {
-    final db = await database;
-    final today = DateTime.now().toIso8601String().substring(0, 10);
-    final result = await db.rawQuery(
-      "SELECT SUM(amount) as total FROM expenses WHERE company_id = ? AND substr(expense_date, 1, 10) = ?",
-      [companyId, today],
-    );
-    final value = result.first['total'];
-    return value == null ? 0.0 : (value as num).toDouble();
   }
 
   // ---------------- Income helpers ----------------
@@ -2794,6 +3028,319 @@ class DBHelper {
     });
   }
 
+  // ---------------- Quotation helpers ----------------
+
+  Future<String> generateQuoteNumber(int companyId) async {
+    final db = await database;
+    final result = await db.rawQuery(
+        'SELECT COUNT(*) as cnt FROM quotations WHERE company_id = ?', [companyId]);
+    final count = (Sqflite.firstIntValue(result) ?? 0) + 1;
+    return 'QT-${count.toString().padLeft(6, '0')}';
+  }
+
+  Future<int> insertQuotationWithItems({
+    required Map<String, dynamic> quotation,
+    required List<Map<String, dynamic>> items,
+  }) async {
+    final db = await database;
+    return db.transaction<int>((txn) async {
+      final quoteId = await txn.insert('quotations', quotation);
+      for (final item in items) {
+        await txn.insert('quotation_items', {
+          ...item,
+          'quote_id': quoteId,
+        });
+      }
+      return quoteId;
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> getQuotations(int companyId) async {
+    final db = await database;
+    return db.query('quotations',
+        where: 'company_id = ?', whereArgs: [companyId], orderBy: 'id DESC');
+  }
+
+  Future<List<Map<String, dynamic>>> getQuotationItems(int quoteId) async {
+    final db = await database;
+    return db.query('quotation_items', where: 'quote_id = ?', whereArgs: [quoteId]);
+  }
+
+  Future<void> updateQuotationStatus(int id, String status) async {
+    final db = await database;
+    await db.update('quotations', {'status': status}, where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<int> convertQuotationToSale({
+    required int quoteId,
+    required Map<String, dynamic> saleData,
+    bool allowNegativeStock = true,
+  }) async {
+    final db = await database;
+    return db.transaction<int>((txn) async {
+      // 1. Get items from quotation
+      final items = await txn.query('quotation_items', where: 'quote_id = ?', whereArgs: [quoteId]);
+      final saleItems = items.map((it) {
+        final map = Map<String, dynamic>.from(it);
+        map.remove('id');
+        map.remove('quote_id');
+        return map;
+      }).toList();
+
+      // 2. Use existing insertSaleWithItems logic (but in this transaction)
+      // Since insertSaleWithItems usually starts its own transaction, we can't call it directly if it uses db.transaction.
+      // However, we want to stay in THIS txn.
+      // For now, I'll implement the logic here directly or refactor insertSaleWithItems to accept an optional txn.
+      // But a simpler way is to just do the steps.
+
+      await _validateInventoryItems(
+        txn,
+        saleData['company_id'] as int,
+        saleItems,
+        priceKey: 'unit_price',
+        allowNegativeStock: allowNegativeStock,
+      );
+
+      final saleId = await txn.insert('sales', saleData);
+      final companyId = saleData['company_id'] as int;
+      final saleDate = saleData['sale_date'] as String;
+      final invoiceNum = saleData['invoice_number'] as String;
+
+      double totalCost = 0;
+
+      for (final item in saleItems) {
+        await txn.insert('sale_items', {
+          ...item,
+          'sale_id': saleId,
+        });
+
+        final productId = item['product_id'] as int?;
+        final qty = item['quantity'] as num;
+        final pPrice = (item['purchase_price'] as num?)?.toDouble() ?? 0;
+        totalCost += pPrice * qty.toDouble();
+
+        if (productId != null) {
+          await txn.rawUpdate(
+            'UPDATE products SET current_stock = current_stock - ? WHERE id = ?',
+            [qty, productId],
+          );
+        }
+      }
+
+      final customerId = saleData['customer_id'] as int?;
+      final dueAmount = (saleData['due_amount'] as num).toDouble();
+      final totalAmount = (saleData['total_amount'] as num).toDouble();
+      final paidAmount = (saleData['paid_amount'] as num).toDouble();
+
+      if (customerId != null && dueAmount > 0) {
+        await txn.rawUpdate(
+          'UPDATE customers SET current_balance = current_balance + ? WHERE id = ?',
+          [dueAmount, customerId],
+        );
+      }
+
+      // Accounting entries
+      await _ensureChartOfAccountsInTransaction(txn, companyId);
+      final coaRows = await txn.query('chart_of_accounts', where: 'company_id = ?', whereArgs: [companyId]);
+      int? getAccId(String name) {
+        try { return coaRows.firstWhere((r) => r['name'] == name)['id'] as int; } catch(_) { return null; }
+      }
+
+      final cashAcc = getAccId('Cash');
+      final recAcc = getAccId('Accounts Receivable');
+      final salesAcc = getAccId('Sales Revenue');
+      final cogsAcc = getAccId('Cost of Goods Sold');
+      final invAcc = getAccId('Inventory');
+
+      if (cashAcc == null || recAcc == null || salesAcc == null || cogsAcc == null || invAcc == null) {
+        throw StateError('Accounting for Sales is not fully configured (Missing AR, Sales, COGS, or Inventory accounts).');
+      }
+
+      final List<Map<String, dynamic>> journalLines = [];
+      if (paidAmount > 0) {
+        journalLines.add({'account_id': cashAcc, 'debit': paidAmount, 'credit': 0.0});
+      }
+      if (dueAmount > 0) {
+        journalLines.add({'account_id': recAcc, 'debit': dueAmount, 'credit': 0.0});
+      }
+      if (totalAmount > 0) {
+        journalLines.add({'account_id': salesAcc, 'debit': 0.0, 'credit': totalAmount});
+      }
+      if (totalCost > 0) {
+        journalLines.add({'account_id': cogsAcc, 'debit': totalCost, 'credit': 0.0});
+        journalLines.add({'account_id': invAcc, 'debit': 0.0, 'credit': totalCost});
+      }
+
+      if (journalLines.isNotEmpty) {
+        await postAutomatedEntry(txn,
+            companyId: companyId,
+            date: saleDate,
+            description: 'Auto: Sale Invoice $invoiceNum (Converted from Quote $quoteId)',
+            sourceType: 'sale',
+            sourceId: saleId,
+            lines: journalLines);
+      }
+
+      // 3. Mark quotation as converted
+      await txn.update('quotations', {'status': 'converted'}, where: 'id = ?', whereArgs: [quoteId]);
+
+      return saleId;
+    });
+  }
+
+  // ---------------- Promotion helpers ----------------
+
+  Future<int> insertPromotion(Map<String, dynamic> data) async {
+    final db = await database;
+    return db.insert('promotions', data);
+  }
+
+  Future<List<Map<String, dynamic>>> getPromotions(int companyId) async {
+    final db = await database;
+    return db.query('promotions', where: 'company_id = ?', whereArgs: [companyId], orderBy: 'id DESC');
+  }
+
+  Future<List<Map<String, dynamic>>> getActivePromotions(int companyId) async {
+    final db = await database;
+    final now = DateTime.now().toIso8601String();
+    return db.query('promotions',
+        where: 'company_id = ? AND active = 1 AND start_date <= ? AND end_date >= ?',
+        whereArgs: [companyId, now, now]);
+  }
+
+  Future<void> updatePromotion(int id, Map<String, dynamic> data) async {
+    final db = await database;
+    await db.update('promotions', data, where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<void> deletePromotion(int id) async {
+    final db = await database;
+    await db.delete('promotions', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<List<Map<String, dynamic>>> getUnreconciledBankTransactions(int bankAccountId) async {
+    final db = await database;
+    return db.query('bank_transactions',
+        where: 'bank_account_id = ? AND is_reconciled = 0',
+        whereArgs: [bankAccountId],
+        orderBy: 'transaction_date DESC');
+  }
+
+  Future<void> markTransactionsReconciled(List<int> transactionIds) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      for (final id in transactionIds) {
+        await txn.update('bank_transactions', {'is_reconciled': 1},
+            where: 'id = ?', whereArgs: [id]);
+      }
+    });
+  }
+
+  // ---------------- Recurring helpers ----------------
+
+  Future<int> insertRecurringTemplate(Map<String, dynamic> data) async {
+    final db = await database;
+    return db.insert('recurring_templates', data);
+  }
+
+  Future<List<Map<String, dynamic>>> getRecurringTemplates(int companyId) async {
+    final db = await database;
+    return db.query('recurring_templates',
+        where: 'company_id = ?', whereArgs: [companyId], orderBy: 'id DESC');
+  }
+
+  Future<List<Map<String, dynamic>>> getDueRecurringTemplates(int companyId) async {
+    final db = await database;
+    final now = DateTime.now().toIso8601String();
+    return db.query('recurring_templates',
+        where: 'company_id = ? AND active = 1 AND next_due_date <= ?',
+        whereArgs: [companyId, now]);
+  }
+
+  Future<void> deleteRecurringTemplate(int id) async {
+    final db = await database;
+    await db.delete('recurring_templates', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<void> processRecurringItem(Map<String, dynamic> template) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      final type = template['type'] as String;
+      final nextDue = DateTime.parse(template['next_due_date']);
+      
+      if (type == 'expense') {
+        await insertExpense({
+          'company_id': template['company_id'],
+          'category': template['category'],
+          'amount': template['amount'],
+          'expense_date': template['next_due_date'],
+          'payment_method': 'Cash',
+          'description': 'Recurring Expense',
+          'created_at': DateTime.now().toIso8601String(),
+        });
+      } else {
+        await insertIncome({
+          'company_id': template['company_id'],
+          'category': template['category'],
+          'amount': template['amount'],
+          'income_date': template['next_due_date'],
+          'description': 'Recurring Income',
+          'created_at': DateTime.now().toIso8601String(),
+        });
+      }
+
+      // Update next due date
+      DateTime newNextDue;
+      if (template['frequency'] == 'monthly') {
+        newNextDue = DateTime(nextDue.year, nextDue.month + 1, nextDue.day);
+      } else {
+        newNextDue = nextDue.add(const Duration(days: 7));
+      }
+
+      await txn.update('recurring_templates', 
+        {'next_due_date': newNextDue.toIso8601String()},
+        where: 'id = ?', whereArgs: [template['id']]);
+    });
+  }
+
+  // ---------------- Tax Report helper ----------------
+
+  Future<Map<String, double>> getTaxSummary(int companyId, String fromDate, String toDate) async {
+    final db = await database;
+    
+    final salesRes = await db.rawQuery('''
+      SELECT SUM(total_amount) as sales, SUM(tax_amount) as tax 
+      FROM sales 
+      WHERE company_id = ? AND substr(sale_date, 1, 10) BETWEEN ? AND ? AND status != 'voided'
+    ''', [companyId, fromDate, toDate]);
+
+    final purchaseRes = await db.rawQuery('''
+      SELECT SUM(total_amount) as purchases, SUM(tax_amount) as tax 
+      FROM purchases 
+      WHERE company_id = ? AND substr(purchase_date, 1, 10) BETWEEN ? AND ? AND status != 'voided'
+    ''', [companyId, fromDate, toDate]);
+
+    return {
+      'total_sales': (salesRes.first['sales'] as num?)?.toDouble() ?? 0.0,
+      'tax_collected': (salesRes.first['tax'] as num?)?.toDouble() ?? 0.0,
+      'total_purchases': (purchaseRes.first['purchases'] as num?)?.toDouble() ?? 0.0,
+      'tax_paid': (purchaseRes.first['tax'] as num?)?.toDouble() ?? 0.0,
+    };
+  }
+
+  Future<List<Map<String, dynamic>>> getTopSellingProducts(int companyId, {int limit = 5}) async {
+    final db = await database;
+    return db.rawQuery('''
+      SELECT product_name, SUM(quantity) as total_qty
+      FROM sale_items si
+      INNER JOIN sales s ON s.id = si.sale_id
+      WHERE s.company_id = ? AND s.status != 'voided'
+      GROUP BY product_id, product_name
+      ORDER BY total_qty DESC
+      LIMIT ?
+    ''', [companyId, limit]);
+  }
+
   // ---------------- Audit Log helpers ----------------
 
   Future<void> insertAuditLog(Map<String, dynamic> data) async {
@@ -3121,6 +3668,8 @@ class DBHelper {
             'DELETE FROM delivery_challan_items WHERE challan_id NOT IN (SELECT id FROM delivery_challans)');
         await txn.rawDelete(
             'DELETE FROM purchase_order_items WHERE po_id NOT IN (SELECT id FROM purchase_orders)');
+        await txn.rawDelete(
+            'DELETE FROM quotation_items WHERE quote_id NOT IN (SELECT id FROM quotations)');
         await txn.rawDelete(
             'DELETE FROM journal_entry_lines WHERE journal_entry_id NOT IN (SELECT id FROM journal_entries)');
         await txn.rawDelete(

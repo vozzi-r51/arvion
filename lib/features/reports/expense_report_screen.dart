@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/export/csv_export_service.dart';
+import '../../core/export/pdf_report_service.dart';
 import 'date_range_bar.dart';
+import 'package:printing/printing.dart';
 
 class ExpenseReportScreen extends StatefulWidget {
   final int companyId;
@@ -41,7 +43,7 @@ class _ExpenseReportScreenState extends State<ExpenseReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Expense Report'), actions: [IconButton(icon: const Icon(Icons.ios_share), onPressed: _export)]),
+      appBar: AppBar(title: const Text('Expense Report'), actions: [IconButton(icon: const Icon(Icons.ios_share), onPressed: _showExportMenu)]),
       body: Column(
         children: [
           DateRangeBar(
@@ -107,11 +109,62 @@ class _ExpenseReportScreenState extends State<ExpenseReportScreen> {
   }
 
 
-  Future<void> _export() async {
+  Future<void> _showExportMenu() async {
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.table_chart),
+              title: const Text('Export as CSV'),
+              onTap: () => Navigator.pop(ctx, 'csv'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.picture_as_pdf),
+              title: const Text('Export as PDF'),
+              onTap: () => Navigator.pop(ctx, 'pdf'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (choice == 'csv') _exportCsv();
+    if (choice == 'pdf') _exportPdf();
+  }
+
+  Future<void> _exportCsv() async {
     await CsvExportService.exportAndShare(
       fileName: 'Expense_Report',
       headers: ['Category', 'Total'],
       rows: _breakdown.map((e) => [e['category'], e['total']]).toList(),
     );
+  }
+
+  Future<void> _exportPdf() async {
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
+    if (company == null) return;
+
+    final columns = ['Category', 'Total Amount'];
+    final rows = _breakdown
+        .map((e) => [
+              e['category'].toString(),
+              'Rs. ${e['total']}',
+            ])
+        .toList();
+
+    final pdfBytes = await PdfReportService.generateReport(
+      company: company,
+      title: 'Expense Breakdown Report',
+      columns: columns,
+      rows: rows,
+      summary: {
+        'Total Expenses': 'Rs. ${_total.toStringAsFixed(0)}',
+      },
+    );
+
+    await Printing.sharePdf(bytes: pdfBytes, filename: 'expense_report.pdf');
   }
 }

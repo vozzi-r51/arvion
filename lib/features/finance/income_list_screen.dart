@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/audit/audit_logger.dart';
+import '../../core/theme/design_tokens.dart';
+import '../../core/widgets/app_skeleton.dart';
+import '../../core/widgets/app_empty_state.dart';
 
 class IncomeListScreen extends StatefulWidget {
   final int companyId;
@@ -185,22 +188,39 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? ListView.builder(
+              itemCount: 8,
+              itemBuilder: (_, __) => AppSkeleton.listTile(),
+            )
           : _income.isEmpty
-              ? const Center(child: Text('Abhi koi income entry nahi hui'))
+              ? AppEmptyState(
+                  icon: Icons.savings_outlined,
+                  title: 'Abhi koi income entry nahi hui',
+                  message: 'Sales ke elawa baki income (jaise commission, rent) yahan add karein.',
+                  actionLabel: 'Nayi Income',
+                  onAction: () => _showForm(),
+                )
               : ListView.builder(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(AppSpacing.l),
                   itemCount: _income.length,
                   itemBuilder: (ctx, i) {
                     final inc = _income[i];
                     return Card(
-                      margin: const EdgeInsets.only(bottom: 8),
+                      elevation: 0,
+                      margin: const EdgeInsets.only(bottom: AppSpacing.m),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: AppRadius.medium,
+                        side: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+                      ),
                       child: ListTile(
-                        leading: const CircleAvatar(
-                          backgroundColor: Colors.green,
-                          child: Icon(Icons.savings_outlined, color: Colors.white, size: 18),
+                        leading: CircleAvatar(
+                          backgroundColor: Colors.green.withValues(alpha: 0.12),
+                          child: const Icon(Icons.savings_outlined, color: Colors.green, size: 20),
                         ),
-                        title: Text(inc['category'] as String),
+                        title: Text(
+                          inc['category'] as String,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
                         subtitle: Text(
                             (inc['income_date'] as String).substring(0, 10)),
                         trailing: Row(
@@ -208,13 +228,20 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                           children: [
                             Text('Rs. ${(inc['amount'] as num).toStringAsFixed(0)}',
                                 style: const TextStyle(fontWeight: FontWeight.bold)),
-                            IconButton(
-                              icon: const Icon(Icons.edit_outlined, size: 18),
-                              onPressed: () => _showForm(existing: inc),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
-                              onPressed: () => _confirmDelete(inc),
+                            const SizedBox(width: AppSpacing.s),
+                            PopupMenuButton<String>(
+                              icon: const Icon(Icons.more_vert, size: 18),
+                              onSelected: (val) {
+                                if (val == 'edit') {
+                                  _showForm(existing: inc);
+                                } else if (val == 'delete') {
+                                  _confirmDelete(inc);
+                                }
+                              },
+                              itemBuilder: (ctx) => [
+                                const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                                const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
+                              ],
                             ),
                           ],
                         ),

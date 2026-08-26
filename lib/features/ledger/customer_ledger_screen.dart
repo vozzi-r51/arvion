@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/notifications/sms_service.dart';
 
 class CustomerLedgerScreen extends StatefulWidget {
   final Map<String, dynamic> customer;
@@ -15,6 +17,8 @@ class CustomerLedgerScreen extends StatefulWidget {
 class _CustomerLedgerScreenState extends State<CustomerLedgerScreen> {
   List<Map<String, dynamic>> _entries = [];
   double _currentBalance = 0;
+  double _loyaltyPoints = 0;
+  String _currency = 'Rs.';
   bool _loading = true;
 
   int get _customerId => widget.customer['id'] as int;
@@ -58,13 +62,20 @@ class _CustomerLedgerScreenState extends State<CustomerLedgerScreen> {
     entries.sort((a, b) => (b['date'] as String).compareTo(a['date'] as String));
 
     final freshCustomer = await DBHelper.instance.getCustomerById(_customerId);
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
+    
     final balance = freshCustomer != null
         ? (freshCustomer['current_balance'] as num).toDouble()
         : (widget.customer['current_balance'] as num).toDouble();
+    final points = freshCustomer != null
+        ? (freshCustomer['loyalty_points'] as num?)?.toDouble() ?? 0
+        : (widget.customer['loyalty_points'] as num?)?.toDouble() ?? 0;
 
     setState(() {
       _entries = entries;
       _currentBalance = balance;
+      _loyaltyPoints = points;
+      if (company != null) _currency = company['currency_symbol'] ?? 'Rs.';
       _loading = false;
     });
   }
@@ -112,7 +123,53 @@ class _CustomerLedgerScreenState extends State<CustomerLedgerScreen> {
       message = "URGENT: $customerName, aapka balance Rs. $balanceStr kafi arsay se pending hai. Ye final reminder hai. Baraye meharbani aaj hi payment clear karein warna humein sakht iqdam uthana paray ga. - $shopName";
     }
 
-    await Share.share(message, subject: 'Payment Reminder');
+    final String mobile = widget.customer['mobile'] ?? '';
+    final String whatsapp = widget.customer['whatsapp'] ?? mobile;
+
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (whatsapp.isNotEmpty)
+              ListTile(
+                leading: const Icon(Icons.message, color: Colors.green),
+                title: const Text('WhatsApp Direct Message'),
+                onTap: () => Navigator.pop(ctx, 'wa'),
+              ),
+            ListTile(
+              leading: const Icon(Icons.sms, color: Colors.blue),
+              title: const Text('SMS Notification (Gateway)'),
+              onTap: () => Navigator.pop(ctx, 'sms'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.share, color: Colors.grey),
+              title: const Text('Other Share Options'),
+              onTap: () => Navigator.pop(ctx, 'share'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (choice == 'wa') {
+      String cleanPhone = whatsapp.replaceAll(RegExp(r'[^0-9]'), '');
+      if (cleanPhone.startsWith('0')) cleanPhone = '92' + cleanPhone.substring(1);
+      final url = "https://wa.me/$cleanPhone?text=${Uri.encodeComponent(message)}";
+      if (await canLaunchUrl(Uri.parse(url))) {
+        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      }
+    } else if (choice == 'sms') {
+      final success = await SMSService.sendSMS(mobile: mobile, message: message);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(success ? 'SMS bhej diya gaya' : 'SMS fail ho gaya (Check settings/internet)'))
+        );
+      }
+    } else if (choice == 'share') {
+      await Share.share(message, subject: 'Payment Reminder');
+    }
   }
 
   Future<void> _recordPayment() async {
@@ -213,16 +270,34 @@ class _CustomerLedgerScreenState extends State<CustomerLedgerScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
-                  child: Column(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      const Text('Current Balance', style: TextStyle(fontSize: 13)),
-                      Text(
-                        'Rs. ${_currentBalance.toStringAsFixed(0)}',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: _currentBalance > 0 ? Colors.red : Colors.green,
-                        ),
+                      Column(
+                        children: [
+                          const Text('Current Balance', style: TextStyle(fontSize: 11)),
+                          Text(
+                            '$_currency ${_currentBalance.toStringAsFixed(0)}',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: _currentBalance > 0 ? Colors.red : Colors.green,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          const Text('Loyalty Points', style: TextStyle(fontSize: 11)),
+                          Text(
+                            _loyaltyPoints.toStringAsFixed(1),
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.amber,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -247,7 +322,7 @@ class _CustomerLedgerScreenState extends State<CustomerLedgerScreen> {
                                 subtitle: Text(
                                     '${(e['date'] as String).substring(0, 10)}  •  ${e['detail']}'),
                                 trailing: Text(
-                                  'Rs. ${(e['amount'] as double).toStringAsFixed(0)}',
+                                  '$_currency ${(e['amount'] as double).toStringAsFixed(0)}',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: isSale ? Colors.red : Colors.green,

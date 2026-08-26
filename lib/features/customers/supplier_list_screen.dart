@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/audit/audit_logger.dart';
+import '../../core/theme/design_tokens.dart';
+import '../../core/widgets/app_skeleton.dart';
+import '../../core/widgets/app_empty_state.dart';
 import 'supplier_form_screen.dart';
 import '../ledger/supplier_ledger_screen.dart';
 import '../shell/main_shell.dart';
@@ -93,11 +96,14 @@ class _SupplierListScreenState extends State<SupplierListScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(AppSpacing.l),
             child: TextField(
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.search),
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.search),
                 hintText: 'Company naam ya phone se search karein',
+                border: OutlineInputBorder(borderRadius: AppRadius.medium),
+                filled: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.m),
               ),
               onChanged: (v) {
                 _query = v;
@@ -107,45 +113,88 @@ class _SupplierListScreenState extends State<SupplierListScreen> {
           ),
           Expanded(
             child: _loading
-                ? const Center(child: CircularProgressIndicator())
+                ? ListView.builder(
+                    itemCount: 8,
+                    itemBuilder: (_, __) => AppSkeleton.listTile(),
+                  )
                 : _suppliers.isEmpty
-                ? const Center(child: Text('Abhi koi supplier nahi bana'))
-                : ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              itemCount: _suppliers.length,
-              itemBuilder: (ctx, i) {
-                final s = _suppliers[i];
-                final balance = (s['current_balance'] as num).toDouble();
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  child: ListTile(
-                    leading: const CircleAvatar(
-                      backgroundColor: Colors.indigo,
-                      child: Icon(Icons.local_shipping,
-                          color: Colors.white, size: 18),
-                    ),
-                    title: Text(s['company_name'] as String),
-                    subtitle: Text(
-                        '${s['contact_person'] ?? ''}  •  ${s['phone'] ?? ''}\nBalance: Rs. ${balance.toStringAsFixed(0)}',
-                        style: TextStyle(color: balance > 0 ? Colors.red : Colors.green)),
-                    isThreeLine: true,
-                    trailing: PopupMenuButton<String>(
-                      onSelected: (value) {
-                        if (value == 'ledger') _openLedger(s);
-                        if (value == 'edit') _openForm(existing: s);
-                        if (value == 'delete') _confirmDelete(s);
-                      },
-                      itemBuilder: (ctx) => const [
-                        PopupMenuItem(value: 'ledger', child: Text('Ledger Dekhein')),
-                        PopupMenuItem(value: 'edit', child: Text('Edit Karein')),
-                        PopupMenuItem(value: 'delete', child: Text('Delete Karein')),
-                      ],
-                    ),
-                    onTap: () => _openLedger(s),
-                  ),
-                );
-              },
-            ),
+                    ? AppEmptyState(
+                        icon: Icons.local_shipping_outlined,
+                        title: 'Abhi koi supplier nahi bana',
+                        message: _query.isEmpty
+                            ? 'Jin vendors se aap maal khareedte hain unhein add karein.'
+                            : 'Aapki search ke mutabiq koi supplier nahi mila.',
+                        actionLabel: _query.isEmpty ? 'Naya Supplier' : null,
+                        onAction: _query.isEmpty ? () => _openForm() : null,
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.l),
+                        itemCount: _suppliers.length,
+                        itemBuilder: (ctx, i) {
+                          final s = _suppliers[i];
+                          final balance = (s['current_balance'] as num).toDouble();
+                          return Card(
+                            elevation: 0,
+                            margin: const EdgeInsets.only(bottom: AppSpacing.m),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: AppRadius.medium,
+                              side: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+                            ),
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: Colors.indigo.withValues(alpha: 0.12),
+                                child: const Icon(Icons.local_shipping_outlined, color: Colors.indigo, size: 20),
+                              ),
+                              title: Text(
+                                s['company_name'] as String,
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              subtitle: Text(
+                                  '${s['contact_person'] ?? ''}  •  ${s['phone'] ?? ''}\nBalance: ${balance.toStringAsFixed(0)}',
+                                  style: TextStyle(color: balance > 0 ? Colors.red : Colors.green)),
+                              isThreeLine: true,
+                              trailing: const Icon(Icons.chevron_right, size: 18),
+                              onTap: () => _openLedger(s),
+                              onLongPress: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  builder: (_) => SafeArea(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        ListTile(
+                                          leading: const Icon(Icons.history),
+                                          title: const Text('Ledger Dekhein'),
+                                          onTap: () {
+                                            Navigator.pop(context);
+                                            _openLedger(s);
+                                          },
+                                        ),
+                                        ListTile(
+                                          leading: const Icon(Icons.edit_outlined),
+                                          title: const Text('Edit Karein'),
+                                          onTap: () {
+                                            Navigator.pop(context);
+                                            _openForm(existing: s);
+                                          },
+                                        ),
+                                        ListTile(
+                                          leading: const Icon(Icons.delete_outline, color: Colors.red),
+                                          title: const Text('Delete Karein', style: TextStyle(color: Colors.red)),
+                                          onTap: () {
+                                            Navigator.pop(context);
+                                            _confirmDelete(s);
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      ),
           ),
         ],
       ),

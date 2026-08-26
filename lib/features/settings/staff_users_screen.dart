@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/auth/auth_service.dart';
+import '../../core/theme/design_tokens.dart';
+import '../../core/widgets/app_skeleton.dart';
+import '../../core/widgets/app_empty_state.dart';
 
 class StaffUsersScreen extends StatefulWidget {
   final int companyId;
@@ -60,7 +63,7 @@ class _StaffUsersScreenState extends State<StaffUsersScreen> {
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          ElevatedButton(
+          FilledButton(
             onPressed: () async {
               if (nameCtrl.text.trim().isEmpty || pinCtrl.text.trim().length < 4) return;
               final hashed = AuthService.instance.hashNewPin(pinCtrl.text.trim());
@@ -108,21 +111,39 @@ class _StaffUsersScreenState extends State<StaffUsersScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Cashier / Staff PINs')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? ListView.builder(
+              itemCount: 5,
+              itemBuilder: (_, __) => AppSkeleton.listTile(),
+            )
           : _staff.isEmpty
-              ? const Center(child: Text('Abhi koi cashier nahi bana'))
+              ? AppEmptyState(
+                  icon: Icons.people_outline,
+                  title: 'Koi cashier nahi bana',
+                  message: 'Apne staff ke liye alag PINs banayein taake woh sirf Sales aur Dashboard dekh sakein.',
+                  actionLabel: 'Staff Add Karein',
+                  onAction: _showAddDialog,
+                )
               : ListView.builder(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(AppSpacing.l),
                   itemCount: _staff.length,
                   itemBuilder: (ctx, i) {
                     final s = _staff[i];
                     return Card(
+                      elevation: 0,
+                      margin: const EdgeInsets.only(bottom: AppSpacing.m),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: AppRadius.medium,
+                        side: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+                      ),
                       child: ListTile(
-                        leading: const CircleAvatar(child: Icon(Icons.person_outline)),
-                        title: Text(s['name'] as String),
+                        leading: CircleAvatar(
+                          backgroundColor: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.12),
+                          child: Icon(Icons.person_outline, color: Theme.of(context).colorScheme.secondary),
+                        ),
+                        title: Text(s['name'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: const Text('Role: Cashier (Dashboard + Sales)'),
                         trailing: IconButton(
-                          icon: const Icon(Icons.delete_outline, color: Colors.red),
+                          icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
                           onPressed: () => _confirmDelete(s),
                         ),
                       ),

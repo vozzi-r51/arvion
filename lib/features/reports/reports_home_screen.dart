@@ -6,6 +6,7 @@ import 'expense_report_screen.dart';
 import 'stock_report_screen.dart';
 import 'customer_report_screen.dart';
 import 'supplier_report_screen.dart';
+import 'tax_report_screen.dart';
 import '../shell/main_shell.dart';
 
 class _ReportTile {
@@ -37,6 +38,8 @@ class ReportsHomeScreen extends StatelessWidget {
           (_) => CustomerReportScreen(companyId: companyId)),
       _ReportTile('Supplier Report', Icons.local_shipping, Colors.purple,
           (_) => SupplierReportScreen(companyId: companyId)),
+      _ReportTile('GST / Tax Summary', Icons.receipt_outlined, Colors.blueGrey,
+          (_) => TaxReportScreen(companyId: companyId)),
     ];
 
     return Scaffold(

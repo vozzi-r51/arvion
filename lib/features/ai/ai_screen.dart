@@ -33,7 +33,7 @@ class _AIScreenState extends State<AIScreen> {
   final List<_ChatMessage> _messages = [];
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  late final AIEngine _engine;
+  late AIEngine _engine;
   final VoiceService _voice = VoiceService();
   bool _isListening = false;
   bool _isVoiceReady = false;
@@ -41,9 +41,15 @@ class _AIScreenState extends State<AIScreen> {
   @override
   void initState() {
     super.initState();
-    _engine = AIEngine(widget.companyId);
+    // Default to Urdu, but will be updated by voice/locale settings
+    _engine = AIEngine(widget.companyId, locale: 'ur');
     _voice.init().then((_) {
-      if (mounted) setState(() => _isVoiceReady = true);
+      if (mounted) {
+        setState(() {
+          _isVoiceReady = true;
+          _engine = AIEngine(widget.companyId, locale: _voice.isUrduMode ? 'ur' : 'en');
+        });
+      }
     });
     _addSystemMessage("Asalam-o-Alaikum! Main ARVION AI hoon. Main aapke business data ko samajhne mein aapki madad kar sakta hoon.");
   }
@@ -149,7 +155,10 @@ class _AIScreenState extends State<AIScreen> {
                 label: Text(_voice.isUrduMode ? 'Urdu' : 'English', style: const TextStyle(fontSize: 12)),
                 selected: _voice.isUrduMode,
                 onSelected: (val) {
-                  setState(() => _voice.setLocale(val));
+                  setState(() {
+                    _voice.setLocale(val);
+                    _engine = AIEngine(widget.companyId, locale: val ? 'ur' : 'en');
+                  });
                 },
                 selectedColor: Colors.white,
                 labelStyle: TextStyle(color: _voice.isUrduMode ? theme.colorScheme.primary : Colors.white),

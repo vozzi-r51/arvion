@@ -6,6 +6,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:file_picker/file_picker.dart';
 import '../database/db_helper.dart';
+import 'google_drive_service.dart';
 
 class BackupService {
   BackupService._();
@@ -216,6 +217,12 @@ class BackupService {
         ..sort((a, b) => b.statSync().modified.compareTo(a.statSync().modified));
       for (final file in files.skip(_maxKeptAutoBackups)) {
         await file.delete();
+      }
+
+      if (await GoogleDriveService.isAutoUploadEnabled()) {
+        if (await GoogleDriveService.instance.isSignedIn()) {
+          await GoogleDriveService.instance.uploadBackup(savedPath);
+        }
       }
     } catch (_) {}
   }

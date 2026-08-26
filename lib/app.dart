@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
-import 'core/theme/arvion_brand.dart';
 import 'core/auth/auth_service.dart';
 import 'core/widgets/arvion_logo.dart';
+import 'core/providers/branding_provider.dart';
 import 'features/auth/pin_setup_screen.dart';
 import 'features/auth/pin_login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Moved declarations here to ensure no directives follow
 final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 
 class DukanEdgeApp extends StatefulWidget {
@@ -89,7 +91,6 @@ class _ARVIONSplashScreen extends StatefulWidget {
 class _ARVIONSplashScreenState extends State<_ARVIONSplashScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  late final Animation<double> _falconFlight;
   late final Animation<double> _falconScale;
   late final Animation<double> _textReveal;
 
@@ -99,13 +100,6 @@ class _ARVIONSplashScreenState extends State<_ARVIONSplashScreen>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2000),
-    );
-
-    _falconFlight = Tween<double>(begin: -1.2, end: 0.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeOutCubic),
-      ),
     );
 
     _falconScale = TweenSequence<double>([
@@ -136,6 +130,8 @@ class _ARVIONSplashScreenState extends State<_ARVIONSplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final branding = context.watch<BrandingProvider>();
+    
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
       body: AnimatedBuilder(
@@ -161,7 +157,9 @@ class _ARVIONSplashScreenState extends State<_ARVIONSplashScreen>
                       opacity: _textReveal.value,
                       child: Transform.scale(
                         scale: _falconScale.value,
-                        child: const ArvionLogo(size: 120),
+                        child: branding.logoPath != null 
+                          ? Image.file(File(branding.logoPath!), width: 120, height: 120)
+                          : const ArvionLogo(size: 120),
                       ),
                     ),
                     const SizedBox(height: 40),
@@ -172,29 +170,30 @@ class _ARVIONSplashScreenState extends State<_ARVIONSplashScreen>
                         scale: 0.8 + (0.2 * _textReveal.value),
                         child: Column(
                           children: [
-                            const Text(
-                              'ARVION',
-                              style: TextStyle(
-                                fontSize: 48,
+                            Text(
+                              branding.companyName.toUpperCase(),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 42,
                                 fontWeight: FontWeight.w900,
                                 color: Colors.white,
-                                letterSpacing: 8.0,
+                                letterSpacing: 4.0,
                               ),
                             ),
                             const SizedBox(height: 8),
                             Container(
                               height: 2,
                               width: 60 * _textReveal.value,
-                              color: const Color(0xFF2563EB),
+                              color: branding.primaryColor,
                             ),
                             const SizedBox(height: 16),
                             const Text(
-                              'TECHNOLOGIES',
+                              'POWERED BY ARVION',
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 10,
                                 fontWeight: FontWeight.w500,
-                                color: Colors.white54,
-                                letterSpacing: 4.0,
+                                color: Colors.white38,
+                                letterSpacing: 2.0,
                               ),
                             ),
                           ],
@@ -247,7 +246,8 @@ class _SplashDeciderState extends State<_SplashDecider> {
   }
 
   Future<void> _decide() async {
-    await Future<void>.delayed(const Duration(milliseconds: 3000));
+    await context.read<BrandingProvider>().loadBranding();
+    await Future<void>.delayed(const Duration(milliseconds: 2000));
     final pinSet = await AuthService.instance.isPinSet();
     if (!mounted) return;
 
