@@ -4,13 +4,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:dukanedge/core/database/db_helper.dart';
 
+import 'package:path/path.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  setUpAll(() {
+  setUpAll(() async {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
     SharedPreferences.setMockInitialValues({});
+    await DBHelper.instance.closeDatabase();
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, 'dukanedge.db');
+    await databaseFactory.deleteDatabase(path);
   });
 
   test('journal posting is atomic and balanced', () async {
@@ -372,7 +378,7 @@ void main() {
     
     // Verify version
     final version = await database.getVersion();
-    expect(version, 25);
+    expect(version, 36);
 
     // Verify presence of staff_users table
     final tables = await database.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='staff_users'");

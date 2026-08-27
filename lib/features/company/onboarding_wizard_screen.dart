@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import '../../core/database/db_helper.dart';
 import '../../core/audit/audit_logger.dart';
-import '../../core/templates/business_type_catalog.dart';
+import '../../core/business_types/business_type_catalog.dart';
 import '../../core/templates/business_templates.dart';
 import '../../core/theme/design_tokens.dart';
 import '../shell/main_shell.dart';
@@ -24,10 +24,23 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
   
   BusinessCategory? _selectedCategory;
   String? _selectedSubtype;
+  bool _isQuickSetup = true;
   
   String _currency = 'Rs.';
   double _taxPercent = 0;
   final Map<String, bool> _modules = {};
+  
+  String _searchQuery = '';
+
+  List<BusinessCategory> get _filteredCategories {
+    if (_searchQuery.isEmpty) return kBusinessCategories;
+    final q = _searchQuery.toLowerCase();
+    return kBusinessCategories.where((c) {
+      final matchCat = c.label.toLowerCase().contains(q);
+      final matchSub = c.subtypes.any((s) => s.toLowerCase().contains(q));
+      return matchCat || matchSub;
+    }).toList();
+  }
 
   @override
   void initState() {
@@ -75,6 +88,10 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
       case 1:
         if (_selectedCategory != null) {
           canGoNext = true;
+          if (_isQuickSetup) {
+            _finish();
+            return;
+          }
         } else {
           error = 'Business type select karein';
         }
@@ -115,7 +132,9 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
       'name': _nameCtrl.text.trim(),
       'owner_name': _ownerCtrl.text.trim(),
       'business_type': _selectedCategory?.id ?? 'general_retail',
-      'business_category': _selectedSubtype ?? _selectedCategory?.label,
+      'business_category': _selectedCategory?.label ?? 'General Retail',
+      'business_subtype': _selectedSubtype,
+      'template_family': _selectedCategory?.family.toString().split('.').last ?? 'retailStandard',
       'currency_symbol': _currency,
       'default_tax_percent': _taxPercent,
       'terminology_profile': _selectedCategory?.id ?? 'general_retail',
@@ -194,7 +213,16 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
           style: AppTypography.headlineMedium(context).copyWith(fontWeight: FontWeight.bold)
         ),
         const Text('Apni company ya shop ki bunyadi maloomat dein.'),
-        const SizedBox(height: AppSpacing.xxl),
+        const SizedBox(height: AppSpacing.xl),
+        SegmentedButton<bool>(
+          segments: const [
+            ButtonSegment(value: true, label: Text('⚡ Quick (30 sec)'), icon: Icon(Icons.bolt)),
+            ButtonSegment(value: false, label: Text('⚙️ Detailed'), icon: Icon(Icons.tune)),
+          ],
+          selected: {_isQuickSetup},
+          onSelectionChanged: (set) => setState(() => _isQuickSetup = set.first),
+        ),
+        const SizedBox(height: AppSpacing.xl),
         TextField(
           controller: _nameCtrl, 
           decoration: const InputDecoration(labelText: 'Company / Shop Naam *')
@@ -209,10 +237,11 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
   }
 
   Widget _buildStep2() {
+    final filtered = _filteredCategories;
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(AppSpacing.xl),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.m),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -221,6 +250,16 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
                 style: AppTypography.titleLarge(context).copyWith(fontWeight: FontWeight.bold)
               ),
               const Text('Apne business ki category chunein.'),
+              const SizedBox(height: AppSpacing.m),
+              TextField(
+                onChanged: (v) => setState(() => _searchQuery = v),
+                decoration: InputDecoration(
+                  hintText: 'Search (e.g. Tandoor, Mobile)',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(borderRadius: AppRadius.medium),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+              ),
             ],
           ),
         ),
@@ -233,9 +272,9 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
               crossAxisSpacing: 12, 
               mainAxisSpacing: 12
             ),
-            itemCount: kBusinessCategories.length,
+            itemCount: filtered.length,
             itemBuilder: (ctx, i) {
-              final cat = kBusinessCategories[i];
+              final cat = filtered[i];
               final isSelected = _selectedCategory?.id == cat.id;
               return InkWell(
                 onTap: () {
@@ -244,6 +283,7 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
                     _selectedSubtype = null;
                   });
                   _applyTemplateFamily(cat.family);
+                  _next(); // Auto-move to subtypes
                 },
                 child: Container(
                   decoration: BoxDecoration(
@@ -283,15 +323,39 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
   }
 
   Widget _buildStep3() {
-    if (_selectedCategory == null || _selectedCategory!.subtypes.isEmpty) {
+    if (_selectedCategory == null) return const SizedBox.shrink();
+
+    final allSubtypes = _selectedCategory!.subtypes;
+    if (allSubtypes.isEmpty) {
       return Center(
-        child: Text(
-          'No subtypes for this category.\nClick Next to continue.',
-          textAlign: TextAlign.center,
-          style: AppTypography.bodyLarge(context),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.info_outline, size: 48, color: Colors.grey),
+              const SizedBox(height: 16),
+              Text(
+                'No specific subtypes for "${_selectedCategory!.label}".\nClick Next to continue.',
+                textAlign: TextAlign.center,
+                style: AppTypography.bodyLarge(context),
+              ),
+            ],
+          ),
         ),
       );
     }
+
+    // Filter subtypes based on search from Step 2
+    final filteredSubtypes = allSubtypes.where((s) {
+      if (_searchQuery.isEmpty) return true;
+      // If the category itself matches the search, show all subtypes
+      if (_selectedCategory!.label.toLowerCase().contains(_searchQuery.toLowerCase())) return true;
+      // Otherwise only show matching subtypes
+      return s.toLowerCase().contains(_searchQuery.toLowerCase());
+    }).toList();
+
+    final displaySubtypes = filteredSubtypes.isEmpty ? allSubtypes : filteredSubtypes;
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.xl),
@@ -302,7 +366,7 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
         ),
         Text('Aapka ${_selectedCategory!.label} business kis tarah ka hai?'),
         const SizedBox(height: AppSpacing.xl),
-        ..._selectedCategory!.subtypes.map((sub) {
+        ...displaySubtypes.map((sub) {
           final isSelected = _selectedSubtype == sub;
           return Card(
             elevation: 0,
@@ -318,6 +382,11 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
             ),
           );
         }),
+        if (displaySubtypes.isEmpty)
+          const Padding(
+            padding: EdgeInsets.all(AppSpacing.xl),
+            child: Text('Koi matching subtype nahi mila.', textAlign: TextAlign.center),
+          ),
       ],
     );
   }

@@ -4,13 +4,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:dukanedge/core/database/db_helper.dart';
 
+import 'package:path/path.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  setUpAll(() {
+  setUpAll(() async {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
     SharedPreferences.setMockInitialValues({});
+    await DBHelper.instance.closeDatabase();
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, 'dukanedge.db');
+    await databaseFactory.deleteDatabase(path);
   });
 
   test('quotation to sale conversion preserves data and updates stock/accounting', () async {

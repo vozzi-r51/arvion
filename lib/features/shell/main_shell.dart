@@ -16,6 +16,8 @@ import '../reports/reports_home_screen.dart';
 import '../settings/settings_screen.dart';
 import '../ai/ai_screen.dart';
 import '../quotations/quotation_list_screen.dart';
+import '../manufacturing/manufacturing_home_screen.dart';
+import '../services/service_jobs_screen.dart';
 import '../../core/widgets/arvion_logo.dart';
 import '../../core/backup/backup_service.dart';
 import '../../core/auth/session.dart';
@@ -142,6 +144,8 @@ class _MainShellState extends State<MainShell> {
       _NavItemData('Purchases', Icons.shopping_cart, Icons.shopping_cart_outlined, moduleName: 'purchases'),
       _NavItemData('Customers', Icons.people, Icons.people_outline),
       _NavItemData('Vendors / Suppliers', Icons.business, Icons.business_outlined),
+      _NavItemData('Service Jobs', Icons.build, Icons.build_outlined, moduleName: 'services'),
+      _NavItemData('Manufacturing', Icons.precision_manufacturing, Icons.precision_manufacturing_outlined, isOwnerOnly: true, moduleName: 'manufacturing'),
       _NavItemData('Inventory', Icons.inventory_2, Icons.inventory_2_outlined, isOwnerOnly: true, moduleName: 'inventory'),
       _NavItemData('Expenses', Icons.payments, Icons.payments_outlined, isOwnerOnly: true, moduleName: 'expenses'),
       _NavItemData('Accounting', Icons.account_balance, Icons.account_balance_outlined, isOwnerOnly: true, moduleName: 'accounting'),
@@ -170,6 +174,8 @@ class _MainShellState extends State<MainShell> {
         case 'Purchases': return PurchasesHomeScreen(companyId: _companyId!);
         case 'Customers': return CustomerListScreen(companyId: _companyId!);
         case 'Vendors / Suppliers': return SupplierListScreen(companyId: _companyId!);
+        case 'Service Jobs': return ServiceJobsScreen(companyId: _companyId!);
+        case 'Manufacturing': return ManufacturingHomeScreen(companyId: _companyId!);
         case 'Inventory': return ProductsHomeScreen(companyId: _companyId!);
         case 'Expenses': return ExpenseListScreen(companyId: _companyId!);
         case 'Accounting': return JournalHomeScreen(companyId: _companyId!);

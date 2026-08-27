@@ -5,6 +5,7 @@ import '../../core/audit/audit_logger.dart';
 
 class _PurchaseCartItem {
   final int productId;
+  final int? variantId;
   final String name;
   double unitCost; // Price per base unit
   double qty; // Quantity in selected unit
@@ -19,6 +20,7 @@ class _PurchaseCartItem {
 
   _PurchaseCartItem({
     required this.productId,
+    this.variantId,
     required this.name,
     required this.unitCost,
     required this.qty,
@@ -119,7 +121,37 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
     if (selected == null) return;
 
     final productId = selected['id'] as int;
-    final existingIndex = _cart.indexWhere((c) => c.productId == productId);
+    final hasVariants = (selected['has_variants'] ?? 0) == 1;
+
+    int? selectedVariantId;
+    String variantLabel = '';
+    double variantCost = (selected['purchase_price'] as num).toDouble();
+
+    if (hasVariants) {
+      final variants = await DBHelper.instance.getProductVariants(productId);
+      if (variants.isNotEmpty && mounted) {
+        final chosenVariant = await showModalBottomSheet<Map<String, dynamic>>(
+          context: context,
+          builder: (ctx) => ListView.builder(
+            itemCount: variants.length,
+            itemBuilder: (c, i) {
+              final v = variants[i];
+              final combo = v['attribute_combo'] as String;
+              return ListTile(
+                title: Text(combo),
+                subtitle: Text('Stock: ${v['current_stock']}'),
+                onTap: () => Navigator.pop(c, v),
+              );
+            },
+          ),
+        );
+        if (chosenVariant == null) return;
+        selectedVariantId = chosenVariant['id'] as int;
+        variantLabel = ' (${chosenVariant['attribute_combo']})';
+      }
+    }
+
+    final existingIndex = _cart.indexWhere((c) => c.productId == productId && c.variantId == selectedVariantId);
 
       if (existingIndex >= 0) {
         setState(() {
@@ -130,8 +162,9 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
         setState(() {
           _cart.add(_PurchaseCartItem(
             productId: productId,
-            name: selected['name'] as String,
-            unitCost: (selected['purchase_price'] as num).toDouble(),
+            variantId: selectedVariantId,
+            name: '${selected['name']}$variantLabel',
+            unitCost: variantCost,
             qty: 1,
             baseUnit: selected['base_unit'] as String? ?? 'Pc',
             secondaryUnit: selected['secondary_unit'] as String?,
@@ -197,6 +230,7 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
     final itemsData = _cart
         .map((c) => {
       'product_id': c.productId,
+      'variant_id': c.variantId,
       'product_name': c.name,
       'quantity': c.baseQty,
       'unit_cost': c.unitCost,

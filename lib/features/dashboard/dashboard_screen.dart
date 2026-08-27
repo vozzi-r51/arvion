@@ -392,6 +392,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
             const SizedBox(height: 18),
+            _buildComingSoonBanner(),
             _buildSummaryCard(),
             const SizedBox(height: 18),
             if (_lowStockCount > 0) ...[
@@ -693,6 +694,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
           borderData: FlBorderData(show: false),
           barGroups: _topProductGroups,
         ),
+      ),
+    );
+  }
+
+  Widget _buildComingSoonBanner() {
+    final family = _activeCompany?['template_family'] as String?;
+    if (family == null) return const SizedBox.shrink();
+
+    final implementedFamilies = [
+      'retailStandard',
+      'retailVariant',
+      'retailBatchExpiry',
+      'serializedInventory',
+      'retailCustomFields',
+    ];
+
+    if (implementedFamilies.contains(family)) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.all(AppSpacing.m),
+      decoration: BoxDecoration(
+        color: Colors.amber.shade50,
+        borderRadius: AppRadius.medium,
+        border: Border.all(color: Colors.amber.shade200),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.info_outline, color: Colors.amber),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Coming Soon: ${family.replaceAllMapped(RegExp(r'([A-Z])'), (match) => ' ${match.group(0)}').trim().toUpperCase()}',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 12, color: Colors.amber),
+                ),
+                const Text(
+                  'Is business type ke liye makhsoos features aglay update mein shamil kiye jayenge. Filhal aap standard retail features use kar saktay hain.',
+                  style: TextStyle(fontSize: 11),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

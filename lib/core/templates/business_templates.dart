@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'business_type_catalog.dart';
+import '../business_types/business_type_catalog.dart';
 
 class BusinessTemplate {
   final String id;
@@ -11,6 +11,10 @@ class BusinessTemplate {
   final List<String> defaultUnits;
   final List<String> enabledModules;
   final Map<String, String> terminology;
+  final bool hasVariants;
+  final bool hasBatchExpiry;
+  final bool hasSerialNumbers;
+  final bool hasCustomFields;
 
   const BusinessTemplate({
     required this.id,
@@ -22,6 +26,10 @@ class BusinessTemplate {
     required this.defaultUnits,
     required this.enabledModules,
     required this.terminology,
+    this.hasVariants = false,
+    this.hasBatchExpiry = false,
+    this.hasSerialNumbers = false,
+    this.hasCustomFields = false,
   });
 }
 
@@ -31,6 +39,12 @@ class BusinessTemplates {
   static BusinessTemplate getByFamily(TemplateFamily family, {String? categoryTitle, IconData? icon}) {
     switch (family) {
       case TemplateFamily.retailStandard:
+      case TemplateFamily.projectBased:
+      case TemplateFamily.serviceJob:
+      case TemplateFamily.propertyBased:
+      case TemplateFamily.fleetBased:
+      case TemplateFamily.enrollmentBased:
+      case TemplateFamily.nonprofit:
         return BusinessTemplate(
           id: 'retail_standard',
           title: categoryTitle ?? 'General Retail',
@@ -53,6 +67,7 @@ class BusinessTemplates {
           defaultUnits: ['Piece', 'Suit', 'Pair'],
           enabledModules: ['sales', 'purchases', 'inventory', 'expenses', 'accounting', 'promotions'],
           terminology: {'sale': 'Sale', 'invoice': 'Invoice', 'product': 'Item'},
+          hasVariants: true,
         );
       case TemplateFamily.retailCustomFields:
         return BusinessTemplate(
@@ -65,6 +80,7 @@ class BusinessTemplates {
           defaultUnits: ['Gram', 'Tola', 'Piece'],
           enabledModules: ['sales', 'purchases', 'inventory', 'expenses', 'accounting'],
           terminology: {'sale': 'Sale', 'invoice': 'Invoice', 'product': 'Jewelry'},
+          hasCustomFields: true,
         );
       case TemplateFamily.serializedInventory:
         return BusinessTemplate(
@@ -77,6 +93,7 @@ class BusinessTemplates {
           defaultUnits: ['Unit', 'Set', 'Piece'],
           enabledModules: ['sales', 'purchases', 'inventory', 'expenses', 'accounting'],
           terminology: {'sale': 'Sale', 'invoice': 'Invoice', 'product': 'Device'},
+          hasSerialNumbers: true,
         );
       case TemplateFamily.retailBatchExpiry:
         return BusinessTemplate(
@@ -89,6 +106,7 @@ class BusinessTemplates {
           defaultUnits: ['Strip', 'Bottle', 'Piece'],
           enabledModules: ['sales', 'purchases', 'inventory', 'expenses', 'accounting'],
           terminology: {'sale': 'Sale', 'invoice': 'Invoice', 'product': 'Medicine'},
+          hasBatchExpiry: true,
         );
       case TemplateFamily.foodService:
         return BusinessTemplate(
@@ -101,6 +119,42 @@ class BusinessTemplates {
           defaultUnits: ['Plate', 'Serving', 'Glass'],
           enabledModules: ['sales', 'inventory', 'expenses', 'hr'],
           terminology: {'sale': 'Order', 'invoice': 'Bill', 'product': 'Menu Item'},
+        );
+      case TemplateFamily.bookingBased:
+        return BusinessTemplate(
+          id: 'booking_based',
+          title: categoryTitle ?? 'Hospitality / Travel',
+          icon: icon ?? Icons.hotel,
+          family: family,
+          defaultCoa: ['Booking Revenue', 'Service Income', 'Cash', 'Maintenance Expense'],
+          defaultCategories: ['Rooms', 'Packages', 'Services'],
+          defaultUnits: ['Night', 'Person', 'Ticket'],
+          enabledModules: ['sales', 'expenses', 'accounting'],
+          terminology: {'sale': 'Booking', 'invoice': 'Receipt', 'product': 'Service'},
+        );
+      case TemplateFamily.workshopJob:
+        return BusinessTemplate(
+          id: 'workshop_job',
+          title: categoryTitle ?? 'Automotive / Workshop',
+          icon: icon ?? Icons.directions_car,
+          family: family,
+          defaultCoa: ['Parts Sales', 'Labor Income', 'Inventory Asset', 'Cash', 'Operating Expenses'],
+          defaultCategories: ['Spare Parts', 'Lubricants', 'Services'],
+          defaultUnits: ['Piece', 'Litre', 'Job'],
+          enabledModules: ['sales', 'purchases', 'inventory', 'expenses', 'accounting'],
+          terminology: {'sale': 'Job Card', 'invoice': 'Invoice', 'product': 'Part'},
+        );
+      case TemplateFamily.farmOperations:
+        return BusinessTemplate(
+          id: 'farm_operations',
+          title: categoryTitle ?? 'Agriculture / Farm',
+          icon: icon ?? Icons.agriculture,
+          family: family,
+          defaultCoa: ['Crop Sales', 'Livestock Sales', 'Feed Expense', 'Seed Purchases', 'Cash'],
+          defaultCategories: ['Seeds', 'Fertilizers', 'Crops'],
+          defaultUnits: ['Kg', 'Bag', 'Mound'],
+          enabledModules: ['sales', 'purchases', 'inventory', 'expenses'],
+          terminology: {'sale': 'Sale', 'invoice': 'Invoice', 'product': 'Item'},
         );
       case TemplateFamily.manufacturing:
         return BusinessTemplate(

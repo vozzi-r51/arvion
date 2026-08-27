@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class _CartItem {
   final int productId;
+  final int? variantId;
   final String name;
   double unitPrice;
   final double retailPrice;
@@ -30,6 +31,7 @@ class _CartItem {
 
   _CartItem({
     required this.productId,
+    this.variantId,
     required this.name,
     required this.unitPrice,
     required this.retailPrice,
@@ -92,6 +94,10 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
   double _pointValue = 1.0;
   String _currency = 'Rs.';
   
+  Map<String, dynamic>? _company;
+  String? _templateFamily;
+  String? _selectedTable; // e.g. "Table 4" or "Takeaway"
+  
   DateTime _saleDate = DateTime.now();
   bool _saving = false;
 
@@ -115,6 +121,8 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
       if (!mounted) return;
       setState(() {
         _customers = rows;
+        _company = company;
+        _templateFamily = company?['template_family'] as String?;
         _pointValue = prefs.getDouble('loyalty_point_value') ?? 1.0;
         if (company != null) {
           _taxPercentCtrl.text = '${company['default_tax_percent'] ?? 0}';
@@ -137,6 +145,115 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
   double get _taxAmount => ((_subtotal - _discount - _pointsDiscount).clamp(0, double.infinity)) * _taxPercent / 100;
   double get _grandTotal => (_subtotal - _discount - _pointsDiscount + _taxAmount).clamp(0, double.infinity);
 
+  void _openKOTDialog() {
+    if (_cart.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cart khali hai')));
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.restaurant, color: Colors.indigo),
+            const SizedBox(width: 8),
+            Text('KOT — ${_selectedTable ?? "Takeaway"}'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Time: ${DateTime.now().toIso8601String().substring(11, 16)}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            const Divider(),
+            ..._cart.map((item) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4.0),
+              child: Row(
+                children: [
+                  Text('${item.qty.toStringAsFixed(0)}x', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(item.name, style: const TextStyle(fontSize: 16))),
+                ],
+              ),
+            )),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('KOT sent to kitchen!')));
+            },
+            icon: const Icon(Icons.print),
+            label: const Text('Print KOT'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _selectTable() async {
+    final tables = await DBHelper.instance.getRestaurantTables(widget.companyId);
+    if (!mounted) return;
+
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Select Table / Order Mode', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 12),
+            ListTile(
+              leading: const Icon(Icons.takeout_dining),
+              title: const Text('Takeaway / Delivery'),
+              onTap: () => Navigator.pop(ctx, 'Takeaway'),
+            ),
+            const Divider(),
+            if (tables.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text('No tables added. Add tables from Restaurant Settings.'),
+              )
+            else
+              GridView.builder(
+                shrinkWrap: true,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  childAspectRatio: 2.0,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                ),
+                itemCount: tables.length,
+                itemBuilder: (c, i) {
+                  final t = tables[i];
+                  return InkWell(
+                    onTap: () => Navigator.pop(c, t['table_number'] as String),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.indigo.shade50,
+                        border: Border.all(color: Colors.indigo),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(t['table_number'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  );
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+
+    if (selected != null) {
+      setState(() => _selectedTable = selected);
+    }
+  }
+
   Future<void> _openProductPicker() async {
     final selected = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
@@ -146,10 +263,75 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
     if (selected == null) return;
 
     final productId = selected['id'] as int;
-    final existingIndex = _cart.indexWhere((c) => c.productId == productId);
-    final stock = (selected['current_stock'] as num).toDouble();
+    final hasVariants = (selected['has_variants'] ?? 0) == 1;
 
-    final retailPrice = (selected['retail_price'] as num).toDouble();
+    int? selectedVariantId;
+    String variantLabel = '';
+    double variantPrice = (selected['retail_price'] as num).toDouble();
+    double variantStock = (selected['current_stock'] as num).toDouble();
+
+    if (hasVariants) {
+      final variants = await DBHelper.instance.getProductVariants(productId);
+      if (variants.isNotEmpty && mounted) {
+        final chosenVariant = await showModalBottomSheet<Map<String, dynamic>>(
+          context: context,
+          builder: (ctx) => Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Quick Variant Grid', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 12),
+                GridView.builder(
+                  shrinkWrap: true,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    childAspectRatio: 1.8,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                  ),
+                  itemCount: variants.length,
+                  itemBuilder: (c, i) {
+                    final v = variants[i];
+                    final stock = (v['current_stock'] as num).toDouble();
+                    return InkWell(
+                      onTap: () => Navigator.pop(c, v),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: stock > 0 ? Colors.teal.shade50 : Colors.red.shade50,
+                          border: Border.all(color: stock > 0 ? Colors.teal : Colors.red),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.all(4),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(v['attribute_combo'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11), textAlign: TextAlign.center),
+                            Text('Stock: ${stock.toStringAsFixed(0)}', style: TextStyle(fontSize: 9, color: stock > 0 ? Colors.teal.shade900 : Colors.red.shade900)),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+        if (chosenVariant == null) return;
+        selectedVariantId = chosenVariant['id'] as int;
+        variantLabel = ' (${chosenVariant['attribute_combo']})';
+        if (chosenVariant['price_override'] != null) {
+          variantPrice = (chosenVariant['price_override'] as num).toDouble();
+        }
+        variantStock = (chosenVariant['current_stock'] as num).toDouble();
+      }
+    }
+
+    final existingIndex = _cart.indexWhere((c) => c.productId == productId && c.variantId == selectedVariantId);
+    final stock = variantStock;
+
+    final retailPrice = variantPrice;
     final wholesalePrice = (selected['wholesale_price'] as num?)?.toDouble() ?? retailPrice;
     
     final isWholesale = _selectedCustomerId != null && 
@@ -162,7 +344,8 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
       } else {
         final newItem = _CartItem(
           productId: productId,
-          name: selected['name'] as String,
+          variantId: selectedVariantId,
+          name: '${selected['name']}$variantLabel',
           unitPrice: isWholesale ? wholesalePrice : retailPrice,
           retailPrice: retailPrice,
           wholesalePrice: wholesalePrice,
@@ -272,6 +455,7 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
     final itemsData = _cart
         .map((c) => {
               'product_id': c.productId,
+              'variant_id': c.variantId,
               'product_name': c.name,
               'quantity': c.baseQty,
               'unit_price': c.unitPrice,
@@ -363,8 +547,26 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isRestaurant = _templateFamily == 'foodService';
+
     return Scaffold(
-      appBar: AppBar(title: const Text('New Sale')),
+      appBar: AppBar(
+        title: Text(isRestaurant ? 'Order / Billing (${_selectedTable ?? "Takeaway"})' : 'New Sale'),
+        actions: [
+          if (isRestaurant) ...[
+            IconButton(
+              icon: const Icon(Icons.table_restaurant),
+              tooltip: 'Select Table',
+              onPressed: _selectTable,
+            ),
+            IconButton(
+              icon: const Icon(Icons.soup_kitchen),
+              tooltip: 'Send to Kitchen (KOT)',
+              onPressed: _openKOTDialog,
+            ),
+          ],
+        ],
+      ),
       body: Column(
         children: [
           Expanded(
@@ -785,10 +987,30 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                           itemBuilder: (ctx, i) {
                             final p = _products[i];
                             final stock = (p['current_stock'] as num);
+                            final expiryStr = p['expiry_date'] as String?;
+                            DateTime? expiry;
+                            bool isExpiringSoon = false;
+                            if (expiryStr != null) {
+                              expiry = DateTime.tryParse(expiryStr);
+                              if (expiry != null && expiry.difference(DateTime.now()).inDays <= 30) {
+                                isExpiringSoon = true;
+                              }
+                            }
+
                             return ListTile(
-                              title: Text(p['name'] as String),
+                              title: Row(
+                                children: [
+                                  Expanded(child: Text(p['name'] as String)),
+                                  if (isExpiringSoon)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(color: Colors.red.shade100, borderRadius: BorderRadius.circular(4)),
+                                      child: const Text('Expiring Soon!', style: TextStyle(color: Colors.red, fontSize: 10, fontWeight: FontWeight.bold)),
+                                    ),
+                                ],
+                              ),
                               subtitle: Text(
-                                  'Stock: $stock  •  Rs. ${p['retail_price']}'),
+                                  'Stock: $stock  •  Rs. ${p['retail_price']}${expiry != null ? "  •  Exp: ${expiry.toIso8601String().substring(0, 10)}" : ""}'),
                               onTap: () => Navigator.of(context).pop(p),
                             );
                           },

@@ -1,30 +1,48 @@
 import 'package:flutter/material.dart';
 
+/// Defines the logic family a business category belongs to.
+/// This determines which features and data models are enabled for the business.
 enum TemplateFamily {
+  /// Standard retail logic (already implemented in Arvion)
   retailStandard,
+  /// Retail with variants like Size/Color (Phase 20)
   retailVariant,
+  /// Retail with custom fields (e.g., Weight, Purity for Jewelry)
   retailCustomFields,
+  /// Inventory with unique IDs/Serial Numbers (Electronics)
   serializedInventory,
+  /// Pharmacy logic with Batch and Expiry tracking
   retailBatchExpiry,
+  /// Restaurant/Cafe logic with Table Management and KOT (Phase 22)
   foodService,
+  /// Booking based (Hotels, Travel) - date range based inventory
   bookingBased,
+  /// Workshop logic (Auto) - parts + labor service
   workshopJob,
+  /// Farm operations - cycle tracking (crop season, animal batch)
   farmOperations,
+  /// Manufacturing logic - BOM + Production Orders (Phase 21)
   manufacturing,
+  /// Project based logic (Construction) - multi-invoice costing
   projectBased,
+  /// Service based logic (Salon, Consultants) - no stock, appointment tracking
   serviceJob,
+  /// Real Estate logic - property listing + rental tracking
   propertyBased,
+  /// Logistics/Transport - vehicle + trip tracking
   fleetBased,
+  /// Education - enrollment, course, recurring fee billing
   enrollmentBased,
+  /// Non-profit - donations, funds, donor tracking
   nonprofit
 }
 
 class BusinessCategory {
-  final String id;
-  final String label;
+  final String id;              // e.g., 'clothing_fashion'
+  final String label;           // e.g., 'Clothing / Garments / Fashion'
   final IconData icon;
-  final TemplateFamily family;
-  final List<String> subtypes;
+  final TemplateFamily family;  // Logic group
+  final List<String> subtypes;  // Specific business types
 
   const BusinessCategory({
     required this.id,
@@ -83,7 +101,7 @@ const List<BusinessCategory> kBusinessCategories = [
     label: 'Cosmetics / Beauty',
     icon: Icons.face_retouching_natural,
     family: TemplateFamily.retailStandard,
-    subtypes: ['Cosmetics', 'Perfumes / Fragrances', 'Skincare', 'Haircare'],
+    subtypes: ['Cosmetics', 'Perfumes / Fragrances', 'Beauty Products', 'Skincare', 'Haircare'],
   ),
   BusinessCategory(
     id: 'electronics',

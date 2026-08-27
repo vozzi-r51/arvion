@@ -19,6 +19,12 @@ import '../company/company_profile_screen.dart';
 import '../../core/auth/session.dart';
 import 'staff_users_screen.dart';
 import 'theme_settings_screen.dart';
+import '../../core/services/ux_mode_service.dart';
+import 'custom_fields_screen.dart';
+import 'uom_list_screen.dart';
+import 'tax_codes_screen.dart';
+import 'price_lists_screen.dart';
+import 'regional_settings_screen.dart';
 import '../auth/pin_login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../shell/main_shell.dart';
@@ -65,6 +71,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _smsKeyCtrl = TextEditingController();
 
   String _currentVersion = '1.0.0';
+  UXMode _appMode = UXMode.simple;
 
   @override
   void initState() {
@@ -106,7 +113,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       _autoUploadToDrive = driveEnabled;
       _driveUser = driveUser;
+    });
 
+    final active = await DBHelper.instance.getActiveCompany();
+    UXMode appMode = UXMode.simple;
+    if (active != null) {
+      appMode = await UXModeService.getEffectiveMode(active['id'] as int);
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _appMode = appMode;
       _loading = false;
     });
   }
@@ -560,6 +577,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         builder: (_) => const ThemeSettingsScreen()),
                   ),
                 ),
+                ListTile(
+                  leading: const Icon(Icons.tune_outlined),
+                  title: const Text('UI Mode'),
+                  subtitle: Text(_appMode == UXMode.simple
+                      ? 'Simple Mode (Sada & Asaan)'
+                      : 'Advanced Mode (Full QuickBooks/Zoho Features)'),
+                  trailing: DropdownButton<UXMode>(
+                    value: _appMode,
+                    items: const [
+                      DropdownMenuItem(value: UXMode.simple, child: Text('Simple Mode')),
+                      DropdownMenuItem(value: UXMode.advanced, child: Text('Advanced Mode')),
+                    ],
+                    onChanged: (v) async {
+                      if (v == null) return;
+                      final active = await DBHelper.instance.getActiveCompany();
+                      if (active == null) return;
+                      await UXModeService.setMode(active['id'] as int, v);
+                      setState(() => _appMode = v);
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('UI Mode ${v == UXMode.simple ? "Simple" : "Advanced"} ho gaya.')),
+                        );
+                      }
+                    },
+                  ),
+                ),
                 const Divider(),
                 const Padding(
                   padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
@@ -605,6 +648,73 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       MaterialPageRoute(
                         builder: (_) => const CompanySelectionScreen(),
                       ),
+                    );
+                  },
+                ),
+                const Divider(),
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+                  child: Text('Catalog & Inventory',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.grey)),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.language_outlined),
+                  title: const Text('Regional, Tax & Document Settings'),
+                  subtitle: const Text('Currency symbol, decimals, date format & invoice prefix'),
+                  onTap: () async {
+                    final active = await DBHelper.instance.getActiveCompany();
+                    if (active == null) return;
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => RegionalSettingsScreen(companyId: active['id'] as int)),
+                    ).then((_) => _load());
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.request_quote_outlined),
+                  title: const Text('Multi Tax Codes'),
+                  subtitle: const Text('GST, VAT, Sales Tax rates manage karein'),
+                  onTap: () async {
+                    final active = await DBHelper.instance.getActiveCompany();
+                    if (active == null) return;
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => TaxCodesScreen(companyId: active['id'] as int)),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.sell_outlined),
+                  title: const Text('Price Lists (VIP / Sale / Wholesale)'),
+                  subtitle: const Text('Retail, Wholesale & Custom Price lists set karein'),
+                  onTap: () async {
+                    final active = await DBHelper.instance.getActiveCompany();
+                    if (active == null) return;
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => PriceListsScreen(companyId: active['id'] as int)),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.straighten_outlined),
+                  title: const Text('Units of Measure (UOM)'),
+                  subtitle: const Text('Kg, Gram, Dozen aur conversion rules manage karein'),
+                  onTap: () async {
+                    final active = await DBHelper.instance.getActiveCompany();
+                    if (active == null) return;
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => UomListScreen(companyId: active['id'] as int)),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.dynamic_form_outlined),
+                  title: const Text('Custom Fields'),
+                  subtitle: const Text('Products aur Customers ke liye naye fields banayein'),
+                  onTap: () async {
+                    final active = await DBHelper.instance.getActiveCompany();
+                    if (active == null) return;
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => CustomFieldsScreen(companyId: active['id'] as int)),
                     );
                   },
                 ),

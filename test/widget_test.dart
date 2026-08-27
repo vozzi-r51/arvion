@@ -13,6 +13,9 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:dukanedge/app.dart';
 import 'package:dukanedge/core/theme/app_theme.dart';
 
+import 'package:dukanedge/core/providers/branding_provider.dart';
+import 'package:dukanedge/core/providers/terminology_provider.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -24,8 +27,12 @@ void main() {
   testWidgets('DukanEdge app builds without crashing',
       (WidgetTester tester) async {
     await tester.pumpWidget(
-      ChangeNotifierProvider(
-        create: (_) => ThemeProvider(),
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => ThemeProvider()),
+          ChangeNotifierProvider(create: (_) => TerminologyProvider()),
+          ChangeNotifierProvider(create: (_) => BrandingProvider()),
+        ],
         child: const DukanEdgeApp(),
       ),
     );
