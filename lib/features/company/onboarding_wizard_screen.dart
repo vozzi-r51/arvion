@@ -6,6 +6,7 @@ import '../../core/business_types/business_type_catalog.dart';
 import '../../core/templates/business_templates.dart';
 import '../../core/theme/design_tokens.dart';
 import '../shell/main_shell.dart';
+import 'business_setup_animation_screen.dart';
 
 class OnboardingWizardScreen extends StatefulWidget {
   const OnboardingWizardScreen({super.key});
@@ -25,11 +26,12 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
   BusinessCategory? _selectedCategory;
   String? _selectedSubtype;
   bool _isQuickSetup = true;
-  
+
   String _currency = 'Rs.';
   double _taxPercent = 0;
   final Map<String, bool> _modules = {};
-  
+  String _uiMode = 'simple'; // 'simple' or 'advanced'
+
   String _searchQuery = '';
 
   List<BusinessCategory> get _filteredCategories {
@@ -99,6 +101,9 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
       case 2:
         if (_selectedSubtype != null || (_selectedCategory?.subtypes.isEmpty ?? true)) {
           canGoNext = true;
+          // Show animation screen after subtype selection
+          _showBusinessSetupAnimation();
+          return;
         } else {
           error = 'Subtype select karein';
         }
@@ -109,10 +114,13 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
       case 4:
         canGoNext = true;
         break;
+      case 5:
+        canGoNext = true;
+        break;
     }
 
     if (canGoNext) {
-      if (_currentStep < 4) {
+      if (_currentStep < 5) {
         _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
       } else {
         _finish();
@@ -120,6 +128,32 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
     } else if (error.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
     }
+  }
+
+  /// Show animated setup screen after business type selection
+  void _showBusinessSetupAnimation() {
+    if (_selectedCategory == null) return;
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => BusinessSetupAnimationScreen(
+          businessTypeLabel: _selectedCategory!.label,
+          businessSubtype: _selectedSubtype ?? 'General',
+          templateFamily: _selectedCategory!.family,
+          businessIcon: _selectedCategory!.icon,
+          onComplete: () {
+            Navigator.of(context).pop();
+            // Continue to step 4
+            if (_currentStep == 2) {
+              _pageController.nextPage(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            }
+          },
+        ),
+      ),
+    );
   }
 
   Future<void> _finish() async {
@@ -139,6 +173,7 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
       'default_tax_percent': _taxPercent,
       'terminology_profile': _selectedCategory?.id ?? 'general_retail',
       'enabled_modules': jsonEncode(enabledModules),
+      'ui_mode': _uiMode,
       'is_active': 1,
       'created_at': DateTime.now().toIso8601String(),
     });
@@ -147,7 +182,7 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
       companyId: companyId,
       module: 'Setup',
       action: AuditLogger.create,
-      description: 'Business setup mukammal: ${_selectedCategory?.id} (${_selectedSubtype})',
+      description: 'Business setup mukammal: ${_selectedCategory?.id} (${_selectedSubtype}) - UI Mode: $_uiMode',
     );
 
     if (!mounted) return;
@@ -161,19 +196,19 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Step ${_currentStep + 1} of 5'),
-        leading: _currentStep > 0 
+        title: Text('Step ${_currentStep + 1} of 6'),
+        leading: _currentStep > 0
           ? IconButton(
-              icon: const Icon(Icons.arrow_back), 
+              icon: const Icon(Icons.arrow_back),
               onPressed: () => _pageController.previousPage(
-                duration: const Duration(milliseconds: 300), 
+                duration: const Duration(milliseconds: 300),
                 curve: Curves.easeInOut
               )
             )
           : null,
         actions: [
           IconButton(
-            icon: const Icon(Icons.close), 
+            icon: const Icon(Icons.close),
             onPressed: () => Navigator.pop(context)
           )
         ],
@@ -188,6 +223,7 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
           _buildStep3(), // Subtype
           _buildStep4(), // Prefs
           _buildStep5(), // Modules
+          _buildStep6(), // UI Mode (Simple vs Advanced)
         ],
       ),
       bottomNavigationBar: SafeArea(
@@ -195,7 +231,7 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
           padding: const EdgeInsets.all(AppSpacing.l),
           child: FilledButton(
             onPressed: _next,
-            child: Text(_currentStep == 4 ? 'Finish & Start Business' : 'Next'),
+            child: Text(_currentStep == 5 ? 'Finish & Start Business' : 'Next'),
           ),
         ),
       ),
@@ -438,7 +474,7 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Features', 
+                'Features',
                 style: AppTypography.titleLarge(context).copyWith(fontWeight: FontWeight.bold)
               ),
               const Text('Jo features aap use karna chahte hain unhein on rakhein.'),
@@ -453,6 +489,105 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
           onChanged: (v) => setState(() => _modules[m] = v ?? false),
         );
       },
+    );
+  }
+
+  Widget _buildStep6() {
+    return ListView(
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      children: [
+        Text(
+          'User Experience Mode',
+          style: AppTypography.titleLarge(context).copyWith(fontWeight: FontWeight.bold)
+        ),
+        const SizedBox(height: AppSpacing.m),
+        const Text('Aap kaisa control chahte hain? Simple mode naye users ke liye behtar hai.'),
+        const SizedBox(height: AppSpacing.xl),
+
+        // Simple Mode Card
+        _buildModeCard(
+          mode: 'simple',
+          title: 'Simple Mode (Recommended)',
+          description: 'Basic fields only, easy to use\n• Product name & price\n• Basic sales & purchases\n• Customer ledger',
+          icon: Icons.dashboard,
+          isSelected: _uiMode == 'simple',
+          onTap: () => setState(() => _uiMode = 'simple'),
+        ),
+
+        const SizedBox(height: AppSpacing.l),
+
+        // Advanced Mode Card
+        _buildModeCard(
+          mode: 'advanced',
+          title: 'Advanced Mode',
+          description: 'All features visible\n• Variants & custom fields\n• Multi-UOM & multi-tax\n• Manufacturing & accounting',
+          icon: Icons.engineering,
+          isSelected: _uiMode == 'advanced',
+          onTap: () => setState(() => _uiMode = 'advanced'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModeCard({
+    required String mode,
+    required String title,
+    required String description,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: isSelected ? Theme.of(context).colorScheme.primaryContainer : Colors.white,
+          borderRadius: AppRadius.medium,
+          border: Border.all(
+            color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey.shade300,
+            width: 2,
+          ),
+        ),
+        padding: const EdgeInsets.all(AppSpacing.l),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              icon,
+              size: 40,
+              color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey,
+            ),
+            const SizedBox(width: AppSpacing.l),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: AppTypography.titleMedium(context).copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? Theme.of(context).colorScheme.primary : Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.s),
+                  Text(
+                    description,
+                    style: AppTypography.bodyMedium(context).copyWith(
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Icon(
+                Icons.check_circle,
+                color: Theme.of(context).colorScheme.primary,
+                size: 28,
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

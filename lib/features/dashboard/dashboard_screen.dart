@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/providers/localization_provider.dart';
 import '../settings/settings_screen.dart';
 import '../products/product_form_screen.dart';
 import '../customers/customer_form_screen.dart';
@@ -130,18 +131,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<_DashboardStat> get _stats {
     final isOwner = Session.isOwner;
     final term = context.read<TerminologyProvider>();
-    
+    final locProvider = context.read<LocalizationProvider>();
+
     return [
-      _DashboardStat('Today\'s ${term.get('sale')}s', '$_currency ${_todaysSales.toStringAsFixed(0)}',
+      _DashboardStat('Today\'s ${term.get('sale')}s', locProvider.formatCurrency(_todaysSales),
           Icons.point_of_sale, Colors.teal),
       if (isOwner)
-        _DashboardStat('Today\'s Purchase', '$_currency ${_todaysPurchase.toStringAsFixed(0)}',
+        _DashboardStat('Today\'s Purchase', locProvider.formatCurrency(_todaysPurchase),
             Icons.shopping_cart, Colors.indigo),
       if (isOwner)
-        _DashboardStat('Today\'s Profit', '$_currency ${_todaysProfit.toStringAsFixed(0)}',
+        _DashboardStat('Today\'s Profit', locProvider.formatCurrency(_todaysProfit),
             Icons.trending_up, Colors.green),
       if (isOwner)
-        _DashboardStat('Today\'s Expenses', '$_currency ${_todaysExpenses.toStringAsFixed(0)}',
+        _DashboardStat('Today\'s Expenses', locProvider.formatCurrency(_todaysExpenses),
             Icons.receipt_long, Colors.orange),
       _DashboardStat('Total Customers', '$_customerCount', Icons.people,
           Colors.blue),

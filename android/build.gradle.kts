@@ -21,7 +21,18 @@ subprojects {
         if (project.hasProperty("android")) {
             val android = project.extensions.getByName("android") as com.android.build.gradle.BaseExtension
             android.compileSdkVersion(36)
-            
+
+            // Align Java (17) and Kotlin (17) targets across all subprojects so plugins
+            // don't fail with "Inconsistent JVM Target Compatibility".
+            android.compileOptions {
+                sourceCompatibility = JavaVersion.VERSION_17
+                targetCompatibility = JavaVersion.VERSION_17
+            }
+            project.plugins.withId("kotlin-android") {
+                val kotlinAndroid = project.extensions.getByName("kotlin") as org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension
+                kotlinAndroid.compilerOptions.jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+            }
+
             // Fix for plugins that don't specify a namespace (required by newer AGP)
             if (android.namespace == null) {
                 if (project.name == "blue_thermal_printer") {

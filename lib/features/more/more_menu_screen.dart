@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import '../../core/auth/session.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/services/ux_mode_service.dart';
 import '../finance/finance_home_screen.dart';
 import '../ledger/cash_book_screen.dart';
 import '../ledger/bank_accounts_screen.dart';
@@ -41,6 +42,7 @@ class MoreMenuScreen extends StatefulWidget {
 
 class _MoreMenuScreenState extends State<MoreMenuScreen> {
   List<String> _enabledModules = [];
+  UXMode _mode = UXMode.simple;
   bool _loading = true;
 
   @override
@@ -59,6 +61,7 @@ class _MoreMenuScreenState extends State<MoreMenuScreen> {
         } catch (_) {}
       }
     }
+    _mode = await UXModeService.getEffectiveMode(widget.companyId);
     setState(() => _loading = false);
   }
 
@@ -225,6 +228,7 @@ class _MoreMenuScreenState extends State<MoreMenuScreen> {
               MaterialPageRoute(builder: (_) => PromotionsListScreen(companyId: widget.companyId)),
             ),
           ),
+          if (_mode == UXMode.advanced)
           _buildMenuCard(
             context,
             icon: Icons.repeat,
@@ -235,6 +239,7 @@ class _MoreMenuScreenState extends State<MoreMenuScreen> {
               MaterialPageRoute(builder: (_) => RecurringTemplatesScreen(companyId: widget.companyId)),
             ),
           ),
+          if (_mode == UXMode.advanced)
           _buildMenuCard(
             context,
             icon: Icons.delete_outline,

@@ -1,0 +1,182 @@
+query,intent
+aaj ki sales kya hain,getSales
+today's sales,getSales
+kitna bika aaj,getSales
+aaj ke sales batao,getSales
+sales kya hain,getSales
+revenue aaj,getSales
+aaj ki bikri,getSales
+total sales,getSales
+sales total,getSales
+aaj revenue,getSales
+sales figure,getSales
+bikri kitni hui,getSales
+stock low hai,getLowStock
+low inventory,getLowStock
+inventory kam hai,getLowStock
+out of stock,getLowStock
+stock khaas hai,getLowStock
+reorder karna chahiye,getLowStock
+sab products stock,getLowStock
+stock check karo,getLowStock
+kaunsa product low hai,getLowStock
+inventory check,getLowStock
+low stock items,getLowStock
+stock status,getLowStock
+udhaar kitna hai,getReceivables
+customer balance,getReceivables
+receivables total,getReceivables
+udhaar paisa lena,getReceivables
+customer ka balance,getReceivables
+kiski sab se zyada udhaar,getReceivables
+outstanding balance,getReceivables
+paisa lena kaha se,getReceivables
+customer receivables,getReceivables
+kidhaar se paisa wapas lena,getReceivables
+owe kya hain,getReceivables
+pending payments,getReceivables
+kharcha aaj,getExpenses
+expenses today,getExpenses
+kharchay batao,getExpenses
+aaj ke kharchay,getExpenses
+expense total,getExpenses
+kharcha kya hua,getExpenses
+daily expenses,getExpenses
+operating expenses,getExpenses
+kharcha check karo,getExpenses
+expenses kitne the,getExpenses
+total kharcha,getExpenses
+kharchay record,getExpenses
+munafa kitna hua,getProfit
+today's profit,getProfit
+kamai kya rahi,getProfit
+aaj ka munafa,getProfit
+profit estimate,getProfit
+estimated kamai,getProfit
+net profit,getProfit
+gross profit,getProfit
+munafa check karo,getProfit
+aaj kamai,getProfit
+profit margin,getProfit
+kitni kamai hui,getProfit
+purchase aaj,getPurchases
+today's purchase,getPurchases
+kharidari kitni hui,getPurchases
+maal kharida,getPurchases
+purchase total,getPurchases
+supplier se kharida,getPurchases
+maal total,getPurchases
+inventory purchase,getPurchases
+aaj kharidari,getPurchases
+purchase amount,getPurchases
+maal purchase,getPurchases
+suppliers kitne hain,getSupplierCount
+total suppliers,getSupplierCount
+vendor count,getSupplierCount
+supplier list,getSupplierCount
+kitne suppliers hain,getSupplierCount
+vendor kitne ho,getSupplierCount
+supplier number,getSupplierCount
+total vendors,getSupplierCount
+active suppliers,getSupplierCount
+supplier database,getSupplierCount
+total products,getProductCount
+kitne product,getProductCount
+product count,getProductCount
+total items,getProductCount
+inventory size,getProductCount
+product list,getProductCount
+kitne items hain,getProductCount
+total inventory,getProductCount
+product database,getProductCount
+items total,getProductCount
+add 500 expense,createExpense
+record expense 500,createExpense
+500 ka kharcha dalo,createExpense
+expense 500,createExpense
+kharcha record karo,createExpense
+add expense 1000,createExpense
+expense entry,createExpense
+dalo kharcha,createExpense
+record 300 expense,createExpense
+expense add karo,createExpense
+new expense 250,createExpense
+kharcha dalein,createExpense
+aaj ki sales kitni,getSales
+aj ke sales,getSales
+sales figure aaj,getSales
+daily sales,getSales
+aj bikri,getSales
+maal ka sale,getSales
+revenue aaj ka,getSales
+bikri total,getSales
+aj sale,getSales
+is mahine ka munafa,getProfit
+weekly profit,getProfit
+monthly profit,getProfit
+profit is hafte,getProfit
+kamai is mahine,getProfit
+munafa calculated,getProfit
+profit calculation,getProfit
+kamai monthly,getProfit
+this week profit,getProfit
+estimated profit,getProfit
+stock check kro,getLowStock
+low item,getLowStock
+inventory issue,getLowStock
+reorder needed,getLowStock
+stock shortage,getLowStock
+kam inventory,getLowStock
+low stock alert,getLowStock
+out of stock items,getLowStock
+stock problem,getLowStock
+inventory low,getLowStock
+customer udhaar,getReceivables
+total owe,getReceivables
+paisa lena due,getReceivables
+receivable list,getReceivables
+customer debt,getReceivables
+outstanding due,getReceivables
+total due,getReceivables
+kharch record,getExpenses
+kharcha add,getExpenses
+expense log,getExpenses
+expense track,getExpenses
+kharcha entry,getExpenses
+purchase record,getPurchases
+purchase log,getPurchases
+kharida log,getPurchases
+buying record,getPurchases
+purchase entry,getPurchases
+supplier count,getSupplierCount
+how many vendor,getSupplierCount
+vendor list,getSupplierCount
+product inventory,getProductCount
+how many product,getProductCount
+product list,getProductCount
+mujhe batao aaj ki sales,getSales
+bata do sales,getSales
+sales ka figure,getSales
+aj bikri kitni,getSales
+mujhe batao munafa,getProfit
+aaj ka kamai,getProfit
+munafa batao,getProfit
+profit figure,getProfit
+mujhe batao stock,getLowStock
+kaunsa stock low,getLowStock
+batao low item,getLowStock
+mujhe batao udhaar,getReceivables
+udhaar status,getReceivables
+batao udhaar,getReceivables
+mujhe batao kharcha,getExpenses
+kharcha status,getExpenses
+batao kharcha,getExpenses
+mujhe batao purchase,getPurchases
+purchase status,getPurchases
+batao kharida,getPurchases
+mujhe batao supplier,getSupplierCount
+supplier status,getSupplierCount
+batao supplier,getSupplierCount
+mujhe batao product,getProductCount
+product status,getProductCount
+batao product,getProductCount

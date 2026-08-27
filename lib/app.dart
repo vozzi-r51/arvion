@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:provider/provider.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'core/auth/auth_service.dart';
 import 'core/widgets/arvion_logo.dart';
 import 'core/providers/branding_provider.dart';
+import 'core/providers/localization_provider.dart';
 import 'features/auth/pin_setup_screen.dart';
 import 'features/auth/pin_login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -71,11 +73,21 @@ class _DukanEdgeAppState extends State<DukanEdgeApp>
 
     return MaterialApp(
       navigatorKey: appNavigatorKey,
-      title: 'ARVION',
+      title: 'DukanEdge',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightThemeWithPrimary(themeProvider.primaryColor),
       darkTheme: AppTheme.darkThemeWithPrimary(themeProvider.primaryColor),
       themeMode: themeProvider.themeMode,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'),
+        Locale('ur'),
+        Locale('ar'),
+      ],
       home: const _SplashDecider(),
     );
   }

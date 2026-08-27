@@ -41,7 +41,7 @@ class DBHelper {
 
     return openDatabase(
       path,
-      version: 36,
+      version: 38,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
       onConfigure: (db) async {
@@ -418,6 +418,91 @@ class DBHelper {
       await db.execute('ALTER TABLE purchase_items ADD COLUMN tax_code_id INTEGER');
       await db.execute('ALTER TABLE purchase_items ADD COLUMN tax_rate REAL DEFAULT 0');
     }
+    if (oldVersion < 37) {
+      // Multi-currency & localization support
+      await db.execute('ALTER TABLE companies ADD COLUMN currency_code TEXT DEFAULT "PKR"');
+      await db.execute('ALTER TABLE companies ADD COLUMN thousand_separator TEXT DEFAULT ","');
+      await db.execute('ALTER TABLE companies ADD COLUMN decimal_separator TEXT DEFAULT "."');
+      await db.execute('ALTER TABLE companies ADD COLUMN locale_language TEXT DEFAULT "en"');
+    }
+    if (oldVersion < 38) {
+      // UI Mode: Simple vs Advanced feature gating
+      await db.execute('ALTER TABLE companies ADD COLUMN ui_mode TEXT DEFAULT "simple"');
+    }
+    if (oldVersion < 39) {
+      // Auto-migrate existing users to advanced mode if they have used advanced features
+      await _autoMigrateToAdvancedMode(db);
+    }
+  }
+
+  /// Auto-migrate existing companies to advanced mode if they use advanced features
+  Future<void> _autoMigrateToAdvancedMode(Database db) async {
+    try {
+      // Get all companies that are still in simple mode
+      final companies = await db.query('companies', where: 'ui_mode = ?', whereArgs: ['simple']);
+
+      for (final company in companies) {
+        final companyId = company['id'] as int;
+        bool shouldMigrateToAdvanced = false;
+
+        // Check for advanced features in use
+
+        // 1. Check if any products have variants
+        final variantCount = Sqflite.firstIntValue(
+          await db.rawQuery(
+            'SELECT COUNT(*) FROM products WHERE company_id = ? AND has_variants = 1',
+            [companyId]
+          )
+        ) ?? 0;
+        if (variantCount > 0) shouldMigrateToAdvanced = true;
+
+        // 2. Check if custom fields are defined
+        if (!shouldMigrateToAdvanced) {
+          final customFieldCount = Sqflite.firstIntValue(
+            await db.rawQuery(
+              'SELECT COUNT(*) FROM custom_field_definitions WHERE company_id = ?',
+              [companyId]
+            )
+          ) ?? 0;
+          if (customFieldCount > 0) shouldMigrateToAdvanced = true;
+        }
+
+        // 3. Check if manufacturing/production orders exist
+        if (!shouldMigrateToAdvanced) {
+          final bomCount = Sqflite.firstIntValue(
+            await db.rawQuery(
+              'SELECT COUNT(*) FROM bill_of_materials WHERE company_id = ?',
+              [companyId]
+            )
+          ) ?? 0;
+          if (bomCount > 0) shouldMigrateToAdvanced = true;
+        }
+
+        // 4. Check if multiple UOMs are in use (secondary units assigned to products)
+        if (!shouldMigrateToAdvanced) {
+          final multiUomCount = Sqflite.firstIntValue(
+            await db.rawQuery(
+              'SELECT COUNT(*) FROM products WHERE company_id = ? AND secondary_unit IS NOT NULL AND secondary_unit != ""',
+              [companyId]
+            )
+          ) ?? 0;
+          if (multiUomCount > 0) shouldMigrateToAdvanced = true;
+        }
+
+        // If advanced features detected, migrate to advanced mode
+        if (shouldMigrateToAdvanced) {
+          await db.update(
+            'companies',
+            {'ui_mode': 'advanced'},
+            where: 'id = ?',
+            whereArgs: [companyId]
+          );
+        }
+      }
+    } catch (e) {
+      // Silently fail migration — don't break app startup
+      print('Auto-migration to advanced mode failed: $e');
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -439,7 +524,10 @@ class DBHelper {
         ntn_gst TEXT,
         default_tax_percent REAL DEFAULT 0,
         currency_symbol TEXT DEFAULT 'Rs.',
+        currency_code TEXT DEFAULT 'PKR',
         decimal_places INTEGER DEFAULT 2,
+        thousand_separator TEXT DEFAULT ',',
+        decimal_separator TEXT DEFAULT '.',
         date_format TEXT DEFAULT 'dd/MM/yyyy',
         number_format TEXT DEFAULT 'standard',
         invoice_prefix TEXT DEFAULT 'INV',
@@ -451,6 +539,8 @@ class DBHelper {
         terminology_profile TEXT,
         enabled_modules TEXT,
         branding_color INTEGER,
+        locale_language TEXT DEFAULT 'en',
+        ui_mode TEXT DEFAULT 'simple',
         is_active INTEGER NOT NULL DEFAULT 0,
         created_at TEXT NOT NULL
       )

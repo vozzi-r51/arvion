@@ -26,7 +26,7 @@ class AppFormatters {
   /// style: 'standard' (1,000.00) vs 'european' (1.000,00)
   static String formatCurrency(
     double amount, {
-    String symbol = 'Rs.',
+    String symbol = '',
     int decimals = 2,
     String style = 'standard',
   }) {

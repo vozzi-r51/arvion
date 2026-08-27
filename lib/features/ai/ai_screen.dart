@@ -43,6 +43,8 @@ class _AIScreenState extends State<AIScreen> {
     super.initState();
     // Default to Urdu, but will be updated by voice/locale settings
     _engine = AIEngine(widget.companyId, locale: 'ur');
+
+    // Initialize voice service
     _voice.init().then((_) {
       if (mounted) {
         setState(() {
@@ -51,7 +53,23 @@ class _AIScreenState extends State<AIScreen> {
         });
       }
     });
+
+    // Initialize TFLite model for AI intent classification
+    _initializeTFLite();
+
     _addSystemMessage("Asalam-o-Alaikum! Main ARVION AI hoon. Main aapke business data ko samajhne mein aapki madad kar sakta hoon.");
+  }
+
+  /// Initialize TFLite intent classifier
+  Future<void> _initializeTFLite() async {
+    try {
+      await _engine.initializeTFLite();
+      print('✅ TFLite AI initialized successfully');
+    } catch (e) {
+      print('⚠️  TFLite initialization failed: $e');
+      print('   App will use keyword-based intent matching as fallback');
+      // No error shown to user - app continues with keyword matching
+    }
   }
 
   void _addSystemMessage(String text, {AIIntent? pendingIntent, Map<String, dynamic>? params}) {

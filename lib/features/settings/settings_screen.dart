@@ -14,8 +14,10 @@ import '../../core/theme/app_theme.dart';
 import '../../core/theme/arvion_brand.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/backup/backup_service.dart';
+import '../../core/providers/localization_provider.dart';
 import '../company/company_selection_screen.dart';
 import '../company/company_profile_screen.dart';
+import '../company/onboarding_wizard_screen.dart';
 import '../../core/auth/session.dart';
 import 'staff_users_screen.dart';
 import 'theme_settings_screen.dart';
@@ -35,6 +37,9 @@ import '../../core/export/full_data_export_service.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:intl/intl.dart';
+import '../../core/templates/template_messaging.dart';
+import '../../core/templates/business_templates.dart';
+import '../../core/business_types/business_type_catalog.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -55,6 +60,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   int _autoLockMinutes = 2;
   DateTime? _accountingLockDate;
   bool _crashReportingEnabled = true;
+  String _selectedLanguage = 'en';
 
   // Google Drive
   GoogleSignInAccount? _driveUser;
@@ -85,7 +91,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final autoBackupEnabled = await BackupService.isAutoBackupEnabled();
     final lastAutoBackup = await BackupService.getLastAutoBackupDate();
     final prefs = await SharedPreferences.getInstance();
-    
+
     final packageInfo = await PackageInfo.fromPlatform();
     _currentVersion = packageInfo.version;
 
@@ -459,6 +465,209 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  /// Build "Your Business Setup" showcase section
+  Widget _buildBusinessSetupSection() {
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: DBHelper.instance.getActiveCompany(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data == null) {
+          return const SizedBox.shrink();
+        }
+
+        final company = snapshot.data!;
+        final businessType = company['business_category'] as String? ?? 'Business';
+        final businessSubtype = company['business_subtype'] as String? ?? '';
+        final templateFamilyStr = company['template_family'] as String? ?? 'retailStandard';
+
+        // Parse template family
+        TemplateFamily templateFamily = TemplateFamily.retailStandard;
+        try {
+          templateFamily = TemplateFamily.values.firstWhere(
+            (f) => f.toString().split('.').last == templateFamilyStr,
+            orElse: () => TemplateFamily.retailStandard,
+          );
+        } catch (_) {}
+
+        final template = BusinessTemplates.getByFamily(templateFamily);
+        final enabledFeatures = TemplateMessaging.getEnabledFeatures(templateFamily);
+        final categoryIcon = _getCategoryIcon(templateFamily);
+
+        return Card(
+          margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header with icon
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        categoryIcon,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'YOUR BUSINESS SETUP',
+                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            businessType,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          if (businessSubtype.isNotEmpty)
+                            Text(
+                              businessSubtype,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // Enabled features
+                Text(
+                  'Enabled Features',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: enabledFeatures.map((feature) {
+                    final emoji = TemplateMessaging.getFeatureEmoji(feature);
+                    return Chip(
+                      label: Text(
+                        '$emoji $feature',
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                      backgroundColor: Colors.white,
+                      side: BorderSide(
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 16),
+
+                // Change Business Type Button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _showChangeBusinessTypeDialog(),
+                    icon: const Icon(Icons.edit),
+                    label: const Text('Change Business Type'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey.shade200,
+                      foregroundColor: Colors.grey.shade800,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Get icon for business category
+  IconData _getCategoryIcon(TemplateFamily family) {
+    switch (family) {
+      case TemplateFamily.retailStandard:
+        return Icons.storefront;
+      case TemplateFamily.retailVariant:
+        return Icons.checkroom;
+      case TemplateFamily.retailCustomFields:
+        return Icons.diamond;
+      case TemplateFamily.serializedInventory:
+        return Icons.devices;
+      case TemplateFamily.retailBatchExpiry:
+        return Icons.local_pharmacy;
+      case TemplateFamily.foodService:
+        return Icons.restaurant;
+      case TemplateFamily.bookingBased:
+        return Icons.hotel;
+      case TemplateFamily.workshopJob:
+        return Icons.directions_car;
+      case TemplateFamily.farmOperations:
+        return Icons.agriculture;
+      case TemplateFamily.manufacturing:
+        return Icons.factory;
+      case TemplateFamily.projectBased:
+        return Icons.construction;
+      case TemplateFamily.serviceJob:
+        return Icons.local_offer;
+      case TemplateFamily.propertyBased:
+        return Icons.home;
+      case TemplateFamily.fleetBased:
+        return Icons.directions_bus;
+      case TemplateFamily.enrollmentBased:
+        return Icons.school;
+      case TemplateFamily.nonprofit:
+        return Icons.favorite;
+    }
+  }
+
+  /// Show dialog to change business type
+  void _showChangeBusinessTypeDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Change Business Type?'),
+        content: const Text(
+          'Ye aapke business type ko tabdeel kar dega aur naye defaults apply ho jaenge. '
+          'Mojooda data preserve ho jayega — sirf naye settings default values update hongi.\n\n'
+          'Continue karein?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              // Navigate to onboarding wizard
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const OnboardingWizardScreen(),
+                ),
+              );
+            },
+            child: const Text('Haan, Change Karein'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
@@ -472,6 +681,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               children: [
+                // Business Setup Showcase Section
+                _buildBusinessSetupSection(),
+
                 Card(
                   margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                   child: Padding(
@@ -669,6 +881,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       MaterialPageRoute(builder: (_) => RegionalSettingsScreen(companyId: active['id'] as int)),
                     ).then((_) => _load());
                   },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.translate_outlined),
+                  title: const Text('App Language'),
+                  subtitle: Text(_languageName(_selectedLanguage)),
+                  trailing: DropdownButton<String>(
+                    value: _selectedLanguage,
+                    items: const [
+                      DropdownMenuItem(value: 'en', child: Text('English')),
+                      DropdownMenuItem(value: 'ur', child: Text('اردو')),
+                      DropdownMenuItem(value: 'ar', child: Text('العربية')),
+                    ],
+                    onChanged: (v) async {
+                      if (v == null) return;
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setString('selected_language', v);
+                      final locProvider = context.read<LocalizationProvider>();
+                      locProvider.setLocale(v);
+                      setState(() => _selectedLanguage = v);
+                    },
+                  ),
                 ),
                 ListTile(
                   leading: const Icon(Icons.request_quote_outlined),
@@ -1064,5 +1297,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
     );
+  }
+
+  String _languageName(String code) {
+    switch (code) {
+      case 'en':
+        return 'English';
+      case 'ur':
+        return 'اردو (Urdu)';
+      case 'ar':
+        return 'العربية (Arabic)';
+      default:
+        return 'English';
+    }
   }
 }
