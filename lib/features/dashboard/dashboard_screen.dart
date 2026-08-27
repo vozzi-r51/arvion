@@ -2,6 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/di/service_locator.dart';
+import '../../core/repositories/inventory_repository.dart';
+import '../../core/repositories/customer_repository.dart';
+import '../../core/repositories/supplier_repository.dart';
+import '../../core/repositories/sales_repository.dart';
+import '../../core/repositories/purchase_repository.dart';
+import '../../core/repositories/expense_repository.dart';
+import '../../core/repositories/analytics_repository.dart';
+import '../../core/services/query_cache_service.dart';
 import '../../core/providers/localization_provider.dart';
 import '../settings/settings_screen.dart';
 import '../products/product_form_screen.dart';
@@ -47,26 +56,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _loadAll();
   }
 
-  Future<void> _loadAll() async {
+  Future<void> _loadAll({bool forceRefresh = false}) async {
     setState(() => _loading = true);
     final company = await DBHelper.instance.getActiveCompany();
     if (company != null) {
       final companyId = company['id'] as int;
-      final productCount = await DBHelper.instance.getProductCount(companyId);
-      final lowStockCount = await DBHelper.instance.getLowStockCount(companyId);
-      final lowStockProducts =
-          await DBHelper.instance.getLowStockProducts(companyId);
-      final customerCount = await DBHelper.instance.getCustomerCount(companyId);
-      final supplierCount = await DBHelper.instance.getSupplierCount(companyId);
-      
-      _todaysSales = await DBHelper.instance.getTodaysSalesTotal(companyId);
-      _todaysProfit = await DBHelper.instance.getTodaysProfit(companyId);
-      _todaysPurchase = await DBHelper.instance.getTodaysPurchaseTotal(companyId);
-      _todaysExpenses = await DBHelper.instance.getTodaysExpensesTotal(companyId);
+      final cacheKey = 'dashboard_stats_$companyId';
+
+      if (forceRefresh) {
+        QueryCacheService.instance.invalidate(cacheKey);
+      }
+
+      final cached = QueryCacheService.instance.get<Map<String, dynamic>>(cacheKey);
+      if (cached != null) {
+        _todaysSales = cached['todaysSales'] as double;
+        _todaysProfit = cached['todaysProfit'] as double;
+        _todaysPurchase = cached['todaysPurchase'] as double;
+        _todaysExpenses = cached['todaysExpenses'] as double;
+        _currency = cached['currency'] as String;
+        _loading = false;
+        if (mounted) setState(() {});
+        return;
+      }
+
+      // Use repositories instead of DBHelper
+      final inventoryRepo = sl<InventoryRepository>();
+      final customerRepo = sl<CustomerRepository>();
+      final supplierRepo = sl<SupplierRepository>();
+      final salesRepo = sl<SalesRepository>();
+      final purchaseRepo = sl<PurchaseRepository>();
+      final expenseRepo = sl<ExpenseRepository>();
+      final analyticsRepo = sl<AnalyticsRepository>();
+
+      final productCount = await inventoryRepo.getProductCount(companyId);
+      final lowStockCount = await inventoryRepo.getLowStockCount(companyId);
+      final customerCount = await customerRepo.getCustomerCount(companyId);
+      final supplierCount = await supplierRepo.getSupplierCount(companyId);
+
+      _todaysSales = await salesRepo.getTodaysSalesTotal(companyId);
+      _todaysProfit = await analyticsRepo.getTodaysProfit(companyId);
+      _todaysPurchase = await purchaseRepo.getTodaysPurchaseTotal(companyId);
+      _todaysExpenses = await expenseRepo.getTodaysExpensesTotal(companyId);
 
       _currency = company['currency_symbol'] ?? 'Rs.';
 
-      // Load Trend Data
+      final lowStockProducts = await DBHelper.instance.getLowStockProducts(companyId);
+
       final to = DateTime.now();
       final from = to.subtract(const Duration(days: 30));
       final sales = await DBHelper.instance.getSalesBetween(companyId, from.toIso8601String().substring(0, 10), to.toIso8601String().substring(0, 10));
@@ -83,6 +118,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final day = DateTime.parse(p['purchase_date']).day;
         purchaseMap[day] = (purchaseMap[day] ?? 0) + (p['total_amount'] as num).toDouble();
       }
+
+      QueryCacheService.instance.set(cacheKey, {
+        'productCount': productCount,
+        'lowStockCount': lowStockCount,
+        'customerCount': customerCount,
+        'supplierCount': supplierCount,
+        'todaysSales': _todaysSales,
+        'todaysProfit': _todaysProfit,
+        'todaysPurchase': _todaysPurchase,
+        'todaysExpenses': _todaysExpenses,
+        'currency': _currency,
+        'lowStockProducts': lowStockProducts,
+        'salesMap': salesMap,
+        'purchaseMap': purchaseMap,
+      }, ttl: const Duration(minutes: 5));
 
       final List<FlSpot> sSpots = [];
       final List<FlSpot> pSpots = [];
@@ -333,7 +383,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         centerTitle: false,
       ),
       body: RefreshIndicator(
-        onRefresh: _loadAll,
+        onRefresh: () => _loadAll(forceRefresh: true),
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [

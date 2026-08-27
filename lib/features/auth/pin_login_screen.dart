@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/auth/auth_service.dart';
+import '../../core/auth/rbac_service.dart';
 import '../../core/theme/arvion_brand.dart';
 import '../company/company_selection_screen.dart';
 import '../shell/main_shell.dart';
@@ -130,7 +132,38 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
       if (!mounted) return;
       if (staff != null) {
         await _resetAttempts();
-        Session.setCashier(staff['name'] as String);
+        final String roleName = (staff['role'] as String?) ?? 'Cashier';
+        final int? roleId = staff['role_id'] as int?;
+        Set<String> perms = {};
+
+        if (staff['permissions'] != null) {
+          try {
+            final List list = jsonDecode(staff['permissions'] as String);
+            perms = list.map((e) => e.toString()).toSet();
+          } catch (_) {}
+        }
+        if (perms.isEmpty && roleId != null) {
+          final roleRow = await DBHelper.instance.getCustomRoleById(roleId);
+          if (roleRow != null && roleRow['permissions'] != null) {
+            try {
+              final List list = jsonDecode(roleRow['permissions'] as String);
+              perms = list.map((e) => e.toString()).toSet();
+            } catch (_) {}
+          }
+        }
+        if (perms.isEmpty) {
+          perms = DefaultRoles.getPermissionsForRole(roleName);
+        }
+
+        Session.setStaff(
+          staffId: staff['id'] as int,
+          staffName: staff['name'] as String,
+          companyId: staff['company_id'] as int,
+          roleId: roleId,
+          roleName: roleName,
+          permissions: perms,
+        );
+
         await DBHelper.instance.setActiveCompany(staff['company_id'] as int);
         if (!mounted) return;
         Navigator.of(context).pushReplacement(

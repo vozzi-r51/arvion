@@ -132,12 +132,25 @@ class _StockAdjustmentScreenState extends State<StockAdjustmentScreen> {
                     'created_at': DateTime.now().toIso8601String(),
                   });
                   try {
+                    final oldStock = (selectedProduct!['stock_quantity'] as num?)?.toDouble() ?? 0.0;
+                    final newStock = type == 'add' ? oldStock + qty : oldStock - qty;
                     await AuditLogger.log(
                       companyId: widget.companyId,
-                      module: 'Product',
+                      module: 'Stock',
                       action: AuditLogger.stockChange,
                       description:
                           '${_types[type]!.$1}: ${selectedProduct!['name']} ($qty)',
+                      beforeValue: {
+                        'product': selectedProduct!['name'],
+                        'stock_before': oldStock,
+                      },
+                      afterValue: {
+                        'product': selectedProduct!['name'],
+                        'type': type,
+                        'qty': qty,
+                        'stock_after': newStock,
+                        'reason': reasonCtrl.text.trim(),
+                      },
                     );
                   } catch (_) {}
                   if (!ctx.mounted) return;

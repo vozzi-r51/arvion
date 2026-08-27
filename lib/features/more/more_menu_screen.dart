@@ -19,6 +19,15 @@ import '../journal/journal_home_screen.dart';
 import '../recycle_bin/recycle_bin_screen.dart';
 import '../promotions/promotions_list_screen.dart';
 import '../finance/recurring_templates_screen.dart';
+import '../finance/fixed_assets_screen.dart';
+import '../finance/fiscal_year_closing_screen.dart';
+import '../settings/cost_centers_screen.dart';
+import '../settings/currency_rates_screen.dart';
+import '../settings/ecommerce_channels_screen.dart';
+import '../help/help_center_screen.dart';
+import '../changelog/whats_new_screen.dart';
+import '../../core/widgets/feedback_dialog.dart';
+import '../reports/budget_vs_actual_screen.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/export/full_data_export_service.dart';
 import '../../core/providers/terminology_provider.dart';
@@ -216,6 +225,94 @@ class _MoreMenuScreenState extends State<MoreMenuScreen> {
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => JournalHomeScreen(companyId: widget.companyId)),
             ),
+          ),
+          _buildMenuCard(
+            context,
+            icon: Icons.location_city_outlined,
+            color: Colors.indigo,
+            title: 'Branches & Cost Centers',
+            subtitle: 'Manage shop branches, departments & warehouses',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => CostCentersScreen(companyId: widget.companyId)),
+            ),
+          ),
+          _buildMenuCard(
+            context,
+            icon: Icons.account_balance_outlined,
+            color: Colors.blue,
+            title: 'Fixed Assets & Depreciation',
+            subtitle: 'Register equipment/vehicles, straight-line depreciation',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => FixedAssetsScreen(companyId: widget.companyId)),
+            ),
+          ),
+          _buildMenuCard(
+            context,
+            icon: Icons.pie_chart_outline,
+            color: Colors.deepOrange,
+            title: 'Budget vs Actual Report',
+            subtitle: 'Monthly expense category budgets & variance analysis',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => BudgetVsActualScreen(companyId: widget.companyId)),
+            ),
+          ),
+          _buildMenuCard(
+            context,
+            icon: Icons.lock_clock,
+            color: Colors.purple,
+            title: 'Fiscal Year-End Closing',
+            subtitle: 'Close year, transfer Net Profit to Retained Earnings',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => FiscalYearClosingScreen(companyId: widget.companyId)),
+            ),
+          ),
+          _buildMenuCard(
+            context,
+            icon: Icons.currency_exchange,
+            color: Colors.teal,
+            title: 'Multi-Currency Exchange Rates',
+            subtitle: 'USD, EUR, AED, SAR exchange rates for foreign bills',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => CurrencyRatesScreen(companyId: widget.companyId)),
+            ),
+          ),
+          _buildMenuCard(
+            context,
+            icon: Icons.shopping_bag_outlined,
+            color: Colors.orange.shade800,
+            title: 'E-commerce Sync (Daraz & WhatsApp)',
+            subtitle: 'Sync Daraz Store orders & WhatsApp Business Catalog CSV',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => EcommerceChannelsScreen(companyId: widget.companyId)),
+            ),
+          ),
+          _buildMenuCard(
+            context,
+            icon: Icons.help_outline,
+            color: Colors.indigo,
+            title: 'Help & Resource Center',
+            subtitle: 'Searchable FAQ, guides & how-to tutorials',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const HelpCenterScreen()),
+            ),
+          ),
+          _buildMenuCard(
+            context,
+            icon: Icons.auto_awesome,
+            color: Colors.purple,
+            title: "What's New in v2.5",
+            subtitle: 'Changelog, release notes & new feature list',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const WhatsNewScreen()),
+            ),
+          ),
+          _buildMenuCard(
+            context,
+            icon: Icons.feedback_outlined,
+            color: Colors.teal,
+            title: 'Suggest a Feature / Feedback',
+            subtitle: 'Send feature requests or report bugs directly',
+            onTap: () => FeedbackDialog.show(context, widget.companyId),
           ),
           if (isEnabled('promotions'))
           _buildMenuCard(

@@ -15,6 +15,7 @@ import '../../core/theme/arvion_brand.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/backup/backup_service.dart';
 import '../../core/providers/localization_provider.dart';
+import '../../core/widgets/sensitive_screen_guard.dart';
 import '../company/company_selection_screen.dart';
 import '../company/company_profile_screen.dart';
 import '../company/onboarding_wizard_screen.dart';
@@ -58,6 +59,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   DateTime? _lastAutoBackup;
   bool _allowNegativeStock = false;
   int _autoLockMinutes = 2;
+  int _sensitiveScreenLockSeconds = 30;
   DateTime? _accountingLockDate;
   bool _crashReportingEnabled = true;
   String _selectedLanguage = 'en';
@@ -105,6 +107,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _lastAutoBackup = lastAutoBackup;
       _allowNegativeStock = prefs.getBool('allow_negative_stock') ?? false;
       _autoLockMinutes = prefs.getInt('auto_lock_minutes') ?? 2;
+      _sensitiveScreenLockSeconds = prefs.getInt('sensitive_screen_lock_seconds') ?? 30;
       _crashReportingEnabled = prefs.getBool('crash_reporting_enabled') ?? true;
       final lockStr = prefs.getString('accounting_lock_date');
       if (lockStr != null) {
@@ -672,11 +675,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: MainShell.getMenuButton(context),
-        title: const Text('Settings'),
-      ),
+    return SensitiveScreenGuard(
+      screenName: 'Settings',
+      child: Scaffold(
+        appBar: AppBar(
+          leading: MainShell.getMenuButton(context),
+          title: const Text('Settings'),
+        ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -992,6 +997,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     },
                   ),
                 ),
+                ListTile(
+                  leading: const Icon(Icons.timer_outlined),
+                  title: const Text('Sensitive Screens Auto-Lock'),
+                  subtitle: Text(_sensitiveScreenLockSeconds == 0
+                      ? 'Band (Screens auto-lock nahi hongi)'
+                      : 'Settings & Reports par $_sensitiveScreenLockSeconds sec inactivity ke baad lock'),
+                  trailing: DropdownButton<int>(
+                    value: _sensitiveScreenLockSeconds,
+                    items: const [
+                      DropdownMenuItem(value: 0, child: Text('Band')),
+                      DropdownMenuItem(value: 15, child: Text('15 sec')),
+                      DropdownMenuItem(value: 30, child: Text('30 sec')),
+                      DropdownMenuItem(value: 60, child: Text('60 sec')),
+                    ],
+                    onChanged: (v) async {
+                      if (v == null) return;
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setInt('sensitive_screen_lock_seconds', v);
+                      setState(() => _sensitiveScreenLockSeconds = v);
+                    },
+                  ),
+                ),
                 SwitchListTile(
                   secondary: const Icon(Icons.bug_report_outlined),
                   title: const Text('Crash Reports Bhejein'),
@@ -1296,6 +1323,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ],
             ),
+      ),
     );
   }
 

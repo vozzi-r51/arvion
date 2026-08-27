@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../core/auth/rbac_service.dart';
+import '../../core/auth/session.dart';
+import '../../core/widgets/sensitive_screen_guard.dart';
+import '../../core/widgets/app_empty_state.dart';
 import 'sales_report_screen.dart';
 import 'purchase_report_screen.dart';
 import 'profit_report_screen.dart';
@@ -23,6 +27,20 @@ class ReportsHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!Session.can(AppPermissions.canViewReports)) {
+      return Scaffold(
+        appBar: AppBar(
+          leading: MainShell.getMenuButton(context),
+          title: const Text('Reports'),
+        ),
+        body: const AppEmptyState(
+          icon: Icons.lock_outline,
+          title: 'Permission Denied',
+          message: 'Aapke account role ko Reports dekhne ki permission nahi hai. Owner se rabta karein.',
+        ),
+      );
+    }
+
     final tiles = [
       _ReportTile('Sales Report', Icons.point_of_sale, Colors.teal,
           (_) => SalesReportScreen(companyId: companyId)),
@@ -42,45 +60,48 @@ class ReportsHomeScreen extends StatelessWidget {
           (_) => TaxReportScreen(companyId: companyId)),
     ];
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: MainShell.getMenuButton(context),
-        title: const Text('Reports'),
-      ),
-      body: GridView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: tiles.length,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 1.3,
+    return SensitiveScreenGuard(
+      screenName: 'Reports',
+      child: Scaffold(
+        appBar: AppBar(
+          leading: MainShell.getMenuButton(context),
+          title: const Text('Reports'),
         ),
-        itemBuilder: (ctx, i) {
-          final tile = tiles[i];
-          return Card(
-            child: InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: () => Navigator.of(context)
-                  .push(MaterialPageRoute(builder: tile.builder)),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(tile.icon, color: tile.color, size: 28),
-                    const SizedBox(height: 10),
-                    Text(
-                      tile.title,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                    ),
-                  ],
+        body: GridView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: tiles.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 1.3,
+          ),
+          itemBuilder: (ctx, i) {
+            final tile = tiles[i];
+            return Card(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () => Navigator.of(context)
+                    .push(MaterialPageRoute(builder: tile.builder)),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(tile.icon, color: tile.color, size: 28),
+                      const SizedBox(height: 10),
+                      Text(
+                        tile.title,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

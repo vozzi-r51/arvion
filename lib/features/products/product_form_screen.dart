@@ -485,12 +485,27 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     int productId;
     if (_isEditing) {
       productId = widget.existing!['id'] as int;
+      final old = widget.existing!;
       await DBHelper.instance.updateProduct(productId, data);
       await AuditLogger.log(
         companyId: widget.companyId,
         module: 'Product',
         action: AuditLogger.update,
         description: 'Product update kiya: ${data['name']}',
+        beforeValue: {
+          'name': old['name'],
+          'cost_price': old['cost_price'],
+          'sale_price': old['sale_price'],
+          'stock_quantity': old['stock_quantity'],
+          'min_stock_alert': old['min_stock_alert'],
+        },
+        afterValue: {
+          'name': data['name'],
+          'cost_price': data['cost_price'],
+          'sale_price': data['sale_price'],
+          'stock_quantity': data['stock_quantity'],
+          'min_stock_alert': data['min_stock_alert'],
+        },
       );
     } else {
       data['created_at'] = DateTime.now().toIso8601String();
@@ -500,6 +515,12 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         module: 'Product',
         action: AuditLogger.create,
         description: 'Naya product banaya: ${data['name']}',
+        afterValue: {
+          'name': data['name'],
+          'cost_price': data['cost_price'],
+          'sale_price': data['sale_price'],
+          'stock_quantity': data['stock_quantity'],
+        },
       );
     }
 

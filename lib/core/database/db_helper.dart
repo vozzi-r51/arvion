@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../templates/business_templates.dart';
 import '../business_types/business_type_catalog.dart';
+import '../security/secure_storage.dart';
 
 /// Singleton SQLite helper for the whole app.
 ///
@@ -18,6 +19,8 @@ class DBHelper {
   static final DBHelper instance = DBHelper._internal();
 
   static Database? _db;
+
+  Database get db => _db!;
 
   Future<Database> get database async {
     if (_db != null) return _db!;
@@ -38,18 +41,30 @@ class DBHelper {
   Future<Database> _initDb() async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'dukanedge.db');
+    final dbPassword = await SecureAppStorage.getDatabaseEncryptionKey();
 
-    return openDatabase(
-      path,
-      version: 38,
-      onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
-      onConfigure: (db) async {
-        // Enforce FK constraints (important once product/customer tables
-        // reference company_id in later phases).
-        await db.execute('PRAGMA foreign_keys = ON');
-      },
-    );
+    try {
+      return await openDatabase(
+        path,
+        password: dbPassword,
+        version: 39,
+        onCreate: _onCreate,
+        onUpgrade: _onUpgrade,
+        onConfigure: (db) async {
+          await db.execute('PRAGMA foreign_keys = ON');
+        },
+      );
+    } catch (_) {
+      return await openDatabase(
+        path,
+        version: 39,
+        onCreate: _onCreate,
+        onUpgrade: _onUpgrade,
+        onConfigure: (db) async {
+          await db.execute('PRAGMA foreign_keys = ON');
+        },
+      );
+    }
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -419,89 +434,47 @@ class DBHelper {
       await db.execute('ALTER TABLE purchase_items ADD COLUMN tax_rate REAL DEFAULT 0');
     }
     if (oldVersion < 37) {
-      // Multi-currency & localization support
-      await db.execute('ALTER TABLE companies ADD COLUMN currency_code TEXT DEFAULT "PKR"');
-      await db.execute('ALTER TABLE companies ADD COLUMN thousand_separator TEXT DEFAULT ","');
-      await db.execute('ALTER TABLE companies ADD COLUMN decimal_separator TEXT DEFAULT "."');
-      await db.execute('ALTER TABLE companies ADD COLUMN locale_language TEXT DEFAULT "en"');
+      await _createCustomRolesTable(db);
+      try {
+        await db.execute('ALTER TABLE staff_users ADD COLUMN role_id INTEGER');
+        await db.execute('ALTER TABLE staff_users ADD COLUMN permissions TEXT');
+      } catch (_) {}
+      try {
+        await db.execute('ALTER TABLE audit_log ADD COLUMN user_name TEXT');
+        await db.execute('ALTER TABLE audit_log ADD COLUMN before_value TEXT');
+        await db.execute('ALTER TABLE audit_log ADD COLUMN after_value TEXT');
+      } catch (_) {}
     }
     if (oldVersion < 38) {
-      // UI Mode: Simple vs Advanced feature gating
-      await db.execute('ALTER TABLE companies ADD COLUMN ui_mode TEXT DEFAULT "simple"');
+      await _createCostCentersTable(db);
+      await _createFixedAssetsTable(db);
+      await _createBudgetsTable(db);
+      await _createFiscalYearClosingTable(db);
+      await _createCurrencyRatesTable(db);
+
+      try {
+        await db.execute('ALTER TABLE sales ADD COLUMN cost_center_id INTEGER');
+        await db.execute('ALTER TABLE sales ADD COLUMN currency_code TEXT');
+        await db.execute('ALTER TABLE sales ADD COLUMN foreign_amount REAL');
+        await db.execute('ALTER TABLE sales ADD COLUMN exchange_rate REAL DEFAULT 1.0');
+      } catch (_) {}
+
+      try {
+        await db.execute('ALTER TABLE purchases ADD COLUMN cost_center_id INTEGER');
+        await db.execute('ALTER TABLE purchases ADD COLUMN currency_code TEXT');
+        await db.execute('ALTER TABLE purchases ADD COLUMN foreign_amount REAL');
+        await db.execute('ALTER TABLE purchases ADD COLUMN exchange_rate REAL DEFAULT 1.0');
+      } catch (_) {}
+
+      try {
+        await db.execute('ALTER TABLE expenses ADD COLUMN cost_center_id INTEGER');
+        await db.execute('ALTER TABLE expenses ADD COLUMN currency_code TEXT');
+        await db.execute('ALTER TABLE expenses ADD COLUMN foreign_amount REAL');
+        await db.execute('ALTER TABLE expenses ADD COLUMN exchange_rate REAL DEFAULT 1.0');
+      } catch (_) {}
     }
     if (oldVersion < 39) {
-      // Auto-migrate existing users to advanced mode if they have used advanced features
-      await _autoMigrateToAdvancedMode(db);
-    }
-  }
-
-  /// Auto-migrate existing companies to advanced mode if they use advanced features
-  Future<void> _autoMigrateToAdvancedMode(Database db) async {
-    try {
-      // Get all companies that are still in simple mode
-      final companies = await db.query('companies', where: 'ui_mode = ?', whereArgs: ['simple']);
-
-      for (final company in companies) {
-        final companyId = company['id'] as int;
-        bool shouldMigrateToAdvanced = false;
-
-        // Check for advanced features in use
-
-        // 1. Check if any products have variants
-        final variantCount = Sqflite.firstIntValue(
-          await db.rawQuery(
-            'SELECT COUNT(*) FROM products WHERE company_id = ? AND has_variants = 1',
-            [companyId]
-          )
-        ) ?? 0;
-        if (variantCount > 0) shouldMigrateToAdvanced = true;
-
-        // 2. Check if custom fields are defined
-        if (!shouldMigrateToAdvanced) {
-          final customFieldCount = Sqflite.firstIntValue(
-            await db.rawQuery(
-              'SELECT COUNT(*) FROM custom_field_definitions WHERE company_id = ?',
-              [companyId]
-            )
-          ) ?? 0;
-          if (customFieldCount > 0) shouldMigrateToAdvanced = true;
-        }
-
-        // 3. Check if manufacturing/production orders exist
-        if (!shouldMigrateToAdvanced) {
-          final bomCount = Sqflite.firstIntValue(
-            await db.rawQuery(
-              'SELECT COUNT(*) FROM bill_of_materials WHERE company_id = ?',
-              [companyId]
-            )
-          ) ?? 0;
-          if (bomCount > 0) shouldMigrateToAdvanced = true;
-        }
-
-        // 4. Check if multiple UOMs are in use (secondary units assigned to products)
-        if (!shouldMigrateToAdvanced) {
-          final multiUomCount = Sqflite.firstIntValue(
-            await db.rawQuery(
-              'SELECT COUNT(*) FROM products WHERE company_id = ? AND secondary_unit IS NOT NULL AND secondary_unit != ""',
-              [companyId]
-            )
-          ) ?? 0;
-          if (multiUomCount > 0) shouldMigrateToAdvanced = true;
-        }
-
-        // If advanced features detected, migrate to advanced mode
-        if (shouldMigrateToAdvanced) {
-          await db.update(
-            'companies',
-            {'ui_mode': 'advanced'},
-            where: 'id = ?',
-            whereArgs: [companyId]
-          );
-        }
-      }
-    } catch (e) {
-      // Silently fail migration — don't break app startup
-      print('Auto-migration to advanced mode failed: $e');
+      await _createEcommerceChannelsTable(db);
     }
   }
 
@@ -524,10 +497,7 @@ class DBHelper {
         ntn_gst TEXT,
         default_tax_percent REAL DEFAULT 0,
         currency_symbol TEXT DEFAULT 'Rs.',
-        currency_code TEXT DEFAULT 'PKR',
         decimal_places INTEGER DEFAULT 2,
-        thousand_separator TEXT DEFAULT ',',
-        decimal_separator TEXT DEFAULT '.',
         date_format TEXT DEFAULT 'dd/MM/yyyy',
         number_format TEXT DEFAULT 'standard',
         invoice_prefix TEXT DEFAULT 'INV',
@@ -539,8 +509,6 @@ class DBHelper {
         terminology_profile TEXT,
         enabled_modules TEXT,
         branding_color INTEGER,
-        locale_language TEXT DEFAULT 'en',
-        ui_mode TEXT DEFAULT 'simple',
         is_active INTEGER NOT NULL DEFAULT 0,
         created_at TEXT NOT NULL
       )
@@ -727,6 +695,7 @@ class DBHelper {
     await _createReturnsTables(db);
     await _createChallanPoTables(db);
     await _createAuditLogTable(db);
+    await _createCustomRolesTable(db);
     await _createStockAdjustmentsTable(db);
     await db.execute('''
       CREATE TABLE product_serials (
@@ -1479,14 +1448,165 @@ class DBHelper {
     ''');
   }
 
+  Future<void> _createCustomRolesTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS custom_roles (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        description TEXT,
+        permissions TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
+      )
+    ''');
+  }
+
+  Future<void> _createCostCentersTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS cost_centers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        code TEXT NOT NULL,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL DEFAULT 'branch',
+        description TEXT,
+        is_active INTEGER NOT NULL DEFAULT 1,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
+      )
+    ''');
+  }
+
+  Future<void> _createFixedAssetsTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS fixed_assets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        asset_code TEXT NOT NULL,
+        asset_name TEXT NOT NULL,
+        category TEXT NOT NULL DEFAULT 'equipment',
+        purchase_date TEXT NOT NULL,
+        purchase_cost REAL NOT NULL,
+        salvage_value REAL NOT NULL DEFAULT 0,
+        useful_life_years INTEGER NOT NULL DEFAULT 5,
+        depreciation_method TEXT NOT NULL DEFAULT 'straight_line',
+        accumulated_depreciation REAL NOT NULL DEFAULT 0,
+        book_value REAL NOT NULL,
+        cost_center_id INTEGER,
+        status TEXT NOT NULL DEFAULT 'active',
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS asset_depreciations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        asset_id INTEGER NOT NULL,
+        period_date TEXT NOT NULL,
+        depreciation_amount REAL NOT NULL,
+        accumulated_depreciation_after REAL NOT NULL,
+        book_value_after REAL NOT NULL,
+        posted_to_gl INTEGER DEFAULT 0,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (asset_id) REFERENCES fixed_assets (id) ON DELETE CASCADE
+      )
+    ''');
+  }
+
+  Future<void> _createEcommerceChannelsTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS ecommerce_channels (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        channel_type TEXT NOT NULL,
+        channel_name TEXT NOT NULL,
+        api_key TEXT,
+        phone_number TEXT,
+        is_active INTEGER DEFAULT 1,
+        last_synced_at TEXT,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS channel_orders (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        channel_id INTEGER NOT NULL,
+        external_order_id TEXT NOT NULL,
+        customer_name TEXT,
+        customer_phone TEXT,
+        total_amount REAL NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending',
+        order_data TEXT,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (channel_id) REFERENCES ecommerce_channels (id) ON DELETE CASCADE
+      )
+    ''');
+  }
+
+  Future<void> _createBudgetsTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS budgets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        period_month TEXT NOT NULL,
+        category_or_account TEXT NOT NULL,
+        budgeted_amount REAL NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
+        UNIQUE(company_id, period_month, category_or_account)
+      )
+    ''');
+  }
+
+  Future<void> _createFiscalYearClosingTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS fiscal_year_closings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        fiscal_year INTEGER NOT NULL,
+        start_date TEXT NOT NULL,
+        end_date TEXT NOT NULL,
+        total_revenue REAL NOT NULL,
+        total_expenses REAL NOT NULL,
+        net_profit REAL NOT NULL,
+        closing_journal_entry_id INTEGER,
+        closed_at TEXT NOT NULL,
+        closed_by TEXT NOT NULL,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
+      )
+    ''');
+  }
+
+  Future<void> _createCurrencyRatesTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS currency_rates (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        currency_code TEXT NOT NULL,
+        currency_symbol TEXT NOT NULL,
+        exchange_rate_to_base REAL NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
+        UNIQUE(company_id, currency_code)
+      )
+    ''');
+  }
+
   Future<void> _createAuditLogTable(Database db) async {
     await db.execute('''
-      CREATE TABLE audit_log (
+      CREATE TABLE IF NOT EXISTS audit_log (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         company_id INTEGER NOT NULL,
         module TEXT NOT NULL,
         action TEXT NOT NULL,
         description TEXT NOT NULL,
+        user_name TEXT,
+        before_value TEXT,
+        after_value TEXT,
         timestamp TEXT NOT NULL,
         FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
       )
@@ -3950,6 +4070,8 @@ class DBHelper {
     String? action,
     String? fromDate,
     String? toDate,
+    int? limit,
+    int? offset,
   }) async {
     final db = await database;
     final where = StringBuffer('company_id = ?');
@@ -3970,7 +4092,7 @@ class DBHelper {
     }
 
     return db.query('audit_log',
-        where: where.toString(), whereArgs: args, orderBy: 'id DESC', limit: 500);
+        where: where.toString(), whereArgs: args, orderBy: 'id DESC', limit: limit ?? 100, offset: offset);
   }
 
   // ---------------- Inventory Adjustment helpers ----------------
@@ -4636,6 +4758,35 @@ class DBHelper {
   Future<void> updateStaffUser(int id, Map<String, dynamic> data) async {
     final db = await database;
     await db.update('staff_users', data, where: 'id = ?', whereArgs: [id]);
+  }
+
+  // ---------------- Custom Roles helpers ----------------
+
+  Future<int> insertCustomRole(Map<String, dynamic> data) async {
+    final db = await database;
+    return db.insert('custom_roles', data);
+  }
+
+  Future<List<Map<String, dynamic>>> getCustomRoles(int companyId) async {
+    final db = await database;
+    return db.query('custom_roles', where: 'company_id = ?', whereArgs: [companyId], orderBy: 'name ASC');
+  }
+
+  Future<Map<String, dynamic>?> getCustomRoleById(int id) async {
+    final db = await database;
+    final list = await db.query('custom_roles', where: 'id = ?', whereArgs: [id]);
+    if (list.isNotEmpty) return list.first;
+    return null;
+  }
+
+  Future<void> updateCustomRole(int id, Map<String, dynamic> data) async {
+    final db = await database;
+    await db.update('custom_roles', data, where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<void> deleteCustomRole(int id) async {
+    final db = await database;
+    await db.delete('custom_roles', where: 'id = ?', whereArgs: [id]);
   }
 
   Future<List<Map<String, dynamic>>> getAllStaffUsersAcrossCompanies() async {

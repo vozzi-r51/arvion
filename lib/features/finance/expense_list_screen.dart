@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/di/service_locator.dart';
+import '../../core/services/expense_service.dart';
 import '../../core/audit/audit_logger.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/app_skeleton.dart';
@@ -142,12 +144,13 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
 
                 if (existing == null) {
                   data['created_at'] = DateTime.now().toIso8601String();
-                  await DBHelper.instance.insertExpense(data);
+                  await sl<ExpenseService>().recordExpense(data);
                   await AuditLogger.log(
                     companyId: widget.companyId,
                     module: 'Expense',
                     action: AuditLogger.create,
                     description: 'Naya expense: $finalCategory (Rs. ${amount.toStringAsFixed(0)})',
+                    afterValue: {'category': finalCategory, 'amount': amount, 'payment_method': paymentMethod},
                   );
                 } else {
                   await DBHelper.instance.updateExpense(existing['id'] as int, data);

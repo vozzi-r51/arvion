@@ -1,9 +1,8 @@
+import 'dart:convert';
+import '../auth/session.dart';
 import '../database/db_helper.dart';
 
-/// Central place to write audit trail entries. Call this after any
-/// meaningful change so there's a record of who/what/when — not a
-/// replacement for proper multi-user accounts (this app is single-PIN,
-/// single-device), but a log of activity on this device for this company.
+/// Central place to write audit trail entries with before/after state diff.
 class AuditLogger {
   AuditLogger._();
 
@@ -18,12 +17,19 @@ class AuditLogger {
     required String module,
     required String action,
     required String description,
+    String? userName,
+    Map<String, dynamic>? beforeValue,
+    Map<String, dynamic>? afterValue,
   }) async {
+    final effectiveUser = userName ?? Session.userIdentifier;
     await DBHelper.instance.insertAuditLog({
       'company_id': companyId,
       'module': module,
       'action': action,
       'description': description,
+      'user_name': effectiveUser,
+      'before_value': beforeValue != null ? jsonEncode(beforeValue) : null,
+      'after_value': afterValue != null ? jsonEncode(afterValue) : null,
       'timestamp': DateTime.now().toIso8601String(),
     });
   }

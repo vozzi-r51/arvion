@@ -2,6 +2,13 @@ import 'package:dukanedge/core/database/db_helper.dart';
 import 'package:dukanedge/core/auth/session.dart';
 import 'package:dukanedge/core/utils/currency_formatter.dart';
 import 'package:dukanedge/core/services/tflite_intent_classifier.dart';
+import 'package:dukanedge/core/di/service_locator.dart';
+import 'package:dukanedge/core/repositories/sales_repository.dart';
+import 'package:dukanedge/core/repositories/inventory_repository.dart';
+import 'package:dukanedge/core/repositories/purchase_repository.dart';
+import 'package:dukanedge/core/repositories/supplier_repository.dart';
+import 'package:dukanedge/core/repositories/expense_repository.dart';
+import 'package:dukanedge/core/repositories/analytics_repository.dart';
 
 /// Represents the possible business intents the AI can handle.
 /// This matches standard "Tool Calling" patterns in modern LLMs.
@@ -49,7 +56,7 @@ class SalesTool extends AIBusinessTool {
   @override
   Future<String> execute(Map<String, dynamic> params) async {
     final company = await DBHelper.instance.getCompanyById(companyId);
-    final total = await DBHelper.instance.getTodaysSalesTotal(companyId);
+    final total = await sl<SalesRepository>().getTodaysSalesTotal(companyId);
 
     final formatted = CurrencyFormatter.format(
       total,
@@ -71,7 +78,7 @@ class StockTool extends AIBusinessTool {
 
   @override
   Future<String> execute(Map<String, dynamic> params) async {
-    final count = await DBHelper.instance.getLowStockCount(companyId);
+    final count = await sl<InventoryRepository>().getLowStockCount(companyId);
     if (count == 0) {
       return isUrdu 
         ? "Sab products ka stock theek hai. Koi bhi low stock par nahi hai."
@@ -122,7 +129,7 @@ class ExpensesTool extends AIBusinessTool {
   @override
   Future<String> execute(Map<String, dynamic> params) async {
     final company = await DBHelper.instance.getCompanyById(companyId);
-    final total = await DBHelper.instance.getTodaysExpensesTotal(companyId);
+    final total = await sl<ExpenseRepository>().getTodaysExpensesTotal(companyId);
 
     final formatted = CurrencyFormatter.format(
       total,
@@ -142,7 +149,7 @@ class ProfitTool extends AIBusinessTool {
   @override
   Future<String> execute(Map<String, dynamic> params) async {
     final company = await DBHelper.instance.getCompanyById(companyId);
-    final total = await DBHelper.instance.getTodaysProfit(companyId);
+    final total = await sl<AnalyticsRepository>().getTodaysProfit(companyId);
 
     final formatted = CurrencyFormatter.format(
       total,
@@ -162,8 +169,7 @@ class PurchasesTool extends AIBusinessTool {
   @override
   Future<String> execute(Map<String, dynamic> params) async {
     final company = await DBHelper.instance.getCompanyById(companyId);
-    final db = DBHelper.instance;
-    final total = await db.getTodaysPurchaseTotal(companyId);
+    final total = await sl<PurchaseRepository>().getTodaysPurchaseTotal(companyId);
 
     final formatted = CurrencyFormatter.format(
       total,
@@ -182,7 +188,7 @@ class SupplierCountTool extends AIBusinessTool {
   SupplierCountTool(super.companyId, {super.locale});
   @override
   Future<String> execute(Map<String, dynamic> params) async {
-    final count = await DBHelper.instance.getSupplierCount(companyId);
+    final count = await sl<SupplierRepository>().getSupplierCount(companyId);
     return isUrdu
       ? "Aapke total $count suppliers hain."
       : "You have a total of $count suppliers.";
@@ -195,7 +201,7 @@ class ProductCountTool extends AIBusinessTool {
   bool get requiresOwner => false;
   @override
   Future<String> execute(Map<String, dynamic> params) async {
-    final count = await DBHelper.instance.getProductCount(companyId);
+    final count = await sl<InventoryRepository>().getProductCount(companyId);
     return isUrdu
       ? "Aapki shop mein total $count products listed hain."
       : "You have a total of $count products listed.";

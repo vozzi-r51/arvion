@@ -4,19 +4,25 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'app.dart';
+import 'core/di/service_locator.dart';
 import 'core/theme/app_theme.dart';
 import 'core/providers/terminology_provider.dart';
 import 'core/providers/branding_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+  // Wire up the service locator (DB, event bus, repositories, listeners)
+  // BEFORE anything else so the rest of the app can grab dependencies
+  // via `sl<...>()` without order-of-init bugs.
+  await setupServiceLocator();
+
   final prefs = await SharedPreferences.getInstance();
   final bool crashReportingEnabled = prefs.getBool('crash_reporting_enabled') ?? true;
 
   // Disable runtime fetching of fonts to ensure 100% offline operation.
   GoogleFonts.config.allowRuntimeFetching = false;
-  
+
   if (crashReportingEnabled) {
     await SentryFlutter.init(
       (options) {

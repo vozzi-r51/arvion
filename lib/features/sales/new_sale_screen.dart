@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/di/service_locator.dart';
+import '../../core/services/sales_service.dart';
 import '../../core/scanner/barcode_scanner_screen.dart';
 import '../../core/audit/audit_logger.dart';
 import '../invoice/invoice_preview_screen.dart';
@@ -467,7 +469,7 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
 
     int saleId;
     try {
-      saleId = await DBHelper.instance.insertSaleWithItems(
+      saleId = await sl<SalesService>().createSaleWithItems(
         sale: saleData,
         items: itemsData,
         allowNegativeStock: allowNegativeStock,

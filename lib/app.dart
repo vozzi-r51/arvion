@@ -6,7 +6,6 @@ import 'core/theme/app_theme.dart';
 import 'core/auth/auth_service.dart';
 import 'core/widgets/arvion_logo.dart';
 import 'core/providers/branding_provider.dart';
-import 'core/providers/localization_provider.dart';
 import 'features/auth/pin_setup_screen.dart';
 import 'features/auth/pin_login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';

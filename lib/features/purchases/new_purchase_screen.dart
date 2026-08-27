@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/di/service_locator.dart';
+import '../../core/services/purchase_service.dart';
 import '../../core/scanner/barcode_scanner_screen.dart';
 import '../../core/audit/audit_logger.dart';
 
@@ -240,7 +242,7 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
         .toList();
 
     try {
-      await DBHelper.instance.insertPurchaseWithItems(
+      await sl<PurchaseService>().createPurchaseWithItems(
         purchase: purchaseData,
         items: itemsData,
       );
