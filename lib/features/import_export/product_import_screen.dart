@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/export/csv_export_service.dart';
+import '../../core/import/models/import_models.dart';
+import 'universal_import_screen.dart';
 
 class ProductImportScreen extends StatefulWidget {
   final int companyId;
@@ -24,7 +26,7 @@ class _ProductImportScreenState extends State<ProductImportScreen> {
 
   Future<void> _downloadTemplate() async {
     await CsvExportService.exportAndShare(
-      fileName: 'DukanEdge_Product_Import_Template',
+      fileName: 'BizManager_Product_Import_Template',
       headers: _headers,
       rows: [
         ['Sample Plate Set', 'P001', '1234567890', 'Melamine', 'ABC Brand', '200', '350', '300', '50', '10'],
@@ -195,6 +197,22 @@ class _ProductImportScreenState extends State<ProductImportScreen> {
             ),
             const SizedBox(height: 12),
             ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => UniversalImportScreen(
+                      companyId: widget.companyId,
+                      initialEntityType: ImportEntityType.products,
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.auto_awesome_outlined),
+              label: const Text('Universal Importer (QuickBooks / Tally / Vyapar / Excel)'),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
               onPressed: _busy ? null : _pickAndImport,
               icon: _busy
                   ? const SizedBox(
@@ -202,7 +220,7 @@ class _ProductImportScreenState extends State<ProductImportScreen> {
                       width: 16,
                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                   : const Icon(Icons.upload_file_outlined),
-              label: const Text('CSV File Import Karein'),
+              label: const Text('Quick CSV Template Import'),
             ),
             if (_resultMessage != null) ...[
               const SizedBox(height: 16),

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:dukanedge/core/database/db_helper.dart';
+import 'package:bizmanager/core/database/db_helper.dart';
 
 /// Pure-Dart unit test for the Phase 2 fixes that don't require
 /// Flutter binding. We use sqflite_common_ffi to exercise the in-memory

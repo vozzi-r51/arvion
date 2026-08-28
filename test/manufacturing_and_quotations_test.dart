@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:dukanedge/core/auth/rbac_service.dart';
-import 'package:dukanedge/core/services/fbr_invoicing_service.dart';
-import 'package:dukanedge/core/services/mobile_wallet_payment_service.dart';
+import 'package:bizmanager/core/auth/rbac_service.dart';
+import 'package:bizmanager/core/services/fbr_invoicing_service.dart';
+import 'package:bizmanager/core/services/mobile_wallet_payment_service.dart';
 
 void main() {
   group('Granular RBAC Permissions Tests', () {

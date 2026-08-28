@@ -8,7 +8,7 @@ class SecureAppStorage {
   static const _storage = FlutterSecureStorage(
     aOptions: AndroidOptions(
       encryptedSharedPreferences: true,
-      sharedPreferencesName: 'arvion_secure_store',
+      sharedPreferencesName: 'bizmanager_secure_store',
     ),
     iOptions: IOSOptions(
       accessibility: KeychainAccessibility.first_unlock_this_device,

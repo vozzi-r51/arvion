@@ -1,118 +1,201 @@
 import 'dart:convert';
+import 'package:sqflite/sqflite.dart';
 import '../database/db_helper.dart';
 
-/// All discrete permissions in the app. Each maps to a specific capability
-/// that can be independently granted or revoked per role.
-abstract class Permissions {
-  static const viewDashboard    = 'view_dashboard';
-  static const viewReports      = 'view_reports';
-  static const viewProducts     = 'view_products';
-  static const editProducts     = 'edit_products';
-  static const deleteProducts   = 'delete_products';
-  static const viewCustomers    = 'view_customers';
-  static const editCustomers    = 'edit_customers';
-  static const deleteCustomers  = 'delete_customers';
-  static const createSale       = 'create_sale';
-  static const voidSale         = 'void_sale';
-  static const applyDiscount    = 'apply_discount';
-  static const editPrices       = 'edit_prices';
-  static const viewAuditLog     = 'view_audit_log';
-  static const manageStaff      = 'manage_staff';
-  static const changeSecurity   = 'change_security';
+/// All discrete permission constants across BizManager modules.
+abstract class AppPermissions {
+  static const viewDashboard          = 'view_dashboard';
+  static const viewReports            = 'view_reports';
+  static const viewSales              = 'view_sales';
+  static const createSales            = 'create_sales';
+  static const editSales              = 'edit_sales';
+  static const deleteSales            = 'delete_sales';
 
-  /// All 15 permissions in display order.
+  static const viewPurchases          = 'view_purchases';
+  static const createPurchases        = 'create_purchases';
+  static const editPurchases          = 'edit_purchases';
+  static const deletePurchases        = 'delete_purchases';
+  static const approvePo              = 'approve_po';
+
+  static const viewCustomers          = 'view_customers';
+  static const editCustomers          = 'edit_customers';
+  static const deleteCustomers        = 'delete_customers';
+
+  static const viewSuppliers          = 'view_suppliers';
+  static const editSuppliers          = 'edit_suppliers';
+  static const deleteSuppliers        = 'delete_suppliers';
+
+  static const viewInventory          = 'view_inventory';
+  static const editInventory          = 'edit_inventory';
+  static const adjustStock            = 'adjust_stock';
+  static const editPrices             = 'edit_prices';
+
+  static const viewExpenses           = 'view_expenses';
+  static const createExpenses         = 'create_expenses';
+  static const editExpenses           = 'edit_expenses';
+  static const deleteExpenses         = 'delete_expenses';
+
+  static const viewAccounting         = 'view_accounting';
+  static const deleteRecords          = 'delete_records';
+  static const manageUsers            = 'manage_users';
+  static const manageRoles            = 'manage_roles';
+  static const manageCompanySettings  = 'manage_company_settings';
+
+  static const viewAuditLog           = 'view_audit_log';
+  static const exportData             = 'export_data';
+  static const importData             = 'import_data';
+
+  /// List of all system permissions.
   static const all = <String>[
-    viewDashboard,
-    viewReports,
-    viewProducts,
-    editProducts,
-    deleteProducts,
-    viewCustomers,
-    editCustomers,
-    deleteCustomers,
-    createSale,
-    voidSale,
-    applyDiscount,
-    editPrices,
-    viewAuditLog,
-    manageStaff,
-    changeSecurity,
-  ];
-
-  /// Human-readable labels for the Settings UI.
-  static String label(String key) {
-    switch (key) {
-      case viewDashboard:   return 'Dashboard Dekhein';
-      case viewReports:     return 'Reports Dekhein';
-      case viewProducts:    return 'Products Dekhein';
-      case editProducts:    return 'Products Edit Karein';
-      case deleteProducts:  return 'Products Delete Karein';
-      case viewCustomers:   return 'Customers/Suppliers Dekhein';
-      case editCustomers:   return 'Customers/Suppliers Edit Karein';
-      case deleteCustomers: return 'Customers/Suppliers Delete Karein';
-      case createSale:      return 'Sale Entry Karein';
-      case voidSale:        return 'Sale Void/Cancel Karein';
-      case applyDiscount:   return 'Discount Apply Karein';
-      case editPrices:      return 'Prices Change Karein';
-      case viewAuditLog:    return 'Audit Log Dekhein';
-      case manageStaff:     return 'Staff / Roles Manage Karein';
-      case changeSecurity:  return 'Security Settings Badlein';
-      default:              return key;
-    }
-  }
-}
-
-/// Default permission sets for the three built-in roles.
-abstract class DefaultRolePermissions {
-  static const owner = Permissions.all;
-
-  static const manager = <String>[
-    Permissions.viewDashboard,
-    Permissions.viewReports,
-    Permissions.viewProducts,
-    Permissions.editProducts,
-    Permissions.viewCustomers,
-    Permissions.editCustomers,
-    Permissions.createSale,
-    Permissions.voidSale,
-    Permissions.applyDiscount,
-    Permissions.editPrices,
-    Permissions.viewAuditLog,
-    // Excluded: deleteProducts, deleteCustomers, manageStaff, changeSecurity
-  ];
-
-  static const cashier = <String>[
-    Permissions.viewDashboard,
-    Permissions.viewProducts,
-    Permissions.viewCustomers,
-    Permissions.createSale,
-    // Minimal: no edit/delete/reports/audit/staff/security
+    viewDashboard, viewReports,
+    viewSales, createSales, editSales, deleteSales,
+    viewPurchases, createPurchases, editPurchases, deletePurchases, approvePo,
+    viewCustomers, editCustomers, deleteCustomers,
+    viewSuppliers, editSuppliers, deleteSuppliers,
+    viewInventory, editInventory, adjustStock, editPrices,
+    viewExpenses, createExpenses, editExpenses, deleteExpenses,
+    viewAccounting, deleteRecords, manageUsers, manageRoles, manageCompanySettings,
+    viewAuditLog, exportData, importData,
   ];
 }
 
-/// Service for role-based access control — reads roles from DB, checks
-/// permissions, and provides seed data for fresh installs.
+/// Backward compatibility alias for legacy code references.
+typedef Permissions = AppPermissions;
+
+/// Central Granular Role-Based Access Control (RBAC) Service.
+/// Evaluates permissions and enforces service-level authorization boundaries.
 class RbacService {
   RbacService._internal();
   static final RbacService instance = RbacService._internal();
 
-  /// Loads all roles for the given company.
-  Future<List<Map<String, dynamic>>> getRoles(int companyId) async {
+  final Map<String, bool> _permissionCache = {};
+
+  /// Checks whether a specific role in a company has a permission.
+  /// Owner role always evaluates to true (full administrative access).
+  Future<bool> hasPermission({
+    required int companyId,
+    required String roleName,
+    required String permissionKey,
+  }) async {
+    if (roleName.toLowerCase() == 'owner') return true;
+
+    final cacheKey = '$companyId:$roleName:$permissionKey';
+    if (_permissionCache.containsKey(cacheKey)) {
+      return _permissionCache[cacheKey]!;
+    }
+
     final db = await DBHelper.instance.database;
-    return db.query('roles',
-        where: 'company_id = ?',
-        whereArgs: [companyId],
-        orderBy: 'id ASC');
+
+    // 1. Query role_permissions table
+    final rows = await db.query(
+      'role_permissions',
+      columns: ['allowed'],
+      where: 'company_id = ? AND role_name = ? AND permission_key = ?',
+      whereArgs: [companyId, roleName, permissionKey],
+      limit: 1,
+    );
+
+    if (rows.isNotEmpty) {
+      final isAllowed = (rows.first['allowed'] as int) == 1;
+      _permissionCache[cacheKey] = isAllowed;
+      return isAllowed;
+    }
+
+    // 2. Fallback to roles table JSON permissions column
+    final roleRows = await db.query(
+      'roles',
+      columns: ['permissions'],
+      where: 'company_id = ? AND name = ?',
+      whereArgs: [companyId, roleName],
+      limit: 1,
+    );
+
+    if (roleRows.isNotEmpty) {
+      final rawJson = roleRows.first['permissions'] as String? ?? '[]';
+      try {
+        final List<dynamic> list = jsonDecode(rawJson);
+        final isAllowed = list.contains(permissionKey);
+        _permissionCache[cacheKey] = isAllowed;
+        return isAllowed;
+      } catch (_) {}
+    }
+
+    // Cashier default fallbacks
+    if (roleName.toLowerCase() == 'cashier') {
+      final isCashierAllowed = permissionKey == AppPermissions.viewDashboard ||
+          permissionKey == AppPermissions.viewSales ||
+          permissionKey == AppPermissions.createSales ||
+          permissionKey == AppPermissions.viewCustomers;
+      _permissionCache[cacheKey] = isCashierAllowed;
+      return isCashierAllowed;
+    }
+
+    _permissionCache[cacheKey] = false;
+    return false;
   }
 
-  /// Gets a single role by its ID.
+  /// Service-level authorization enforcement at method boundaries.
+  /// Throws StateError if permission is denied.
+  Future<void> requirePermission({
+    required int companyId,
+    required String roleName,
+    required String permissionKey,
+  }) async {
+    final allowed = await hasPermission(
+      companyId: companyId,
+      roleName: roleName,
+      permissionKey: permissionKey,
+    );
+
+    if (!allowed) {
+      throw StateError(
+        'Access Denied: Role "$roleName" does not have required permission "$permissionKey"',
+      );
+    }
+  }
+
+  /// Grants or revokes a granular permission for a role in a company.
+  Future<void> setPermission({
+    required int companyId,
+    required String roleName,
+    required String permissionKey,
+    required bool allowed,
+  }) async {
+    final db = await DBHelper.instance.database;
+
+    await db.insert(
+      'role_permissions',
+      {
+        'company_id': companyId,
+        'role_name': roleName,
+        'permission_key': permissionKey,
+        'allowed': allowed ? 1 : 0,
+        'created_at': DateTime.now().toIso8601String(),
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+
+    clearCache();
+  }
+
+  /// Clears in-memory permission cache upon role/company changes or logout.
+  void clearCache() {
+    _permissionCache.clear();
+  }
+
+  // --- Legacy Role Helper Methods (Preserved for compatibility) ---
+
+  Future<List<Map<String, dynamic>>> getRoles(int companyId) async {
+    final db = await DBHelper.instance.database;
+    return db.query('roles', where: 'company_id = ?', whereArgs: [companyId], orderBy: 'id ASC');
+  }
+
   Future<Map<String, dynamic>?> getRoleById(int roleId) async {
     final db = await DBHelper.instance.database;
     final rows = await db.query('roles', where: 'id = ?', whereArgs: [roleId]);
     return rows.isEmpty ? null : rows.first;
   }
 
-  /// Parses the JSON permissions column into a Set<String>.
   Set<String> parsePermissions(Map<String, dynamic> role) {
     final raw = role['permissions'] as String? ?? '[]';
     try {
@@ -122,67 +205,47 @@ class RbacService {
     }
   }
 
-  /// Gets the number of custom (non-builtin) roles for a company.
-  Future<int> getCustomRoleCount(int companyId) async {
-    final db = await DBHelper.instance.database;
-    final result = await db.rawQuery(
-      'SELECT COUNT(*) as cnt FROM roles WHERE company_id = ? AND is_builtin = 0',
-      [companyId],
-    );
-    return (result.first['cnt'] as int?) ?? 0;
-  }
-
-  /// Creates a new custom role. Returns its ID. Enforces the 1-custom-role
-  /// limit per company (as per approved design).
   Future<int> createCustomRole({
     required int companyId,
     required String name,
     required List<String> permissions,
   }) async {
-    final existing = await getCustomRoleCount(companyId);
-    if (existing >= 1) {
-      throw StateError(
-        'Sirf 1 custom role bana sakte hain per company. '
-        'Pehle purani custom role delete karein.',
-      );
-    }
     final db = await DBHelper.instance.database;
-    return db.insert('roles', {
+    final roleId = await db.insert('roles', {
       'company_id': companyId,
       'name': name,
       'is_builtin': 0,
       'permissions': jsonEncode(permissions),
       'created_at': DateTime.now().toIso8601String(),
     });
+
+    for (final pKey in permissions) {
+      await setPermission(companyId: companyId, roleName: name, permissionKey: pKey, allowed: true);
+    }
+
+    return roleId;
   }
 
-  /// Updates a role's permissions (works for both builtin and custom).
   Future<void> updateRolePermissions(int roleId, List<String> permissions) async {
     final db = await DBHelper.instance.database;
+    final role = await getRoleById(roleId);
+
     await db.update(
       'roles',
       {'permissions': jsonEncode(permissions)},
       where: 'id = ?',
       whereArgs: [roleId],
     );
-  }
 
-  /// Renames a custom role (builtin roles can't be renamed).
-  Future<void> renameRole(int roleId, String newName) async {
-    final db = await DBHelper.instance.database;
-    final role = await getRoleById(roleId);
-    if (role != null && (role['is_builtin'] as int) == 1) {
-      throw StateError('Built-in roles rename nahi ho sakte.');
+    if (role != null) {
+      final cId = role['company_id'] as int;
+      final rName = role['name'] as String;
+      for (final pKey in permissions) {
+        await setPermission(companyId: cId, roleName: rName, permissionKey: pKey, allowed: true);
+      }
     }
-    await db.update(
-      'roles',
-      {'name': newName},
-      where: 'id = ?',
-      whereArgs: [roleId],
-    );
   }
 
-  /// Deletes a custom role. Built-in roles cannot be deleted.
   Future<void> deleteCustomRole(int roleId) async {
     final db = await DBHelper.instance.database;
     final role = await getRoleById(roleId);
@@ -190,18 +253,6 @@ class RbacService {
       throw StateError('Built-in roles delete nahi ho sakte.');
     }
     await db.delete('roles', where: 'id = ?', whereArgs: [roleId]);
-  }
-
-  /// Looks up the role_id to use for the "owner" login (which bypasses
-  /// the staff_users table). Returns the Owner role row for the given company.
-  Future<Map<String, dynamic>?> getOwnerRole(int companyId) async {
-    final db = await DBHelper.instance.database;
-    final rows = await db.query(
-      'roles',
-      where: 'company_id = ? AND name = ? AND is_builtin = 1',
-      whereArgs: [companyId, 'Owner'],
-      limit: 1,
-    );
-    return rows.isEmpty ? null : rows.first;
+    clearCache();
   }
 }

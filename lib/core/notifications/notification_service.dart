@@ -22,8 +22,8 @@ class NotificationService {
 
   static Future<void> _show(int id, String title, String body) async {
     const androidDetails = AndroidNotificationDetails(
-      'dukanedge_alerts',
-      'DukanEdge Alerts',
+      'bizmanager_alerts',
+      'BizManager Alerts',
       channelDescription: 'Low stock and due payment reminders',
       importance: Importance.defaultImportance,
       priority: Priority.defaultPriority,

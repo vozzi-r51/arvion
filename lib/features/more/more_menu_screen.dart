@@ -24,6 +24,7 @@ import '../finance/fiscal_year_closing_screen.dart';
 import '../settings/cost_centers_screen.dart';
 import '../settings/currency_rates_screen.dart';
 import '../settings/ecommerce_channels_screen.dart';
+import '../import_export/universal_import_screen.dart';
 import '../help/help_center_screen.dart';
 import '../changelog/whats_new_screen.dart';
 import '../../core/widgets/feedback_dialog.dart';
@@ -288,6 +289,16 @@ class _MoreMenuScreenState extends State<MoreMenuScreen> {
           ),
           _buildMenuCard(
             context,
+            icon: Icons.file_download_outlined,
+            color: Colors.teal.shade700,
+            title: 'Universal Data Import (Zero Switching Cost)',
+            subtitle: 'Import Products, Customers & Vendors from QuickBooks, Tally, Vyapar or Excel',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => UniversalImportScreen(companyId: widget.companyId)),
+            ),
+          ),
+          _buildMenuCard(
+            context,
             icon: Icons.help_outline,
             color: Colors.indigo,
             title: 'Help & Resource Center',
@@ -351,9 +362,9 @@ class _MoreMenuScreenState extends State<MoreMenuScreen> {
             context,
             icon: Icons.table_view_outlined,
             color: Colors.teal,
-            title: 'Full Data Export (CSV)',
-            subtitle: 'Products, Customers aur Sales history Excel mein le jayein',
-            onTap: () => FullDataExportService.exportAllToCsv(widget.companyId),
+            title: 'Full Data Export (CSV/Excel)',
+            subtitle: 'Products, Customers, Sales aur 20+ tables export karein',
+            onTap: () => FullDataExportService.exportFullBusinessData(widget.companyId),
           ),
           if (_upcoming.isNotEmpty) ...[
             Padding(

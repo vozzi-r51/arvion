@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// Defines the logic family a business category belongs to.
 /// This determines which features and data models are enabled for the business.
 enum TemplateFamily {
-  /// Standard retail logic (already implemented in Arvion)
+  /// Standard retail logic (already implemented in BizManager)
   retailStandard,
   /// Retail with variants like Size/Color (Phase 20)
   retailVariant,

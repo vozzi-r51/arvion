@@ -5,7 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'core/auth/auth_service.dart';
 import 'core/services/error_reporter.dart';
-import 'core/widgets/arvion_logo.dart';
+import 'core/widgets/bizmanager_logo.dart';
 import 'core/providers/branding_provider.dart';
 import 'features/auth/pin_setup_screen.dart';
 import 'features/auth/pin_login_screen.dart';
@@ -14,14 +14,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 // Moved declarations here to ensure no directives follow
 final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 
-class DukanEdgeApp extends StatefulWidget {
-  const DukanEdgeApp({super.key});
+class BizManagerApp extends StatefulWidget {
+  const BizManagerApp({super.key});
 
   @override
-  State<DukanEdgeApp> createState() => _DukanEdgeAppState();
+  State<BizManagerApp> createState() => _BizManagerAppState();
 }
 
-class _DukanEdgeAppState extends State<DukanEdgeApp>
+class _BizManagerAppState extends State<BizManagerApp>
     with WidgetsBindingObserver {
   DateTime? _pausedAt;
 
@@ -98,7 +98,7 @@ class _DukanEdgeAppState extends State<DukanEdgeApp>
 
     return MaterialApp(
       navigatorKey: appNavigatorKey,
-      title: 'DukanEdge',
+      title: 'BizManager',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightThemeWithPrimary(themeProvider.primaryColor),
       darkTheme: AppTheme.darkThemeWithPrimary(themeProvider.primaryColor),
@@ -118,14 +118,14 @@ class _DukanEdgeAppState extends State<DukanEdgeApp>
   }
 }
 
-class _ARVIONSplashScreen extends StatefulWidget {
-  const _ARVIONSplashScreen();
+class _BizManagerSplashScreen extends StatefulWidget {
+  const _BizManagerSplashScreen();
 
   @override
-  State<_ARVIONSplashScreen> createState() => _ARVIONSplashScreenState();
+  State<_BizManagerSplashScreen> createState() => _BizManagerSplashScreenState();
 }
 
-class _ARVIONSplashScreenState extends State<_ARVIONSplashScreen>
+class _BizManagerSplashScreenState extends State<_BizManagerSplashScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _falconScale;
@@ -189,18 +189,18 @@ class _ARVIONSplashScreenState extends State<_ARVIONSplashScreen>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // New Arvion Brand Icon
+                    // New BizManager Brand Icon
                     Opacity(
                       opacity: _textReveal.value,
                       child: Transform.scale(
                         scale: _falconScale.value,
                         child: branding.logoPath != null 
                           ? Image.file(File(branding.logoPath!), width: 120, height: 120)
-                          : const ArvionLogo(size: 120),
+                          : const BizManagerLogo(size: 120),
                       ),
                     ),
                     const SizedBox(height: 40),
-                    // "ARVION" Text
+                    // "BizManager" Text
                     Opacity(
                       opacity: _textReveal.value,
                       child: Transform.scale(
@@ -225,7 +225,7 @@ class _ARVIONSplashScreenState extends State<_ARVIONSplashScreen>
                             ),
                             const SizedBox(height: 16),
                             const Text(
-                              'POWERED BY ARVION',
+                              'POWERED BY BIZMANAGER',
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w500,
@@ -322,6 +322,6 @@ class _SplashDeciderState extends State<_SplashDecider> {
 
   @override
   Widget build(BuildContext context) {
-    return const _ARVIONSplashScreen();
+    return const _BizManagerSplashScreen();
   }
 }

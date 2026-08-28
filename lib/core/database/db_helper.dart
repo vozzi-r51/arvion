@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:path/path.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -40,14 +41,48 @@ class DBHelper {
 
   Future<Database> _initDb() async {
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'dukanedge.db');
+    final path = join(dbPath, 'bizmanager.db');
+
+    // Defensive in-place migration for sideloaded installs: if the
+    // new package's databases dir contains a legacy `dukanedge.db`
+    // (because the new package was installed on top of the old one
+    // and the data dir was preserved), rename it to `bizmanager.db`
+    // before we attempt to open. This is the ONLY place in lib/ that
+    // references the legacy filename, and only as a transient
+    // data-preservation check. The cross-package scan in
+    // `BizManagerDbMigration.ensureMigrated` handles the more common
+    // fresh-install case where the two packages live in different
+    // Android data dirs.
+    try {
+      final legacyFile = File(join(dbPath, 'dukanedge.db'));
+      final newFile = File(path);
+      if (await legacyFile.exists() && !await newFile.exists()) {
+        try {
+          await legacyFile.rename(path);
+        } catch (_) {
+          // Rename can fail across mount points or with held file
+          // handles on some devices. Fall back to a copy + delete.
+          try {
+            await legacyFile.copy(path);
+            await legacyFile.delete();
+          } catch (_) {
+            // Last resort: let openDatabase attempt to open the
+            // legacy file path directly.
+          }
+        }
+      }
+    } catch (_) {
+      // Migration is best-effort. Any failure here is logged by the
+      // outer code in main().
+    }
+
     final dbPassword = await SecureAppStorage.getDatabaseEncryptionKey();
 
     try {
       return await openDatabase(
         path,
         password: dbPassword,
-        version: 40,
+        version: 49,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade,
         onConfigure: (db) async {
@@ -499,6 +534,79 @@ class DBHelper {
         )
       ''');
     }
+    if (oldVersion < 41) {
+      try {
+        await db.execute('ALTER TABLE companies ADD COLUMN currency_code TEXT DEFAULT "PKR"');
+        await db.execute('ALTER TABLE companies ADD COLUMN currency_symbol TEXT DEFAULT "Rs."');
+        await db.execute('ALTER TABLE companies ADD COLUMN decimal_places INTEGER DEFAULT 2');
+        await db.execute('ALTER TABLE companies ADD COLUMN thousand_separator TEXT DEFAULT ","');
+        await db.execute('ALTER TABLE companies ADD COLUMN decimal_separator TEXT DEFAULT "."');
+        await db.execute('ALTER TABLE companies ADD COLUMN date_format TEXT DEFAULT "dd/MM/yyyy"');
+      } catch (_) {}
+    }
+    if (oldVersion < 42) {
+      try {
+        await db.execute('ALTER TABLE companies ADD COLUMN ui_mode TEXT DEFAULT "simple"');
+      } catch (_) {}
+    }
+    if (oldVersion < 43) {
+      await _createPromotionUsagesTable(db);
+      await _createLoyaltyLedgerTable(db);
+
+      try {
+        await db.execute('ALTER TABLE promotions ADD COLUMN min_quantity INTEGER DEFAULT 0');
+        await db.execute('ALTER TABLE promotions ADD COLUMN free_quantity INTEGER DEFAULT 0');
+        await db.execute('ALTER TABLE promotions ADD COLUMN max_uses_total INTEGER NULL');
+        await db.execute('ALTER TABLE promotions ADD COLUMN max_uses_per_customer INTEGER NULL');
+        await db.execute('ALTER TABLE promotions ADD COLUMN current_use_count INTEGER DEFAULT 0');
+        await db.execute('ALTER TABLE promotions ADD COLUMN coupon_code TEXT NULL');
+      } catch (_) {}
+
+      try {
+        await db.execute('ALTER TABLE companies ADD COLUMN loyalty_points_per_currency REAL DEFAULT 0.01');
+        await db.execute('ALTER TABLE companies ADD COLUMN loyalty_redemption_rate REAL DEFAULT 1.0');
+      } catch (_) {}
+
+      try {
+        await db.execute('ALTER TABLE customers ADD COLUMN loyalty_points REAL DEFAULT 0');
+      } catch (_) {}
+    }
+    if (oldVersion < 44) {
+      try {
+        await db.execute('ALTER TABLE recurring_templates ADD COLUMN customer_id INTEGER');
+        await db.execute('ALTER TABLE recurring_templates ADD COLUMN line_items TEXT');
+        await db.execute('ALTER TABLE recurring_templates ADD COLUMN tax_percent REAL DEFAULT 0');
+        await db.execute('ALTER TABLE recurring_templates ADD COLUMN discount_amount REAL DEFAULT 0');
+        await db.execute('ALTER TABLE recurring_templates ADD COLUMN last_generated_at TEXT');
+      } catch (_) {}
+    }
+    if (oldVersion < 45) {
+      await _createRolePermissionsTable(db);
+    }
+    if (oldVersion < 46) {
+      await _createRestaurantTablesTable(db);
+      try {
+        await db.execute('ALTER TABLE sales ADD COLUMN table_id INTEGER');
+        await db.execute('ALTER TABLE service_jobs ADD COLUMN technician_employee_id INTEGER');
+      } catch (_) {}
+    }
+    if (oldVersion < 47) {
+      await _createWorkCentersTable(db);
+      await _createBomRoutingStepsTable(db);
+      await _createProductionRoutingProgressTable(db);
+      try {
+        await db.execute('ALTER TABLE production_orders ADD COLUMN expected_wastage_percent REAL DEFAULT 0');
+        await db.execute('ALTER TABLE production_orders ADD COLUMN actual_wastage_quantity REAL DEFAULT 0');
+        await db.execute('ALTER TABLE production_orders ADD COLUMN actual_output_quantity REAL DEFAULT 0');
+        await db.execute('ALTER TABLE production_orders ADD COLUMN parent_production_order_id INTEGER');
+      } catch (_) {}
+    }
+    if (oldVersion < 48) {
+      await _createCompositeIndexes(db);
+    }
+    if (oldVersion < 49) {
+      await _createPhase19IndustryTables(db);
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -528,6 +636,7 @@ class DBHelper {
         business_type TEXT,
         business_category TEXT,
         business_subtype TEXT,
+        ui_mode TEXT DEFAULT 'simple',
         template_family TEXT,
         terminology_profile TEXT,
         enabled_modules TEXT,
@@ -1686,9 +1795,48 @@ class DBHelper {
         start_date TEXT NOT NULL,
         end_date TEXT NOT NULL,
         active INTEGER NOT NULL DEFAULT 1,
+        min_quantity INTEGER DEFAULT 0,
+        free_quantity INTEGER DEFAULT 0,
+        max_uses_total INTEGER NULL,
+        max_uses_per_customer INTEGER NULL,
+        current_use_count INTEGER DEFAULT 0,
+        coupon_code TEXT NULL,
         created_at TEXT NOT NULL,
         FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
         FOREIGN KEY (applicable_category_id) REFERENCES categories (id)
+      )
+    ''');
+  }
+
+  Future<void> _createPromotionUsagesTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS promotion_usages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        promotion_id INTEGER NOT NULL,
+        sale_id INTEGER NOT NULL,
+        customer_id INTEGER,
+        discount_amount REAL NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
+        FOREIGN KEY (promotion_id) REFERENCES promotions (id) ON DELETE CASCADE
+      )
+    ''');
+  }
+
+  Future<void> _createLoyaltyLedgerTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS loyalty_ledger (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        customer_id INTEGER NOT NULL,
+        sale_id INTEGER NOT NULL,
+        points_earned REAL NOT NULL DEFAULT 0,
+        points_redeemed REAL NOT NULL DEFAULT 0,
+        balance_after REAL NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
+        FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE CASCADE
       )
     ''');
   }
@@ -1698,19 +1846,250 @@ class DBHelper {
       CREATE TABLE recurring_templates (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         company_id INTEGER NOT NULL,
-        type TEXT NOT NULL, -- 'expense', 'income'
+        type TEXT NOT NULL, -- 'expense', 'income', 'sale'
         category TEXT NOT NULL,
         amount REAL NOT NULL DEFAULT 0,
-        frequency TEXT NOT NULL, -- 'monthly', 'weekly'
+        frequency TEXT NOT NULL, -- 'monthly', 'weekly', 'daily', 'yearly'
         next_due_date TEXT NOT NULL,
         active INTEGER NOT NULL DEFAULT 1,
+        customer_id INTEGER,
+        line_items TEXT,
+        tax_percent REAL DEFAULT 0,
+        discount_amount REAL DEFAULT 0,
+        last_generated_at TEXT,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
+        FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE SET NULL
+      )
+    ''');
+  }
+
+  Future<void> _createRolePermissionsTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS role_permissions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        role_name TEXT NOT NULL,
+        permission_key TEXT NOT NULL,
+        allowed INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
+        UNIQUE(company_id, role_name, permission_key)
+      )
+    ''');
+  }
+
+  Future<void> _createRestaurantTablesTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS restaurant_tables (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        table_name TEXT NOT NULL,
+        table_number TEXT,
+        capacity INTEGER NOT NULL DEFAULT 4,
+        status TEXT NOT NULL DEFAULT 'available',
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
+      )
+    ''');
+  }
+
+  Future<void> _createCompositeIndexes(Database db) async {
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_products_company_status ON products(company_id, status)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_sales_company_date ON sales(company_id, sale_date)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_purchases_company_date ON purchases(company_id, purchase_date)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_expenses_company_date ON expenses(company_id, expense_date)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_customers_company_name ON customers(company_id, name)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_suppliers_company_name ON suppliers(company_id, company_name)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_bank_transactions_comp_acc ON bank_transactions(company_id, bank_account_id, is_reconciled)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_audit_log_comp_time ON audit_log(company_id, timestamp)');
+  }
+
+  Future<void> _createPhase19IndustryTables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS vehicles (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        customer_id INTEGER,
+        registration_number TEXT NOT NULL,
+        make TEXT,
+        model TEXT,
+        year INTEGER,
+        color TEXT,
+        vin TEXT,
+        engine_number TEXT,
+        current_odometer INTEGER DEFAULT 0,
+        notes TEXT,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
+        FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE SET NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS bookable_resources (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL DEFAULT 'room',
+        capacity INTEGER DEFAULT 1,
+        unit_price REAL NOT NULL DEFAULT 0,
+        status TEXT NOT NULL DEFAULT 'available',
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS bookings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        customer_id INTEGER,
+        resource_id INTEGER NOT NULL,
+        booking_number TEXT NOT NULL,
+        start_date TEXT NOT NULL,
+        end_date TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'confirmed',
+        total_amount REAL NOT NULL DEFAULT 0,
+        notes TEXT,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
+        FOREIGN KEY (customer_id) REFERENCES customers (id),
+        FOREIGN KEY (resource_id) REFERENCES bookable_resources (id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS projects (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        customer_id INTEGER,
+        project_name TEXT NOT NULL,
+        project_number TEXT NOT NULL,
+        start_date TEXT,
+        expected_end_date TEXT,
+        status TEXT NOT NULL DEFAULT 'in_progress',
+        completion_percent REAL DEFAULT 0,
+        budget_amount REAL DEFAULT 0,
+        notes TEXT,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
+        FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE SET NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS properties (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        property_type TEXT DEFAULT 'apartment',
+        unit_identifier TEXT,
+        tenant_customer_id INTEGER,
+        recurring_amount REAL DEFAULT 0,
+        billing_frequency TEXT DEFAULT 'monthly',
+        status TEXT DEFAULT 'occupied',
+        notes TEXT,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
+        FOREIGN KEY (tenant_customer_id) REFERENCES customers (id) ON DELETE SET NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS students (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        customer_id INTEGER,
+        student_number TEXT NOT NULL,
+        name TEXT NOT NULL,
+        guardian_name TEXT,
+        program_class TEXT,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
+        FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE SET NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS farm_cycles (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        farm_name TEXT NOT NULL,
+        crop TEXT NOT NULL,
+        season TEXT,
+        start_date TEXT,
+        expected_yield REAL DEFAULT 0,
+        actual_yield REAL DEFAULT 0,
+        status TEXT DEFAULT 'active',
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS donations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        donor_id INTEGER,
+        donor_name TEXT NOT NULL,
+        amount REAL NOT NULL,
+        date TEXT NOT NULL,
+        purpose TEXT,
+        payment_method TEXT DEFAULT 'cash',
         created_at TEXT NOT NULL,
         FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
       )
     ''');
   }
 
-  // ---------------- Company helpers ----------------
+  Future<void> _createWorkCentersTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS work_centers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        code TEXT,
+        name TEXT NOT NULL,
+        capacity_per_day REAL NOT NULL DEFAULT 100,
+        cost_per_hour REAL NOT NULL DEFAULT 0,
+        is_active INTEGER NOT NULL DEFAULT 1,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
+      )
+    ''');
+  }
+
+  Future<void> _createBomRoutingStepsTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS bom_routing_steps (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        bom_id INTEGER NOT NULL,
+        work_center_id INTEGER NOT NULL,
+        step_order INTEGER NOT NULL DEFAULT 1,
+        step_name TEXT NOT NULL,
+        estimated_time_minutes INTEGER NOT NULL DEFAULT 30,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (bom_id) REFERENCES bill_of_materials (id) ON DELETE CASCADE,
+        FOREIGN KEY (work_center_id) REFERENCES work_centers (id) ON DELETE CASCADE
+      )
+    ''');
+  }
+
+  Future<void> _createProductionRoutingProgressTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS production_routing_progress (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        production_order_id INTEGER NOT NULL,
+        routing_step_id INTEGER NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending',
+        completed_at TEXT,
+        completed_by TEXT,
+        FOREIGN KEY (production_order_id) REFERENCES production_orders (id) ON DELETE CASCADE,
+        FOREIGN KEY (routing_step_id) REFERENCES bom_routing_steps (id) ON DELETE CASCADE
+      )
+    ''');
+  }
 
   Future<int> insertCompany(Map<String, dynamic> data) async {
     final db = await database;

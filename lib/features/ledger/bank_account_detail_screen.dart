@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
+import 'bank_statement_import_screen.dart';
 
 class BankAccountDetailScreen extends StatefulWidget {
   final Map<String, dynamic> account;
@@ -157,7 +158,23 @@ class _BankAccountDetailScreenState extends State<BankAccountDetailScreen> {
       appBar: AppBar(
         title: Text(widget.account['bank_name'] as String),
         actions: [
-          if (!_reconcileMode)
+          if (!_reconcileMode) ...[
+            IconButton(
+              icon: const Icon(Icons.file_upload_outlined, color: Colors.white),
+              tooltip: 'Import Bank Statement',
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BankStatementImportScreen(
+                      companyId: widget.companyId,
+                      initialBankAccountId: widget.account['id'] as int,
+                    ),
+                  ),
+                );
+                if (result == true) _load();
+              },
+            ),
             TextButton.icon(
               onPressed: () => setState(() {
                 _reconcileMode = true;
@@ -165,8 +182,8 @@ class _BankAccountDetailScreenState extends State<BankAccountDetailScreen> {
               }),
               icon: const Icon(Icons.checklist, color: Colors.white),
               label: const Text('Reconcile', style: TextStyle(color: Colors.white)),
-            )
-          else
+            ),
+          ] else
             IconButton(
               onPressed: () => setState(() => _reconcileMode = false),
               icon: const Icon(Icons.close),

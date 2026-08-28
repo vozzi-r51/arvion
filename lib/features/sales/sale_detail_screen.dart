@@ -150,7 +150,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
         .toList();
 
     final printed = await BluetoothPrinterService.printReceipt(
-      shopName: 'DukanEdge',
+      shopName: 'BizManager',
       invoiceNumber: sale['invoice_number'] as String,
       dateText: (sale['sale_date'] as String).substring(0, 16).replaceFirst('T', ' '),
       customerName: sale['customer_name'] as String? ?? 'Walk-in Customer',

@@ -7,11 +7,11 @@ class WhatsNewScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("What's New in ARVION v2.5")),
+      appBar: AppBar(title: const Text("What's New in BizManager v2.5")),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.l),
         children: [
-          _buildReleaseHeader('ARVION ERP v2.5 Enterprise Edition', '2026 Release'),
+          _buildReleaseHeader('BizManager ERP v2.5 Enterprise Edition', '2026 Release'),
           const SizedBox(height: 16),
           _buildFeatureCard(
             context,

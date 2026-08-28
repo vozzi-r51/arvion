@@ -84,7 +84,7 @@ class InvoicePdfService {
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Text(
-                        company['name'] as String? ?? 'ARVION',
+                        company['name'] as String? ?? 'BizManager',
                         style: pw.TextStyle(
                           fontSize: 20,
                           fontWeight: pw.FontWeight.bold,
@@ -232,7 +232,7 @@ class InvoicePdfService {
                 pw.SizedBox(width: 6),
               ],
               pw.Text(
-                company['name'] as String? ?? 'ARVION',
+                company['name'] as String? ?? 'BizManager',
                 style: pw.TextStyle(
                   fontSize: 13,
                   fontWeight: pw.FontWeight.bold,

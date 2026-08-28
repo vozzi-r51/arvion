@@ -19,7 +19,7 @@ import '../ai/ai_screen.dart';
 import '../quotations/quotation_list_screen.dart';
 import '../manufacturing/manufacturing_home_screen.dart';
 import '../services/service_jobs_screen.dart';
-import '../../core/widgets/arvion_logo.dart';
+import '../../core/widgets/bizmanager_logo.dart';
 import '../../core/backup/backup_service.dart';
 import '../../core/auth/session.dart';
 import '../../core/notifications/notification_service.dart';
@@ -348,7 +348,7 @@ class _MainShellState extends State<MainShell> {
           if (branding.logoPath != null)
              Image.file(File(branding.logoPath!), width: 32, height: 32)
           else
-            const ArvionLogo(size: 32),
+            const BizManagerLogo(size: 32),
           const SizedBox(width: 12),
           Expanded(
             child: Text(

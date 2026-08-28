@@ -21,7 +21,7 @@ import '../purchase_order/new_purchase_order_screen.dart';
 import '../../core/auth/session.dart';
 import '../search/global_search_screen.dart';
 import '../shell/main_shell.dart';
-import '../../core/widgets/arvion_logo.dart';
+import '../../core/widgets/bizmanager_logo.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/app_skeleton.dart';
 import '../../core/providers/terminology_provider.dart';
@@ -367,10 +367,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         leading: MainShell.getMenuButton(context),
         title: Row(
           children: const [
-            ArvionLogo(size: 28),
+            BizManagerLogo(size: 28),
             SizedBox(width: 10),
             Text(
-              'ARVION',
+              'BizManager',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w900,

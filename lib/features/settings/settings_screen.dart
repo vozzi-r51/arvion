@@ -12,7 +12,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../core/auth/auth_service.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/theme/arvion_brand.dart';
+import '../../core/theme/bizmanager_brand.dart';
+import '../../core/widgets/bizmanager_logo.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/backup/backup_service.dart';
 import '../../core/providers/localization_provider.dart';
@@ -32,8 +33,6 @@ import 'regional_settings_screen.dart';
 import '../auth/pin_login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../shell/main_shell.dart';
-import '../../core/utils/image_generator.dart';
-import '../../core/widgets/arvion_logo.dart';
 import '../../core/backup/google_drive_service.dart';
 import '../../core/export/full_data_export_service.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -177,7 +176,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         if (!mounted) return;
         await Share.shareXFiles(
           [XFile(zipPath)],
-          text: 'DukanEdge Backup',
+          text: 'BizManager Backup',
         );
       }
     } catch (e) {
@@ -403,25 +402,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
     } finally {
       if (mounted) setState(() => _driveActionInProgress = false);
-    }
-  }
-
-  Future<void> _generateLauncherIcon() async {
-    final path = await ImageGenerator.generateFromWidget(
-      widget: const ArvionLogo(size: 512, showBackground: false), // Transparent for adaptive
-      context: context,
-      fileName: 'new_app_icon',
-    );
-    
-    if (mounted && path != null) {
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Icon Generated'),
-          content: SelectableText('Icon saved to:\n$path\n\nPlease move this file to assets/icon/app_icon.png and run launcher icons command.'),
-          actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
-        ),
-      );
     }
   }
 
@@ -708,14 +688,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     padding: const EdgeInsets.all(16),
                     child: Row(
                       children: [
-                        const Icon(Icons.settings_outlined, size: 54, color: Colors.grey),
+                        const BizManagerLogo(size: 48),
                         const SizedBox(width: 14),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                'ARVION',
+                                'BizManager',
                                 style: TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.w800,
@@ -732,7 +712,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                               const SizedBox(height: 6),
                               Text(
-                                'Version $_currentVersion',
+                                'v1.0.0',
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey,
@@ -750,7 +730,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                               const SizedBox(height: 8),
                               const Text(
-                                'Developed by ARVION Technologies',
+                                'Developed by BizManager Technologies',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey,
@@ -1268,7 +1248,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onTap: () async {
                     final active = await DBHelper.instance.getActiveCompany();
                     if (active == null) return;
-                    await FullDataExportService.exportAllToCsv(active['id'] as int);
+                    await FullDataExportService.exportFullBusinessData(active['id'] as int);
                   },
                 ),
                 const Divider(),
@@ -1325,13 +1305,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     subtitle: const Text(
                         'App ko lock karke PIN screen par wapas jayein'),
                     onTap: _signOut,
-                  ),
-                  const Divider(),
-                  ListTile(
-                    leading: const Icon(Icons.architecture, color: Colors.blue),
-                    title: const Text('Developer: Generate App Icon'),
-                    subtitle: const Text('Render Arvion logo to PNG for launcher'),
-                    onTap: _generateLauncherIcon,
                   ),
                 ],
               ],

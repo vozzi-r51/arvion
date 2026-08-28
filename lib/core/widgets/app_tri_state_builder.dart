@@ -3,7 +3,7 @@ import 'app_empty_state.dart';
 import 'app_skeleton.dart';
 
 /// Unified 3-State Trilogy Widget (Loading, Error/Empty, Content).
-/// Enforces consistent UI across all screens in ARVION.
+/// Enforces consistent UI across all screens in BizManager.
 class AppTriStateBuilder<T> extends StatelessWidget {
   final bool isLoading;
   final String? errorMessage;

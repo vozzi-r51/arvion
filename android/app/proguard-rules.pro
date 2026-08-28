@@ -39,5 +39,5 @@
 # Support for Kotlin reflection/coroutines if used by plugins
 -keep class kotlin.reflect.jvm.internal.** { *; }
 
-# ARVION App Native Classes
--keep class com.arvion.dukanedge.** { *; }
+# BizManager App Native Classes
+-keep class com.bizmanager.app.** { *; }

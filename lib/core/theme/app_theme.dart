@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'design_tokens.dart';
 
 /// Central place for all colors, typography and theme data used across
-/// DukanEdge. Keeping this in one file makes it easy to re-skin the app
+/// BizManager. Keeping this in one file makes it easy to re-skin the app
 /// later without touching individual screens.
 class AppTheme {
   AppTheme._();
 
-  // ARVION brand palette
+  // BizManager brand palette
   static const Color primaryNavy = Color(0xFF0F172A);
   static const Color primaryBlue = Color(0xFF2563EB);
   static const Color primaryBlueSoft = Color(0xFF3B82F6);

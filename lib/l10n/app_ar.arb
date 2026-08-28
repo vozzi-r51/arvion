@@ -1,5 +1,5 @@
 {
-  "appTitle": "DukanEdge",
+  "appTitle": "BizManager",
   "appSubtitle": "نظام المبيعات والشراء",
 
   "common_ok": "موافق",
@@ -18,7 +18,7 @@
   "common_settings": "الإعدادات",
   "common_logout": "تسجيل الخروج",
 
-  "auth_welcome": "أهلا وسهلا بك في DukanEdge",
+  "auth_welcome": "أهلا وسهلا بك في BizManager",
   "auth_enterPin": "أدخل رمزك",
   "auth_confirmPin": "أعد إدخال رمزك",
   "auth_pinMismatch": "الرموز غير متطابقة",

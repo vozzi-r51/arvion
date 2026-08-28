@@ -10,11 +10,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-import 'package:dukanedge/app.dart';
-import 'package:dukanedge/core/theme/app_theme.dart';
+import 'package:bizmanager/app.dart';
+import 'package:bizmanager/core/theme/app_theme.dart';
 
-import 'package:dukanedge/core/providers/branding_provider.dart';
-import 'package:dukanedge/core/providers/terminology_provider.dart';
+import 'package:bizmanager/core/providers/branding_provider.dart';
+import 'package:bizmanager/core/providers/terminology_provider.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

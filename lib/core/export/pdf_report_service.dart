@@ -40,7 +40,7 @@ class PdfReportService {
             pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Text(company['name'] ?? 'ARVION',
+                pw.Text(company['name'] ?? 'BizManager',
                     style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold)),
                 if (company['address'] != null)
                   pw.Text(company['address'], style: const pw.TextStyle(fontSize: 9)),

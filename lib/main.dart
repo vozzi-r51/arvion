@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'app.dart';
 import 'core/di/service_locator.dart';
+import 'core/database/bizmanager_db_migration.dart';
 import 'core/services/error_reporter.dart';
 import 'core/theme/app_theme.dart';
 import 'core/providers/terminology_provider.dart';
@@ -17,6 +18,16 @@ Future<void> main() async {
   // open) must still be captured rather than vanish. The reporter's own
   // init is fire-and-forget and never throws.
   ErrorReporter.instance.init();
+
+  // One-shot DB file migration: if the user is upgrading from the
+  // previous package (`com.arvion.dukanedge`) the encrypted DB lives
+  // in a different Android data dir. We scan well-known legacy paths
+  // and copy the file (plus its `-journal` / `-wal` / `-shm` sidecars)
+  // into the new package's databases dir as `bizmanager.db`. This
+  // MUST run before `setupServiceLocator()` so DBHelper opens the
+  // already-migrated file. Idempotent and best-effort: any failure
+  // is reported and swallowed so we never block startup.
+  await BizManagerDbMigration.ensureMigrated();
 
   // Wire up the service locator (DB, event bus, repositories, listeners)
   // BEFORE anything else so the rest of the app can grab dependencies
@@ -65,7 +76,7 @@ void _runApp() {
         ChangeNotifierProvider(create: (_) => TerminologyProvider()),
         ChangeNotifierProvider(create: (_) => BrandingProvider()),
       ],
-      child: const DukanEdgeApp(),
+      child: const BizManagerApp(),
     ),
   );
 }

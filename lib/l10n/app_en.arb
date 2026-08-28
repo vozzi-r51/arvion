@@ -1,5 +1,5 @@
 {
-  "appTitle": "DukanEdge",
+  "appTitle": "BizManager",
   "appSubtitle": "Retail & Wholesale ERP",
 
   "common_ok": "OK",
@@ -18,7 +18,7 @@
   "common_settings": "Settings",
   "common_logout": "Logout",
 
-  "auth_welcome": "Welcome to DukanEdge",
+  "auth_welcome": "Welcome to BizManager",
   "auth_enterPin": "Enter your PIN",
   "auth_confirmPin": "Confirm your PIN",
   "auth_pinMismatch": "PINs do not match",

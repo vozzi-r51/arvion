@@ -28,7 +28,7 @@ class BackupService {
         .toIso8601String()
         .replaceAll(':', '-')
         .replaceAll('.', '-');
-    final zipPath = p.join(tempDir.path, 'ARVION_Backup_$timestamp.zip');
+    final zipPath = p.join(tempDir.path, 'BizManager_Backup_$timestamp.zip');
 
     final encoder = ZipFileEncoder();
     encoder.create(zipPath);
@@ -65,7 +65,7 @@ class BackupService {
 
       if (downloadsDir == null) return null;
 
-      final targetDir = Directory(p.join(downloadsDir.path, 'ARVION_Backups'));
+      final targetDir = Directory(p.join(downloadsDir.path, 'BizManager_Backups'));
       if (!await targetDir.exists()) await targetDir.create(recursive: true);
 
       final fileName = p.basename(zipPath);
@@ -103,7 +103,7 @@ class BackupService {
     final docsDir = await getApplicationDocumentsDirectory();
     final dbEntry = archive.where((entry) => entry.name == _dbFileName).firstOrNull;
     if (dbEntry == null || !dbEntry.isFile) {
-      throw const FormatException('Backup mein ARVION database nahi mila.');
+      throw const FormatException('Backup mein BizManager database nahi mila.');
     }
 
     final tempDir = await getTemporaryDirectory();
@@ -160,7 +160,7 @@ class BackupService {
         WHERE type = 'table' AND name IN ('companies', 'journal_entries', 'journal_entry_lines')
       ''');
       if (tables.length != 3) {
-        throw const FormatException('Backup ARVION database nahi hai.');
+        throw const FormatException('Backup BizManager database nahi hai.');
       }
     } finally {
       await database.close();

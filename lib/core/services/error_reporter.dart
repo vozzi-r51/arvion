@@ -22,7 +22,7 @@ class ErrorReporter {
   static final ErrorReporter instance = ErrorReporter._();
 
   static const int _maxEntries = 200;
-  static const String _fileName = 'arvion_error_log.txt';
+  static const String _fileName = 'bizmanager_error_log.txt';
 
   final List<ErrorRecord> _memory = [];
   Completer<void>? _initDone;

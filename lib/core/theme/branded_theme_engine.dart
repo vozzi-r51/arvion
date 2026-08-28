@@ -21,9 +21,9 @@ class BrandConfig {
     this.borderRadius = 12.0,
   });
 
-  /// Default ARVION Brand Preset.
-  static const arvionDefault = BrandConfig(
-    appName: 'ARVION ERP',
+  /// Default BizManager Brand Preset.
+  static const bizManagerDefault = BrandConfig(
+    appName: 'BizManager ERP',
     logoAsset: 'assets/logo.png',
     primaryColor: Color(0xFF1E3A8A), // Deep Royal Navy
     secondaryColor: Color(0xFF0D9488), // Teal Accent
@@ -31,8 +31,8 @@ class BrandConfig {
   );
 
   /// Enterprise Dark Emerald Preset.
-  static const enterpriseEmerald = BrandConfig(
-    appName: 'DukanEdge Enterprise',
+  static const bizManagerEnterprise = BrandConfig(
+    appName: 'BizManager Enterprise',
     logoAsset: 'assets/logo_enterprise.png',
     primaryColor: Color(0xFF065F46), // Emerald
     secondaryColor: Color(0xFFD97706), // Amber
@@ -43,7 +43,7 @@ class BrandConfig {
 class BrandedThemeEngine {
   final BrandConfig config;
 
-  BrandedThemeEngine({this.config = BrandConfig.arvionDefault});
+  BrandedThemeEngine({this.config = BrandConfig.bizManagerDefault});
 
   /// Generates full Light ThemeData from BrandConfig.
   ThemeData buildLightTheme() {

@@ -1,0 +1,8 @@
+# Release Keystore Configuration Example
+# Copy this file to key.properties in the android/ directory and fill in your values.
+# NEVER commit key.properties or the .jks file to Git repository!
+
+storePassword=your_keystore_password
+keyPassword=your_key_password
+keyAlias=bizmanager_release_key
+storeFile=../bizmanager_release.jks

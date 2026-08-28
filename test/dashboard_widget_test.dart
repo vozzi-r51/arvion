@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:dukanedge/core/widgets/arvion_logo.dart';
-import 'package:dukanedge/core/widgets/motion_widgets.dart';
+import 'package:bizmanager/core/widgets/bizmanager_logo.dart';
+import 'package:bizmanager/core/widgets/motion_widgets.dart';
 
 void main() {
-  testWidgets('ArvionLogo renders without errors', (WidgetTester tester) async {
+  testWidgets('BizManagerLogo renders without errors', (WidgetTester tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
-          body: ArvionLogo(size: 40),
+          body: BizManagerLogo(size: 40),
         ),
       ),
     );
 
-    expect(find.byType(ArvionLogo), findsOneWidget);
+    expect(find.byType(BizManagerLogo), findsOneWidget);
   });
 
   testWidgets('AnimatedCountText animates numerical text smoothly', (WidgetTester tester) async {

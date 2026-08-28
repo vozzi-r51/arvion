@@ -164,7 +164,7 @@ class AuthService {
   Future<bool> authenticateWithBiometrics() async {
     try {
       return await _localAuth.authenticate(
-        localizedReason: 'ARVION kholne ke liye apni fingerprint dikhayen',
+        localizedReason: 'BizManager kholne ke liye apni fingerprint dikhayen',
         options: const AuthenticationOptions(
           biometricOnly: true,
           stickyAuth: true,

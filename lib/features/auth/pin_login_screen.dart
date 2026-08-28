@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/auth/auth_service.dart';
 import '../../core/auth/rbac_service.dart';
-import '../../core/theme/arvion_brand.dart';
+import '../../core/theme/bizmanager_brand.dart';
+import '../../core/widgets/bizmanager_logo.dart';
 import '../company/company_selection_screen.dart';
 import '../shell/main_shell.dart';
 import '../../core/auth/session.dart';
@@ -280,112 +281,129 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
     final isLocked = _lockoutSeconds > 0;
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 430),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: AppSpacing.xl),
-                  Text('ARVION',
-                      textAlign: TextAlign.center,
-                      style: AppTypography.displaySmall(context).copyWith(
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 2.4,
-                          color: theme.colorScheme.primary)),
-                  const SizedBox(height: AppSpacing.s),
-                  Text('Business, clearly managed.',
-                      textAlign: TextAlign.center,
-                      style: AppTypography.bodyLarge(context).copyWith(color: theme.colorScheme.onSurfaceVariant)),
-                  const SizedBox(height: AppSpacing.xxl),
-                  Card(
-                    elevation: AppElevation.none,
-                    margin: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(borderRadius: AppRadius.large),
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.xl),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text('Sign in',
-                              style: AppTypography.titleLarge(context).copyWith(fontWeight: FontWeight.w800)),
-                          const SizedBox(height: AppSpacing.xs),
-                          Text(
-                            isLocked 
-                              ? 'Security lockout active. Please wait.'
-                              : 'Enter your secure PIN to continue',
-                            style: TextStyle(
-                              color: isLocked ? theme.colorScheme.error : theme.colorScheme.onSurfaceVariant
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.xl),
-                          TextField(
-                            controller: _pinController,
-                            enabled: !isLocked,
-                            keyboardType: TextInputType.number,
-                            obscureText: true,
-                            maxLength: 6,
-                            textAlign: TextAlign.center,
-                            style: AppTypography.headlineMedium(context).copyWith(
-                              letterSpacing: 8,
-                              color: isLocked ? theme.disabledColor : null,
-                            ),
-                            decoration: InputDecoration(
-                              labelText: isLocked ? 'LOCKED' : 'PIN', 
-                              counterText: '',
-                              prefixIcon: isLocked ? Icon(Icons.timer, color: theme.colorScheme.error) : null,
-                            ),
-                            onSubmitted: (_) => _verifyPin(),
-                          ),
-                          if (isLocked)
-                            Padding(
-                              padding: const EdgeInsets.only(top: AppSpacing.m),
-                              child: Text(
-                                'Intezar karein: $_lockoutSeconds seconds',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(color: theme.colorScheme.error, fontWeight: FontWeight.bold),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF0F172A), // Navy
+              Color(0xFF1E3A8A), // Deep Blue
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 430),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: AppSpacing.l),
+                    const Center(child: BizManagerLogo(size: 80, showBackground: false)),
+                    const SizedBox(height: AppSpacing.m),
+                    const Text('BizManager',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 2.0,
+                            color: Colors.white)),
+                    const SizedBox(height: AppSpacing.xs),
+                    const Text('Smart Business. Simple Control.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 14, color: Colors.white70)),
+                    const SizedBox(height: AppSpacing.xxl),
+                    Card(
+                      elevation: AppElevation.medium,
+                      margin: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(borderRadius: AppRadius.large),
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppSpacing.xl),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text('Sign in',
+                                style: AppTypography.titleLarge(context).copyWith(fontWeight: FontWeight.w800)),
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              isLocked 
+                                ? 'Security lockout active. Please wait.'
+                                : 'Enter your secure PIN to continue',
+                              style: TextStyle(
+                                color: isLocked ? theme.colorScheme.error : theme.colorScheme.onSurfaceVariant
                               ),
-                            )
-                          else if (_error != null)
-                            Padding(
-                              padding: const EdgeInsets.only(top: AppSpacing.m),
-                              child: Text(_error!,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(color: theme.colorScheme.error)),
                             ),
-                          const SizedBox(height: AppSpacing.xl),
-                          FilledButton(
-                            onPressed: (_checking || isLocked) ? null : _verifyPin,
-                            child: _checking
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2, color: Colors.white))
-                                : Text(isLocked ? 'Locked' : 'Sign In'),
-                          ),
-                          const SizedBox(height: AppSpacing.s),
-                          TextButton(
-                              onPressed: isLocked ? null : _forgotPin,
-                              child: const Text('Forgot Password')),
-                          if (_biometricAvailable && !isLocked)
-                            TextButton.icon(
-                                onPressed: _tryBiometric,
-                                icon: const Icon(Icons.fingerprint),
-                                label: const Text('Biometric login')),
-                        ],
+                            const SizedBox(height: AppSpacing.xl),
+                            TextField(
+                              controller: _pinController,
+                              enabled: !isLocked,
+                              keyboardType: TextInputType.number,
+                              obscureText: true,
+                              maxLength: 6,
+                              textAlign: TextAlign.center,
+                              style: AppTypography.headlineMedium(context).copyWith(
+                                letterSpacing: 8,
+                                color: isLocked ? theme.disabledColor : null,
+                              ),
+                              decoration: InputDecoration(
+                                labelText: isLocked ? 'LOCKED' : 'PIN', 
+                                counterText: '',
+                                prefixIcon: isLocked ? Icon(Icons.timer, color: theme.colorScheme.error) : null,
+                              ),
+                              onSubmitted: (_) => _verifyPin(),
+                            ),
+                            if (isLocked)
+                              Padding(
+                                padding: const EdgeInsets.only(top: AppSpacing.m),
+                                child: Text(
+                                  'Intezar karein: $_lockoutSeconds seconds',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: theme.colorScheme.error, fontWeight: FontWeight.bold),
+                                ),
+                              )
+                            else if (_error != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: AppSpacing.m),
+                                child: Text(_error!,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(color: theme.colorScheme.error)),
+                              ),
+                            const SizedBox(height: AppSpacing.xl),
+                            SizedBox(
+                              height: 64, // 64x64 minimum touch target height
+                              child: FilledButton(
+                                onPressed: (_checking || isLocked) ? null : _verifyPin,
+                                child: _checking
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2, color: Colors.white))
+                                    : Text(isLocked ? 'Locked' : 'Sign In', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.s),
+                            TextButton(
+                                onPressed: isLocked ? null : _forgotPin,
+                                child: const Text('Forgot Password')),
+                            if (_biometricAvailable && !isLocked)
+                              TextButton.icon(
+                                  onPressed: _tryBiometric,
+                                  icon: const Icon(Icons.fingerprint),
+                                  label: const Text('Biometric login')),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  Text('Developed by ARVION Technologies',
-                      textAlign: TextAlign.center,
-                      style: AppTypography.bodySmall(context).copyWith(color: theme.colorScheme.onSurfaceVariant)),
-                ],
+                    const SizedBox(height: AppSpacing.xl),
+                    const Text('Developed by BizManager Technologies',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 12, color: Colors.white60)),
+                  ],
+                ),
               ),
             ),
           ),

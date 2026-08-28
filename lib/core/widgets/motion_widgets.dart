@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Motion Design System Widgets for ARVION.
+/// Motion Design System Widgets for BizManager.
 /// Adds smooth numerical value animations and subtle pulsing status badges.
 
 /// Animates numerical values smoothly (e.g. Total Sale Rs. 0 -> Rs. 12,500).

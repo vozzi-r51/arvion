@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
-import 'package:dukanedge/app.dart';
-import 'package:dukanedge/features/shell/main_shell.dart';
-import 'package:dukanedge/features/settings/settings_screen.dart';
-import 'package:dukanedge/features/auth/pin_setup_screen.dart';
+import 'package:bizmanager/app.dart';
+import 'package:bizmanager/features/shell/main_shell.dart';
+import 'package:bizmanager/features/settings/settings_screen.dart';
+import 'package:bizmanager/features/auth/pin_setup_screen.dart';
 
 /// Phase 4 contracts: navigation & state management.
 void main() {
@@ -12,7 +12,7 @@ void main() {
     // The whole DB-touching decision path is wrapped in a try/catch and
     // bounded by a 6-second budget (4s branding + 2s pin check). On
     // failure the user is routed to PinSetupScreen, never trapped.
-    expect(DukanEdgeApp, isNotNull);
+    expect(BizManagerApp, isNotNull);
   });
 
   test('Auto-lock fails closed on resume', () {
@@ -20,7 +20,7 @@ void main() {
     // Any exception (SharedPreferences, secure storage, isPinSet) is
     // reported to ErrorReporter AND routes the user to PinLoginScreen
     // — never leaves the app unlocked because the lock check failed.
-    expect(DukanEdgeApp, isNotNull);
+    expect(BizManagerApp, isNotNull);
   });
 
   test('MainShell guards _loadCompany setState with mounted', () {

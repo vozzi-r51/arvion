@@ -2,8 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path/path.dart';
-import 'package:dukanedge/core/database/db_helper.dart';
-import 'package:dukanedge/core/services/ux_mode_service.dart';
+import 'package:bizmanager/core/database/db_helper.dart';
+import 'package:bizmanager/core/services/ux_mode_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -14,7 +14,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     await DBHelper.instance.closeDatabase();
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'dukanedge.db');
+    final path = join(dbPath, 'bizmanager.db');
     await databaseFactory.deleteDatabase(path);
   });
 

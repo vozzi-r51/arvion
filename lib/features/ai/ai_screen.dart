@@ -57,7 +57,7 @@ class _AIScreenState extends State<AIScreen> {
     // Initialize TFLite model for AI intent classification
     _initializeTFLite();
 
-    _addSystemMessage("Asalam-o-Alaikum! Main ARVION AI hoon. Main aapke business data ko samajhne mein aapki madad kar sakta hoon.");
+    _addSystemMessage("Asalam-o-Alaikum! Main BizManager AI hoon. Main aapke business data ko samajhne mein aapki madad kar sakta hoon.");
   }
 
   /// Initialize TFLite intent classifier
@@ -161,7 +161,7 @@ class _AIScreenState extends State<AIScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('ARVION AI', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const Text('BizManager AI', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
             Text('Your private business assistant', style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.7))),
           ],
         ),

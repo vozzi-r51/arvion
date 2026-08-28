@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:dukanedge/core/services/error_reporter.dart';
+import 'package:bizmanager/core/services/error_reporter.dart';
 
 void main() {
   test('ErrorReporter records errors and never throws', () {

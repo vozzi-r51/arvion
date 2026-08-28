@@ -3,6 +3,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/notifications/sms_service.dart';
+import '../finance/recurring_templates_screen.dart';
 
 class CustomerLedgerScreen extends StatefulWidget {
   final Map<String, dynamic> customer;
@@ -255,6 +256,21 @@ class _CustomerLedgerScreenState extends State<CustomerLedgerScreen> {
       appBar: AppBar(
         title: Text('${widget.customer['name']} - Ledger'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.event_repeat, color: Colors.white),
+            tooltip: 'Set up Recurring Invoice',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => RecurringTemplatesScreen(
+                    companyId: widget.companyId,
+                    initialCustomerId: _customerId,
+                  ),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.notifications_active_outlined),
             tooltip: 'Remind Customer',

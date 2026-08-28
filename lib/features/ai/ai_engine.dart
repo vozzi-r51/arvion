@@ -1,14 +1,14 @@
-import 'package:dukanedge/core/database/db_helper.dart';
-import 'package:dukanedge/core/auth/session.dart';
-import 'package:dukanedge/core/utils/currency_formatter.dart';
-import 'package:dukanedge/core/services/tflite_intent_classifier.dart';
-import 'package:dukanedge/core/di/service_locator.dart';
-import 'package:dukanedge/core/repositories/sales_repository.dart';
-import 'package:dukanedge/core/repositories/inventory_repository.dart';
-import 'package:dukanedge/core/repositories/purchase_repository.dart';
-import 'package:dukanedge/core/repositories/supplier_repository.dart';
-import 'package:dukanedge/core/repositories/expense_repository.dart';
-import 'package:dukanedge/core/repositories/analytics_repository.dart';
+import '../../core/database/db_helper.dart';
+import '../../core/auth/session.dart';
+import '../../core/utils/currency_formatter.dart';
+import '../../core/services/tflite_intent_classifier.dart';
+import '../../core/di/service_locator.dart';
+import '../../core/repositories/sales_repository.dart';
+import '../../core/repositories/inventory_repository.dart';
+import '../../core/repositories/purchase_repository.dart';
+import '../../core/repositories/supplier_repository.dart';
+import '../../core/repositories/expense_repository.dart';
+import '../../core/repositories/analytics_repository.dart';
 
 /// Represents the possible business intents the AI can handle.
 /// This matches standard "Tool Calling" patterns in modern LLMs.
