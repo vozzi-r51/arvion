@@ -1,7 +1,7 @@
 name: bizmanager
 description: BizManager - Offline Retail & Wholesale ERP for household, kitchenware, gift and plastic item shops.
 publish_to: 'none'
-version: 1.0.0+2002
+version: 2.5.0+2500
 
 environment:
   sdk: '>=3.3.0 <4.0.0'
