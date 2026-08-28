@@ -47,23 +47,23 @@ class DBHelper {
       return await openDatabase(
         path,
         password: dbPassword,
-        version: 39,
+        version: 40,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade,
         onConfigure: (db) async {
           await db.execute('PRAGMA foreign_keys = ON');
         },
       );
-    } catch (_) {
-      return await openDatabase(
-        path,
-        version: 39,
-        onCreate: _onCreate,
-        onUpgrade: _onUpgrade,
-        onConfigure: (db) async {
-          await db.execute('PRAGMA foreign_keys = ON');
-        },
-      );
+    } catch (e) {
+      // Encryption open failed. Rather than silently re-open the same
+      // file WITHOUT a password (which would silently downgrade the
+      // encrypted DB to plaintext and let SQLite happily write garbage
+      // to a corrupt file), report the failure and let startup abort.
+      // The caller in main() must catch this and surface it to the
+      // user rather than launching a half-broken app.
+      // ignore: avoid_print
+      print('[DBHelper] Encrypted open failed: $e');
+      rethrow;
     }
   }
 
@@ -392,9 +392,11 @@ class DBHelper {
       await db.execute('ALTER TABLE companies ADD COLUMN invoice_prefix TEXT DEFAULT "INV"');
       await db.execute('ALTER TABLE companies ADD COLUMN invoice_number_format TEXT DEFAULT "{PREFIX}-{NUMBER}"');
 
-      // 2. Tax Codes
+      // 2. Tax Codes — IF NOT EXISTS because this table was first
+      // created at v4 (line 153). Old DBs upgrading past v36 used to
+      // crash here on a "table already exists" error.
       await db.execute('''
-        CREATE TABLE tax_codes (
+        CREATE TABLE IF NOT EXISTS tax_codes (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           company_id INTEGER NOT NULL,
           name TEXT NOT NULL,
@@ -404,9 +406,9 @@ class DBHelper {
         )
       ''');
 
-      // 3. Price Lists & Product Prices
+      // 3. Price Lists — same story: first created at v4.
       await db.execute('''
-        CREATE TABLE price_lists (
+        CREATE TABLE IF NOT EXISTS price_lists (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           company_id INTEGER NOT NULL,
           name TEXT NOT NULL,
@@ -475,6 +477,27 @@ class DBHelper {
     }
     if (oldVersion < 39) {
       await _createEcommerceChannelsTable(db);
+    }
+    if (oldVersion < 40) {
+      // Phase 2 fix: ensure units_of_measure exists for installs that
+      // were created before v33 (the table was added in v33 but only
+      // for fresh `_onCreate` runs; old upgrade paths skipped it).
+      // Also: the v33 block used `IF NOT EXISTS` for fresh installs
+      // but old DBs upgrading past v33 had no such table because the
+      // entire block was inside `if (oldVersion < 33)`. A v40 forward-fix
+      // is the safest place to backfill it.
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS units_of_measure (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          company_id INTEGER NOT NULL,
+          name TEXT NOT NULL,
+          symbol TEXT,
+          is_base_unit INTEGER DEFAULT 0,
+          base_unit_id INTEGER,
+          conversion_factor REAL DEFAULT 1,
+          FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
+        )
+      ''');
     }
   }
 
@@ -1692,20 +1715,45 @@ class DBHelper {
   Future<int> insertCompany(Map<String, dynamic> data) async {
     final db = await database;
     int id = 0;
+
+    // Validate required fields up front. Throwing before opening a
+    // transaction means the caller sees a clear error and no partial
+    // row is left in `companies`.
+    final name = (data['name'] as String?)?.trim() ?? '';
+    if (name.isEmpty) {
+      throw ArgumentError.value(data['name'], 'name', 'Company name is required');
+    }
+
+    // Reject duplicate names (case-insensitive) to prevent two "shops"
+    // from fighting over the active-company flag.
+    final existing = await db.query(
+      'companies',
+      columns: ['id'],
+      where: 'LOWER(name) = ?',
+      whereArgs: [name.toLowerCase()],
+      limit: 1,
+    );
+    if (existing.isNotEmpty) {
+      throw StateError('A company named "$name" already exists.');
+    }
+
+    // Seed data based on business type template
+    final familyStr = data['template_family'] as String? ?? 'retailStandard';
+    final family = TemplateFamily.values.firstWhere(
+      (f) => f.toString().split('.').last == familyStr,
+      orElse: () => TemplateFamily.retailStandard,
+    );
+    final template = BusinessTemplates.getByFamily(family);
+    final now = DateTime.now().toIso8601String();
+
+    // Run the whole insert + seed inside ONE transaction. We only assign
+    // `id` AFTER every step has succeeded, so a rolled-back transaction
+    // can never return a non-zero id for a row that was not committed.
+    // Before this fix, a thrown seed step left `id` holding the rowid of
+    // a company that did not exist.
     await db.transaction((txn) async {
       id = await txn.insert('companies', data);
-      
-      // Seed data based on business type template
-      final familyStr = data['template_family'] as String? ?? 'retailStandard';
-      final family = TemplateFamily.values.firstWhere(
-        (f) => f.toString().split('.').last == familyStr, 
-        orElse: () => TemplateFamily.retailStandard
-      );
-      
-      final template = BusinessTemplates.getByFamily(family);
-      
-      final now = DateTime.now().toIso8601String();
-      
+
       // 1. Seed Categories
       for (final cat in template.defaultCategories) {
         await txn.insert('categories', {
@@ -1715,7 +1763,7 @@ class DBHelper {
           'created_at': now,
         });
       }
-      
+
       // 2. Seed Units
       for (final unit in template.defaultUnits) {
         await txn.insert('units', {
@@ -1724,7 +1772,7 @@ class DBHelper {
           'created_at': now,
         });
       }
-      
+
       // 3. Seed Chart of Accounts
       await _ensureChartOfAccountsInTransaction(txn, id);
     });
@@ -2637,43 +2685,49 @@ class DBHelper {
 
   Future<int> insertExpense(Map<String, dynamic> data) async {
     final db = await database;
-    return db.transaction<int>((txn) async {
-      await _enforcePeriodLock(data['expense_date'] as String);
-      final companyId = data['company_id'] as int;
-      final amount = _validateLedgerAmount(data['amount'], 'Expense');
-      final category = data['category'] as String;
-      final date = data['expense_date'] as String;
-      final method = data['payment_method'] as String? ?? 'Cash';
-      final expenseId = await txn.insert('expenses', data);
+    return db.transaction<int>((txn) => _insertExpenseInTxn(txn, data));
+  }
 
-      // Automated Accounting
-      final coaRows = await txn.query('chart_of_accounts', where: 'company_id = ?', whereArgs: [companyId]);
-      int? getAccId(String name) {
-        try { return coaRows.firstWhere((r) => r['name'].toString().toLowerCase() == name.toLowerCase())['id'] as int; } catch(_) { return null; }
-      }
+  /// Phase 2 fix: in-transaction body of `insertExpense`, split out so
+  /// callers that already hold a transaction (e.g. recurring items)
+  /// can participate without opening a nested one.
+  Future<int> _insertExpenseInTxn(
+      DatabaseExecutor txn, Map<String, dynamic> data) async {
+    await _enforcePeriodLock(data['expense_date'] as String);
+    final companyId = data['company_id'] as int;
+    final amount = _validateLedgerAmount(data['amount'], 'Expense');
+    final category = data['category'] as String;
+    final date = data['expense_date'] as String;
+    final method = data['payment_method'] as String? ?? 'Cash';
+    final expenseId = await txn.insert('expenses', data);
 
-      int? expAccId = getAccId(category);
-      expAccId ??= getAccId('Operating Expenses');
-      
-      int? sourceAccId = getAccId(method);
-      sourceAccId ??= getAccId('Cash');
+    // Automated Accounting
+    final coaRows = await txn.query('chart_of_accounts', where: 'company_id = ?', whereArgs: [companyId]);
+    int? getAccId(String name) {
+      try { return coaRows.firstWhere((r) => r['name'].toString().toLowerCase() == name.toLowerCase())['id'] as int; } catch(_) { return null; }
+    }
 
-      if (expAccId == null || sourceAccId == null) {
-        throw StateError('Expense accounts are not configured.');
-      }
-      await postAutomatedEntry(txn,
-          companyId: companyId,
-          date: date,
-          description: 'Auto: Expense #$expenseId - $category',
-          sourceType: 'expense',
-          sourceId: expenseId,
-          lines: [
-            {'account_id': expAccId, 'debit': amount, 'credit': 0.0},
-            {'account_id': sourceAccId, 'debit': 0.0, 'credit': amount},
-          ]);
+    int? expAccId = getAccId(category);
+    expAccId ??= getAccId('Operating Expenses');
 
-      return expenseId;
-    });
+    int? sourceAccId = getAccId(method);
+    sourceAccId ??= getAccId('Cash');
+
+    if (expAccId == null || sourceAccId == null) {
+      throw StateError('Expense accounts are not configured.');
+    }
+    await postAutomatedEntry(txn,
+        companyId: companyId,
+        date: date,
+        description: 'Auto: Expense #$expenseId - $category',
+        sourceType: 'expense',
+        sourceId: expenseId,
+        lines: [
+          {'account_id': expAccId, 'debit': amount, 'credit': 0.0},
+          {'account_id': sourceAccId, 'debit': 0.0, 'credit': amount},
+        ]);
+
+    return expenseId;
   }
 
   Future<List<Map<String, dynamic>>> getExpenses(int companyId) async {
@@ -2753,41 +2807,47 @@ class DBHelper {
 
   Future<int> insertIncome(Map<String, dynamic> data) async {
     final db = await database;
-    return db.transaction<int>((txn) async {
-      await _enforcePeriodLock(data['income_date'] as String);
-      final companyId = data['company_id'] as int;
-      final amount = _validateLedgerAmount(data['amount'], 'Income');
-      final category = data['category'] as String;
-      final date = data['income_date'] as String;
-      final incomeRecordId = await txn.insert('income', data);
-      final accounts = await txn.query(
-        'chart_of_accounts',
-        where: 'company_id = ?',
-        whereArgs: [companyId],
-      );
-      int? accountId(String name) {
-        final matches = accounts.where((row) =>
-            row['name'].toString().toLowerCase() == name.toLowerCase());
-        return matches.isEmpty ? null : matches.first['id'] as int;
-      }
+    return db.transaction<int>((txn) => _insertIncomeInTxn(txn, data));
+  }
 
-      final cashId = accountId('Cash');
-      final incomeAccountId = accountId(category) ?? accountId('Other Income');
-      if (cashId == null || incomeAccountId == null) {
-        throw StateError('Income accounts are not configured.');
-      }
-      await postAutomatedEntry(txn,
-          companyId: companyId,
-          date: date,
-          description: 'Auto: Income #$incomeRecordId - $category',
-          sourceType: 'income',
-          sourceId: incomeRecordId,
-          lines: [
-            {'account_id': cashId, 'debit': amount, 'credit': 0.0},
-            {'account_id': incomeAccountId, 'debit': 0.0, 'credit': amount},
-          ]);
-          return incomeRecordId;
-    });
+  /// Phase 2 fix: in-transaction body of `insertIncome`, split out so
+  /// callers that already hold a transaction can participate without
+  /// opening a nested one.
+  Future<int> _insertIncomeInTxn(
+      DatabaseExecutor txn, Map<String, dynamic> data) async {
+    await _enforcePeriodLock(data['income_date'] as String);
+    final companyId = data['company_id'] as int;
+    final amount = _validateLedgerAmount(data['amount'], 'Income');
+    final category = data['category'] as String;
+    final date = data['income_date'] as String;
+    final incomeRecordId = await txn.insert('income', data);
+    final accounts = await txn.query(
+      'chart_of_accounts',
+      where: 'company_id = ?',
+      whereArgs: [companyId],
+    );
+    int? accountId(String name) {
+      final matches = accounts.where((row) =>
+          row['name'].toString().toLowerCase() == name.toLowerCase());
+      return matches.isEmpty ? null : matches.first['id'] as int;
+    }
+
+    final cashId = accountId('Cash');
+    final incomeAccountId = accountId(category) ?? accountId('Other Income');
+    if (cashId == null || incomeAccountId == null) {
+      throw StateError('Income accounts are not configured.');
+    }
+    await postAutomatedEntry(txn,
+        companyId: companyId,
+        date: date,
+        description: 'Auto: Income #$incomeRecordId - $category',
+        sourceType: 'income',
+        sourceId: incomeRecordId,
+        lines: [
+          {'account_id': cashId, 'debit': amount, 'credit': 0.0},
+          {'account_id': incomeAccountId, 'debit': 0.0, 'credit': amount},
+        ]);
+    return incomeRecordId;
   }
 
   Future<List<Map<String, dynamic>>> getIncome(int companyId) async {
@@ -3980,12 +4040,18 @@ class DBHelper {
 
   Future<void> processRecurringItem(Map<String, dynamic> template) async {
     final db = await database;
+    final type = template['type'] as String;
+    final nextDue = DateTime.parse(template['next_due_date']);
+
+    // Phase 2 fix: previously this method opened a `db.transaction` and
+    // then called `insertExpense` / `insertIncome`, each of which
+    // opened its OWN `db.transaction` on the same connection. That is
+    // a nested-transaction crash. We now do the insert inline (sharing
+    // the outer transaction) and only the template's next-due update
+    // happens here.
     await db.transaction((txn) async {
-      final type = template['type'] as String;
-      final nextDue = DateTime.parse(template['next_due_date']);
-      
       if (type == 'expense') {
-        await insertExpense({
+        await _insertExpenseInTxn(txn, {
           'company_id': template['company_id'],
           'category': template['category'],
           'amount': template['amount'],
@@ -3995,7 +4061,7 @@ class DBHelper {
           'created_at': DateTime.now().toIso8601String(),
         });
       } else {
-        await insertIncome({
+        await _insertIncomeInTxn(txn, {
           'company_id': template['company_id'],
           'category': template['category'],
           'amount': template['amount'],
@@ -4013,7 +4079,7 @@ class DBHelper {
         newNextDue = nextDue.add(const Duration(days: 7));
       }
 
-      await txn.update('recurring_templates', 
+      await txn.update('recurring_templates',
         {'next_due_date': newNextDue.toIso8601String()},
         where: 'id = ?', whereArgs: [template['id']]);
     });
@@ -4861,6 +4927,17 @@ class DBHelper {
             'DELETE FROM committee_draws WHERE committee_id NOT IN (SELECT id FROM committees)');
         await txn.rawDelete(
             'DELETE FROM committee_members WHERE committee_id NOT IN (SELECT id FROM committees)');
+        // Phase 2 fix: also clear orphan rows in tables that have no
+        // `company_id` AND a different parent column. Without these,
+        // deleting a company leaks rows on the next sync / restore.
+        await txn.rawDelete(
+            'DELETE FROM product_variant_values WHERE attribute_id NOT IN (SELECT id FROM product_variant_attributes)');
+        await txn.rawDelete(
+            'DELETE FROM product_variants WHERE product_id NOT IN (SELECT id FROM products)');
+        await txn.rawDelete(
+            'DELETE FROM asset_depreciations WHERE asset_id NOT IN (SELECT id FROM fixed_assets)');
+        await txn.rawDelete(
+            'DELETE FROM custom_field_values WHERE definition_id NOT IN (SELECT id FROM custom_field_definitions)');
 
         // 3. Finally, delete the company itself
         await txn.delete('companies', where: 'id = ?', whereArgs: [companyId]);
@@ -4901,7 +4978,7 @@ class DBHelper {
   }
 
   /// Posts an automated journal entry into the system.
-  Future<void> postAutomatedEntry(Transaction txn, {
+  Future<void> postAutomatedEntry(DatabaseExecutor txn, {
     required int companyId,
     required String date,
     required String description,
@@ -4960,7 +5037,7 @@ class DBHelper {
   }
 
   Future<void> _validateJournalAccounts(
-    Transaction txn,
+      DatabaseExecutor txn,
     int companyId,
     List<Map<String, dynamic>> lines,
   ) async {

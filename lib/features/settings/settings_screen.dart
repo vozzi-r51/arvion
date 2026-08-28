@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../../core/services/error_reporter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -350,10 +351,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
 
       if (selected == null) return;
+      // Phase 4 fix: selected.name and selected.id are typed nullable on
+      // the Drive file model. A corrupted listing with a null name/id
+      // would previously throw a "Null check operator used on a null
+      // value" crash after the dialog was already dismissed.
+      if (selected.id == null || selected.name == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Backup entry malformed hai, restore nahi ho saki.')),
+        );
+        return;
+      }
 
       final tempDir = await getTemporaryDirectory();
       final downloadPath = p.join(tempDir.path, selected.name!);
-      
       await GoogleDriveService.instance.downloadBackup(selected.id!, downloadPath);
       
       if (!mounted) return;
@@ -489,7 +499,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             (f) => f.toString().split('.').last == templateFamilyStr,
             orElse: () => TemplateFamily.retailStandard,
           );
-        } catch (_) {}
+        } catch (e) {
+          ErrorReporter.instance.swallow(e,
+              module: 'Company', action: 'decode_template_family');
+        }
 
         final template = BusinessTemplates.getByFamily(templateFamily);
         final enabledFeatures = TemplateMessaging.getEnabledFeatures(templateFamily);

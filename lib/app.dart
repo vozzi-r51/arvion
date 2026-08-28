@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'core/auth/auth_service.dart';
+import 'core/services/error_reporter.dart';
 import 'core/widgets/arvion_logo.dart';
 import 'core/providers/branding_provider.dart';
 import 'features/auth/pin_setup_screen.dart';
@@ -46,24 +47,49 @@ class _DukanEdgeAppState extends State<DukanEdgeApp>
   }
 
   Future<void> _checkAutoLock() async {
+    // Phase 4 fix: this path runs on every app resume and is the only
+    // thing standing between an unattended device and the user's data.
+    // If SharedPreferences or the secure-storage-backed isPinSet call
+    // throws, we must not silently leave the app unlocked.
     final pausedAt = _pausedAt;
     if (pausedAt == null) return;
     _pausedAt = null;
 
-    final prefs = await SharedPreferences.getInstance();
-    final minutes = prefs.getInt('auto_lock_minutes') ?? 2;
-    if (minutes == 0) return; // auto-lock disabled
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final minutes = prefs.getInt('auto_lock_minutes') ?? 2;
+      if (minutes == 0) return; // auto-lock disabled
 
-    final elapsedMinutes = DateTime.now().difference(pausedAt).inMinutes;
-    if (elapsedMinutes < minutes) return;
+      final elapsedMinutes = DateTime.now().difference(pausedAt).inMinutes;
+      if (elapsedMinutes < minutes) return;
 
-    final pinSet = await AuthService.instance.isPinSet();
-    if (!pinSet) return;
+      final pinSet = await AuthService.instance
+          .isPinSet()
+          .timeout(const Duration(seconds: 2));
+      if (!pinSet) return;
 
-    appNavigatorKey.currentState?.pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const PinLoginScreen()),
-      (route) => false,
-    );
+      appNavigatorKey.currentState?.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const PinLoginScreen()),
+        (route) => false,
+      );
+    } catch (e, s) {
+      ErrorReporter.instance.report(
+        e,
+        module: 'App',
+        action: 'auto_lock',
+        stack: s.toString(),
+      );
+      // Fail closed: if we can't determine the lock state, force the
+      // user back to the PIN screen so we don't expose data.
+      try {
+        appNavigatorKey.currentState?.pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const PinLoginScreen()),
+          (route) => false,
+        );
+      } catch (_) {
+        // Navigator already gone — nothing more we can do.
+      }
+    }
   }
 
   @override
@@ -257,17 +283,41 @@ class _SplashDeciderState extends State<_SplashDecider> {
   }
 
   Future<void> _decide() async {
-    await context.read<BrandingProvider>().loadBranding();
-    await Future<void>.delayed(const Duration(milliseconds: 2000));
-    final pinSet = await AuthService.instance.isPinSet();
-    if (!mounted) return;
+    // Phase 4 fix: loadBranding + isPinSet both touch the encrypted DB.
+    // If either hangs (e.g. disk pressure or a corrupted secure-storage
+    // entry) the splash never resolves and the user is stuck. We bound
+    // the whole decision with a 6-second budget and fall back to the
+    // PIN setup screen on any failure so the app can still recover.
+    try {
+      await context
+          .read<BrandingProvider>()
+          .loadBranding()
+          .timeout(const Duration(seconds: 4));
+      final pinSet = await AuthService.instance
+          .isPinSet()
+          .timeout(const Duration(seconds: 2));
+      if (!mounted) return;
 
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) =>
-            pinSet ? const PinLoginScreen() : const PinSetupScreen(),
-      ),
-    );
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) =>
+              pinSet ? const PinLoginScreen() : const PinSetupScreen(),
+        ),
+      );
+    } catch (e, s) {
+      ErrorReporter.instance.report(
+        e,
+        module: 'App',
+        action: 'splash_decide',
+        stack: s.toString(),
+      );
+      if (!mounted) return;
+      // Best-effort recovery: route to PIN setup so the user can
+      // create / re-enter a PIN instead of being trapped on splash.
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const PinSetupScreen()),
+      );
+    }
   }
 
   @override

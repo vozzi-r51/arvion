@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:provider/provider.dart';
 import 'dart:convert';
 import '../../core/database/db_helper.dart';
+import '../../core/services/error_reporter.dart';
 import '../../core/theme/app_theme.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../products/products_home_screen.dart';
@@ -69,7 +70,10 @@ class _MainShellState extends State<MainShell> {
       if (modulesStr != null) {
         try {
           _enabledModules = List<String>.from(jsonDecode(modulesStr));
-        } catch (_) {}
+        } catch (e) {
+          ErrorReporter.instance.swallow(e,
+              module: 'Company', action: 'decode_enabled_modules');
+        }
       }
       
       final colorInt = company['branding_color'] as int?;
@@ -83,6 +87,7 @@ class _MainShellState extends State<MainShell> {
         context.read<BrandingProvider>().loadBranding();
       }
     }
+    if (!mounted) return;
     setState(() {
       _companyId = company?['id'] as int?;
       _loading = false;
@@ -112,12 +117,33 @@ class _MainShellState extends State<MainShell> {
     );
 
     if (confirmed == true) {
+      // Phase 3 fix: each `processRecurringItem` call now shares a
+      // single transaction (no more nested-transaction crash), but we
+      // still wrap them individually so a single failure doesn't
+      // abandon the rest of the batch.
+      var successCount = 0;
       for (var item in due) {
-        await DBHelper.instance.processRecurringItem(item);
+        try {
+          await DBHelper.instance.processRecurringItem(item);
+          successCount++;
+        } catch (e, s) {
+          ErrorReporter.instance.report(
+            e,
+            module: 'Recurring',
+            action: 'process_item',
+            stack: s.toString(),
+          );
+        }
       }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${due.length} recurring items record ho gaye hain.'))
+          SnackBar(
+            content: Text(
+              successCount == due.length
+                  ? '${due.length} recurring items record ho gaye hain.'
+                  : '$successCount/${due.length} recurring items record ho sake. Baaki ke liye error log dekhein.',
+            ),
+          ),
         );
       }
     }
@@ -165,22 +191,60 @@ class _MainShellState extends State<MainShell> {
     if (_index >= visibleNavItems.length) _index = 0;
 
     // Map visible items to their screens
+    final companyId = _companyId;
     final List<Widget> pages = visibleNavItems.map<Widget>((item) {
       if (item.title == 'Dashboard') return const DashboardScreen();
-      if (item.title == term.get('sale')) return SalesHomeScreen(companyId: _companyId!);
-      
+      if (item.title == term.get('sale')) {
+        return companyId == null
+            ? const _CompanyMissingScreen()
+            : SalesHomeScreen(companyId: companyId);
+      }
+
       switch (item.title) {
-        case 'Quotations': return QuotationListScreen(companyId: _companyId!);
-        case 'Purchases': return PurchasesHomeScreen(companyId: _companyId!);
-        case 'Customers': return CustomerListScreen(companyId: _companyId!);
-        case 'Vendors / Suppliers': return SupplierListScreen(companyId: _companyId!);
-        case 'Service Jobs': return ServiceJobsScreen(companyId: _companyId!);
-        case 'Manufacturing': return ManufacturingHomeScreen(companyId: _companyId!);
-        case 'Inventory': return ProductsHomeScreen(companyId: _companyId!);
-        case 'Expenses': return ExpenseListScreen(companyId: _companyId!);
-        case 'Accounting': return JournalHomeScreen(companyId: _companyId!);
-        case 'Reports': return ReportsHomeScreen(companyId: _companyId!);
-        case 'AI Assistant': return AIScreen(companyId: _companyId!);
+        case 'Quotations':
+          return companyId == null
+              ? const _CompanyMissingScreen()
+              : QuotationListScreen(companyId: companyId);
+        case 'Purchases':
+          return companyId == null
+              ? const _CompanyMissingScreen()
+              : PurchasesHomeScreen(companyId: companyId);
+        case 'Customers':
+          return companyId == null
+              ? const _CompanyMissingScreen()
+              : CustomerListScreen(companyId: companyId);
+        case 'Vendors / Suppliers':
+          return companyId == null
+              ? const _CompanyMissingScreen()
+              : SupplierListScreen(companyId: companyId);
+        case 'Service Jobs':
+          return companyId == null
+              ? const _CompanyMissingScreen()
+              : ServiceJobsScreen(companyId: companyId);
+        case 'Manufacturing':
+          return companyId == null
+              ? const _CompanyMissingScreen()
+              : ManufacturingHomeScreen(companyId: companyId);
+        case 'Inventory':
+          return companyId == null
+              ? const _CompanyMissingScreen()
+              : ProductsHomeScreen(companyId: companyId);
+        case 'Expenses':
+          return companyId == null
+              ? const _CompanyMissingScreen()
+              : ExpenseListScreen(companyId: companyId);
+        case 'Accounting':
+          return companyId == null
+              ? const _CompanyMissingScreen()
+              : JournalHomeScreen(companyId: companyId);
+        case 'Reports':
+          return companyId == null
+              ? const _CompanyMissingScreen()
+              : ReportsHomeScreen(companyId: companyId);
+        case 'AI Assistant':
+          return companyId == null
+              ? const _CompanyMissingScreen()
+              : AIScreen(companyId: companyId);
         case 'Settings': return const SettingsScreen();
         default: return const Center(child: Text('Screen not found'));
       }
@@ -323,4 +387,30 @@ class _NavItemData {
   final String? moduleName;
 
   _NavItemData(this.title, this.selectedIcon, this.icon, {this.isOwnerOnly = false, this.moduleName});
+}
+
+/// Phase 3 fix: shown when the user lands in the shell without an
+/// active company. Previously the shell crashed on `_companyId!`.
+class _CompanyMissingScreen extends StatelessWidget {
+  const _CompanyMissingScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.business, size: 64, color: Colors.grey),
+            SizedBox(height: 16),
+            Text(
+              'Koi active company nahi mili.\nSettings → Company se ek shop select karein ya nayi banayein.',
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

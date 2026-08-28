@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../../core/database/db_helper.dart';
+import '../../core/services/error_reporter.dart';
 import '../../core/utils/image_generator.dart';
 import '../../core/auth/auth_service.dart';
 import '../../core/theme/app_theme.dart';
@@ -136,28 +137,50 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
         .map((e) => e.key)
         .toList();
 
-    await DBHelper.instance.updateCompany(widget.companyId, {
-      'name': _nameCtrl.text.trim(),
-      'owner_name': _ownerCtrl.text.trim(),
-      'address': _addressCtrl.text.trim(),
-      'phone': _phoneCtrl.text.trim(),
-      'whatsapp': _whatsappCtrl.text.trim(),
-      'email': _emailCtrl.text.trim(),
-      'ntn_gst': _ntnCtrl.text.trim(),
-      'invoice_footer': _footerCtrl.text.trim(),
-      'company_details': _detailsCtrl.text.trim(),
-      'default_tax_percent': double.tryParse(_taxCtrl.text.trim()) ?? 0,
-      'business_type': _businessType,
-      'currency_symbol': _currency,
-      'branding_color': _brandingColor.value,
-      'enabled_modules': jsonEncode(enabledModules),
-      'logo_path': _logoPath,
-      'shop_stamp_path': _stampPath,
-      'signature_path': _signaturePath,
-    });
+    // Phase 3 fix: previously the `await updateCompany(...)` was outside
+    // any try/catch. On failure, `_saving` stayed `true` forever and the
+    // Save button was permanently disabled. We now reset it and report
+    // the failure to the user.
+    try {
+      await DBHelper.instance.updateCompany(widget.companyId, {
+        'name': _nameCtrl.text.trim(),
+        'owner_name': _ownerCtrl.text.trim(),
+        'address': _addressCtrl.text.trim(),
+        'phone': _phoneCtrl.text.trim(),
+        'whatsapp': _whatsappCtrl.text.trim(),
+        'email': _emailCtrl.text.trim(),
+        'ntn_gst': _ntnCtrl.text.trim(),
+        'invoice_footer': _footerCtrl.text.trim(),
+        'company_details': _detailsCtrl.text.trim(),
+        'default_tax_percent': double.tryParse(_taxCtrl.text.trim()) ?? 0,
+        'business_type': _businessType,
+        'currency_symbol': _currency,
+        'branding_color': _brandingColor.value,
+        'enabled_modules': jsonEncode(enabledModules),
+        'logo_path': _logoPath,
+        'shop_stamp_path': _stampPath,
+        'signature_path': _signaturePath,
+      });
+    } catch (e, s) {
+      ErrorReporter.instance.report(
+        e,
+        module: 'Company',
+        action: 'update',
+        stack: s.toString(),
+      );
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Profile save nahi ho saki: $e'),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
+      return;
+    }
 
-    setState(() => _saving = false);
     if (!mounted) return;
+    setState(() => _saving = false);
 
     context.read<ThemeProvider>().setPrimaryColor(_brandingColor);
 

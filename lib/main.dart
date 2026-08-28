@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'app.dart';
 import 'core/di/service_locator.dart';
+import 'core/services/error_reporter.dart';
 import 'core/theme/app_theme.dart';
 import 'core/providers/terminology_provider.dart';
 import 'core/providers/branding_provider.dart';
@@ -12,10 +13,30 @@ import 'core/providers/branding_provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Observability FIRST: any failure below this line (e.g. during DB
+  // open) must still be captured rather than vanish. The reporter's own
+  // init is fire-and-forget and never throws.
+  ErrorReporter.instance.init();
+
   // Wire up the service locator (DB, event bus, repositories, listeners)
   // BEFORE anything else so the rest of the app can grab dependencies
   // via `sl<...>()` without order-of-init bugs.
-  await setupServiceLocator();
+  try {
+    await setupServiceLocator();
+  } catch (e, s) {
+    // DB open or migration failed. The DB no longer silently re-opens
+    // unencrypted, so this catch is the user-facing safety net. Show a
+    // minimal red screen with the error and the persisted log path.
+    ErrorReporter.instance.report(
+      e,
+      module: 'DB',
+      action: 'open',
+      stack: s.toString(),
+      fatal: true,
+    );
+    runApp(_StartupErrorApp(error: e.toString()));
+    return;
+  }
 
   final prefs = await SharedPreferences.getInstance();
   final bool crashReportingEnabled = prefs.getBool('crash_reporting_enabled') ?? true;
@@ -47,4 +68,66 @@ void _runApp() {
       child: const DukanEdgeApp(),
     ),
   );
+}
+
+/// Minimal "the app could not start" surface. Stays on screen until
+/// the user dismisses; the persisted error log captures the stack for
+/// later diagnosis.
+class _StartupErrorApp extends StatelessWidget {
+  final String error;
+  const _StartupErrorApp({required this.error});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: const Color(0xFF7F1D1D),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Database could not be opened',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'The encrypted database file failed to open. This usually '
+                  'means the encryption key on this device is different '
+                  'from the one used to create the data, or the file is '
+                  'corrupt. Please reinstall the app and restore from a '
+                  'backup.',
+                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+                const SizedBox(height: 24),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.black26,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    error,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontFamily: 'monospace',
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

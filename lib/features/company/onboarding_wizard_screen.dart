@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import '../../core/database/db_helper.dart';
+import '../../core/services/error_reporter.dart';
 import '../../core/audit/audit_logger.dart';
 import '../../core/business_types/business_type_catalog.dart';
 import '../../core/templates/business_templates.dart';
@@ -26,6 +27,7 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
   BusinessCategory? _selectedCategory;
   String? _selectedSubtype;
   bool _isQuickSetup = true;
+  bool _finishing = false; // guards against double-tap on the Finish button
 
   String _currency = 'Rs.';
   double _taxPercent = 0;
@@ -157,33 +159,69 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
   }
 
   Future<void> _finish() async {
+    // Phase 3 fix: guard against duplicate submissions (button can be
+    // tapped twice while the first insert is still running) and report
+    // any failure to the user instead of silently hanging. The button
+    // shows a spinner while the insert is in flight.
+    if (_finishing) return;
+    setState(() => _finishing = true);
+
     final List<String> enabledModules = [];
     _modules.forEach((key, value) {
       if (value) enabledModules.add(key);
     });
 
-    final companyId = await DBHelper.instance.insertCompany({
-      'name': _nameCtrl.text.trim(),
-      'owner_name': _ownerCtrl.text.trim(),
-      'business_type': _selectedCategory?.id ?? 'general_retail',
-      'business_category': _selectedCategory?.label ?? 'General Retail',
-      'business_subtype': _selectedSubtype,
-      'template_family': _selectedCategory?.family.toString().split('.').last ?? 'retailStandard',
-      'currency_symbol': _currency,
-      'default_tax_percent': _taxPercent,
-      'terminology_profile': _selectedCategory?.id ?? 'general_retail',
-      'enabled_modules': jsonEncode(enabledModules),
-      'ui_mode': _uiMode,
-      'is_active': 1,
-      'created_at': DateTime.now().toIso8601String(),
-    });
+    int? companyId;
+    try {
+      companyId = await DBHelper.instance.insertCompany({
+        'name': _nameCtrl.text.trim(),
+        'owner_name': _ownerCtrl.text.trim(),
+        'business_type': _selectedCategory?.id ?? 'general_retail',
+        'business_category': _selectedCategory?.label ?? 'General Retail',
+        'business_subtype': _selectedSubtype,
+        'template_family':
+            _selectedCategory?.family.toString().split('.').last ?? 'retailStandard',
+        'currency_symbol': _currency,
+        'default_tax_percent': _taxPercent,
+        'terminology_profile': _selectedCategory?.id ?? 'general_retail',
+        'enabled_modules': jsonEncode(enabledModules),
+        'ui_mode': _uiMode,
+        'is_active': 1,
+        'created_at': DateTime.now().toIso8601String(),
+      });
+    } catch (e, s) {
+      // The most common failure here is a duplicate company name
+      // (insertCompany throws StateError). Surface it instead of
+      // leaving the user staring at a frozen wizard.
+      ErrorReporter.instance.report(
+        e,
+        module: 'Company',
+        action: 'create',
+        stack: s.toString(),
+      );
+      if (!mounted) return;
+      setState(() => _finishing = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Company save nahi ho saki: $e'),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
+      return;
+    }
 
-    await AuditLogger.log(
-      companyId: companyId,
-      module: 'Setup',
-      action: AuditLogger.create,
-      description: 'Business setup mukammal: ${_selectedCategory?.id} (${_selectedSubtype}) - UI Mode: $_uiMode',
-    );
+    try {
+      await AuditLogger.log(
+        companyId: companyId,
+        module: 'Setup',
+        action: AuditLogger.create,
+        description:
+            'Business setup mukammal: ${_selectedCategory?.id} (${_selectedSubtype}) - UI Mode: $_uiMode',
+      );
+    } catch (e) {
+      // Audit logging must never block the success path.
+      ErrorReporter.instance.swallow(e, module: 'Audit', action: 'log_setup');
+    }
 
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
@@ -230,8 +268,15 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.l),
           child: FilledButton(
-            onPressed: _next,
-            child: Text(_currentStep == 5 ? 'Finish & Start Business' : 'Next'),
+            onPressed: _finishing ? null : _next,
+            child: _finishing
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2, color: Colors.white),
+                  )
+                : Text(_currentStep == 5 ? 'Finish & Start Business' : 'Next'),
           ),
         ),
       ),
