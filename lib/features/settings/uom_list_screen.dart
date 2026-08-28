@@ -45,11 +45,13 @@ class _UomListScreenState extends State<UomListScreen> {
               children: [
                 TextField(
                   controller: nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Unit Name (e.g. Dozen, Gram)'),
+                  decoration: const InputDecoration(
+                      labelText: 'Unit Name (e.g. Dozen, Gram)'),
                 ),
                 TextField(
                   controller: symbolCtrl,
-                  decoration: const InputDecoration(labelText: 'Symbol (e.g. dz, g)'),
+                  decoration:
+                      const InputDecoration(labelText: 'Symbol (e.g. dz, g)'),
                 ),
                 CheckboxListTile(
                   title: const Text('Is Base Unit?'),
@@ -59,24 +61,32 @@ class _UomListScreenState extends State<UomListScreen> {
                 if (!isBase && _uoms.isNotEmpty) ...[
                   DropdownButtonFormField<int?>(
                     value: baseUnitId,
-                    decoration: const InputDecoration(labelText: 'Base Unit Reference'),
-                    items: _uoms.where((u) => u['is_base_unit'] == 1).map((u) => DropdownMenuItem<int?>(
-                      value: u['id'] as int,
-                      child: Text(u['name'] as String),
-                    )).toList(),
+                    decoration:
+                        const InputDecoration(labelText: 'Base Unit Reference'),
+                    items: _uoms
+                        .where((u) => u['is_base_unit'] == 1)
+                        .map((u) => DropdownMenuItem<int?>(
+                              value: u['id'] as int,
+                              child: Text(u['name'] as String),
+                            ))
+                        .toList(),
                     onChanged: (v) => setState(() => baseUnitId = v),
                   ),
                   TextField(
                     controller: factorCtrl,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Conversion Factor (How many base units in this unit?)'),
+                    decoration: const InputDecoration(
+                        labelText:
+                            'Conversion Factor (How many base units in this unit?)'),
                   ),
                 ],
               ],
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
                 if (nameCtrl.text.trim().isEmpty) return;
@@ -117,8 +127,12 @@ class _UomListScreenState extends State<UomListScreen> {
                       child: ListTile(
                         title: Text('${u['name']} (${u['symbol'] ?? ''})'),
                         subtitle: u['is_base_unit'] == 1
-                            ? const Text('Base Unit', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold))
-                            : Text('1 ${u['name']} = ${u['conversion_factor']} Base Unit'),
+                            ? const Text('Base Unit',
+                                style: TextStyle(
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.bold))
+                            : Text(
+                                '1 ${u['name']} = ${u['conversion_factor']} Base Unit'),
                       ),
                     );
                   },

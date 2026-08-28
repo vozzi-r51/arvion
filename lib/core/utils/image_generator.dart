@@ -16,7 +16,7 @@ class ImageGenerator {
   }) async {
     final boundary = RenderRepaintBoundary();
     final view = View.of(context);
-    
+
     final pipelineOwner = PipelineOwner();
     final renderView = RenderView(
       view: view,
@@ -26,7 +26,7 @@ class ImageGenerator {
         devicePixelRatio: view.devicePixelRatio,
       ),
     );
-    
+
     pipelineOwner.rootNode = renderView;
     renderView.prepareInitialFrame();
 
@@ -48,9 +48,9 @@ class ImageGenerator {
 
     ui.Image image = await boundary.toImage(pixelRatio: 3.0);
     ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    
+
     if (byteData == null) return null;
-    
+
     final Uint8List pngBytes = byteData.buffer.asUint8List();
 
     final docsDir = await getApplicationDocumentsDirectory();
@@ -58,10 +58,10 @@ class ImageGenerator {
     if (!await assetsDir.exists()) {
       await assetsDir.create(recursive: true);
     }
-    
+
     final savedPath = p.join(assetsDir.path, '$fileName.png');
     await File(savedPath).writeAsBytes(pngBytes);
-    
+
     return savedPath;
   }
 }
@@ -69,7 +69,8 @@ class ImageGenerator {
 class GeneratorDialog extends StatefulWidget {
   final String initialText;
   final bool isStamp;
-  const GeneratorDialog({super.key, required this.initialText, this.isStamp = false});
+  const GeneratorDialog(
+      {super.key, required this.initialText, this.isStamp = false});
 
   @override
   State<GeneratorDialog> createState() => _GeneratorDialogState();
@@ -105,7 +106,11 @@ class _GeneratorDialogState extends State<GeneratorDialog> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            _text.split(' ').map((s) => s.isNotEmpty ? s[0] : '').join('').toUpperCase(),
+            _text
+                .split(' ')
+                .map((s) => s.isNotEmpty ? s[0] : '')
+                .join('')
+                .toUpperCase(),
             style: TextStyle(
               color: _color,
               fontSize: 60,
@@ -126,7 +131,8 @@ class _GeneratorDialogState extends State<GeneratorDialog> {
             const Divider(height: 10),
             Text(
               "OFFICIAL STAMP",
-              style: TextStyle(color: _color, fontSize: 10, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  color: _color, fontSize: 10, fontWeight: FontWeight.bold),
             ),
           ],
         ],
@@ -170,24 +176,39 @@ class _GeneratorDialogState extends State<GeneratorDialog> {
             Wrap(
               spacing: 8,
               children: [
-                Colors.teal, Colors.blue, Colors.green, Colors.red, Colors.orange, Colors.black
-              ].map((c) => GestureDetector(
-                onTap: () => setState(() => _color = c),
-                child: CircleAvatar(backgroundColor: c, radius: 15, 
-                  child: _color == c ? const Icon(Icons.check, size: 16, color: Colors.white) : null),
-              )).toList(),
+                Colors.teal,
+                Colors.blue,
+                Colors.green,
+                Colors.red,
+                Colors.orange,
+                Colors.black
+              ]
+                  .map((c) => GestureDetector(
+                        onTap: () => setState(() => _color = c),
+                        child: CircleAvatar(
+                            backgroundColor: c,
+                            radius: 15,
+                            child: _color == c
+                                ? const Icon(Icons.check,
+                                    size: 16, color: Colors.white)
+                                : null),
+                      ))
+                  .toList(),
             ),
           ],
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel')),
         ElevatedButton(
           onPressed: () async {
             final path = await ImageGenerator.generateFromWidget(
               widget: _buildPreview(),
               context: context,
-              fileName: '${widget.isStamp ? 'stamp' : 'logo'}_${DateTime.now().millisecondsSinceEpoch}',
+              fileName:
+                  '${widget.isStamp ? 'stamp' : 'logo'}_${DateTime.now().millisecondsSinceEpoch}',
             );
             if (mounted) Navigator.pop(context, path);
           },

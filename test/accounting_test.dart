@@ -135,10 +135,12 @@ void main() {
     });
     expect(await db.getIncome(companyId), hasLength(1));
     final incomeJournals = (await db.getJournalEntries(companyId))
-        .where((journal) => journal['description'] == 'Auto: Income #$incomeId - Other Income')
+        .where((journal) =>
+            journal['description'] == 'Auto: Income #$incomeId - Other Income')
         .toList();
     expect(incomeJournals, hasLength(1));
-    final incomeLines = await db.getJournalEntryLines(incomeJournals.first['id'] as int);
+    final incomeLines =
+        await db.getJournalEntryLines(incomeJournals.first['id'] as int);
     expect(
       incomeLines.fold<double>(0, (sum, line) => sum + (line['debit'] as num)),
       75,
@@ -150,7 +152,8 @@ void main() {
     await db.updateIncome(incomeId, {'amount': 100.0});
     expect(
       (await db.getJournalEntries(companyId))
-          .where((journal) => journal['description'] == 'REVERSAL: Income #$incomeId')
+          .where((journal) =>
+              journal['description'] == 'REVERSAL: Income #$incomeId')
           .length,
       1,
     );
@@ -158,7 +161,8 @@ void main() {
     expect(await db.getIncome(companyId), isEmpty);
     expect(
       (await db.getJournalEntries(companyId))
-          .where((journal) => journal['description'] == 'REVERSAL: Income #$incomeId')
+          .where((journal) =>
+              journal['description'] == 'REVERSAL: Income #$incomeId')
           .length,
       2,
     );
@@ -184,7 +188,8 @@ void main() {
     });
     var bank = (await db.getBankAccounts(companyId)).first;
     expect(bank['current_balance'], 250.0);
-    final transactionId = (await db.getBankTransactions(bankId)).first['id'] as int;
+    final transactionId =
+        (await db.getBankTransactions(bankId)).first['id'] as int;
     await db.deleteBankTransaction(transactionId);
     bank = (await db.getBankAccounts(companyId)).first;
     expect(bank['current_balance'], 0.0);
@@ -299,21 +304,22 @@ void main() {
     );
 
     final saleJournals = await db.getJournalEntries(companyId);
-    final saleJournal = saleJournals.firstWhere((j) => j['source_type'] == 'sale' && j['source_id'] == saleId);
+    final saleJournal = saleJournals.firstWhere(
+        (j) => j['source_type'] == 'sale' && j['source_id'] == saleId);
     expect(saleJournal['description'], contains('TEST-VOID-001'));
 
     await db.voidSale(saleId);
     final voidJournals = await db.getJournalEntries(companyId);
-    final reversal = voidJournals.firstWhere((j) => j['source_type'] == 'reversal' && j['source_id'] == saleJournal['id']);
+    final reversal = voidJournals.firstWhere((j) =>
+        j['source_type'] == 'reversal' && j['source_id'] == saleJournal['id']);
     expect(reversal['description'], contains('VOID'));
 
     // Test: Accounting Configuration Guard (StateError on missing accounts)
     // We rename a critical account so it's not found by the resolver
-    await (await db.database).update('chart_of_accounts', 
-        {'name': 'RENAME_ME'}, 
-        where: 'name = ? AND company_id = ?', 
+    await (await db.database).update('chart_of_accounts', {'name': 'RENAME_ME'},
+        where: 'name = ? AND company_id = ?',
         whereArgs: ['Sales Revenue', companyId]);
-    
+
     expect(
       () => db.insertSaleWithItems(
         sale: {
@@ -340,9 +346,9 @@ void main() {
     );
 
     // Rename an account required for Purchases
-    await (await db.database).update('chart_of_accounts', 
-        {'name': 'RENAME_ME_TOO'}, 
-        where: 'name = ? AND company_id = ?', 
+    await (await db.database).update(
+        'chart_of_accounts', {'name': 'RENAME_ME_TOO'},
+        where: 'name = ? AND company_id = ?',
         whereArgs: ['Inventory', companyId]);
 
     expect(
@@ -375,24 +381,27 @@ void main() {
   test('database schema upgrade handles new columns and indexes', () async {
     final db = DBHelper.instance;
     final database = await db.database;
-    
+
     // Verify version
     final version = await database.getVersion();
     expect(version, 36);
 
     // Verify presence of staff_users table
-    final tables = await database.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='staff_users'");
+    final tables = await database.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='staff_users'");
     expect(tables, isNotEmpty);
 
     // Verify presence of new source columns in journal_entries
-    final columns = await database.rawQuery("PRAGMA table_info(journal_entries)");
+    final columns =
+        await database.rawQuery("PRAGMA table_info(journal_entries)");
     final hasSourceType = columns.any((c) => c['name'] == 'source_type');
     final hasSourceId = columns.any((c) => c['name'] == 'source_id');
     expect(hasSourceType, isTrue);
     expect(hasSourceId, isTrue);
 
     // Verify presence of indexes
-    final indexes = await database.rawQuery("SELECT name FROM sqlite_master WHERE type='index'");
+    final indexes = await database
+        .rawQuery("SELECT name FROM sqlite_master WHERE type='index'");
     final indexNames = indexes.map((i) => i['name'] as String).toList();
     expect(indexNames, contains('idx_products_company'));
     expect(indexNames, contains('idx_sales_date'));

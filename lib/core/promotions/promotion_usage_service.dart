@@ -36,7 +36,8 @@ class PromotionUsageService {
     ''', [promotionId]);
 
     if (affectedRows == 0) {
-      throw FormatException('Promotion #$promotionId usage limit reached or unavailable');
+      throw FormatException(
+          'Promotion #$promotionId usage limit reached or unavailable');
     }
 
     // Insert record into promotion_usages history table

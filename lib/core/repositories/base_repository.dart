@@ -13,7 +13,8 @@ abstract class BaseRepository {
 
   /// Run [action] inside a transaction. Always prefer this over manual
   /// `db.transaction` calls in repositories.
-  Future<T> runInTransaction<T>(Future<T> Function(Transaction txn) action) async {
+  Future<T> runInTransaction<T>(
+      Future<T> Function(Transaction txn) action) async {
     return await db.transaction(action);
   }
 }

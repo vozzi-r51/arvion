@@ -59,14 +59,16 @@ class _BankAccountsScreenState extends State<BankAccountsScreen> {
               const SizedBox(height: 8),
               TextField(
                 controller: openingCtrl,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(labelText: 'Opening Balance'),
               ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
               if (bankNameCtrl.text.trim().isEmpty) return;
@@ -98,7 +100,9 @@ class _BankAccountsScreenState extends State<BankAccountsScreen> {
         title: const Text('Account Delete Karein?'),
         content: Text('"${a['bank_name']}" delete ho jayega.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
           TextButton(
               onPressed: () => Navigator.pop(ctx, true),
               child: const Text('Delete', style: TextStyle(color: Colors.red))),
@@ -129,7 +133,8 @@ class _BankAccountsScreenState extends State<BankAccountsScreen> {
                       child: ListTile(
                         leading: const CircleAvatar(
                           backgroundColor: Colors.indigo,
-                          child: Icon(Icons.account_balance, color: Colors.white, size: 18),
+                          child: Icon(Icons.account_balance,
+                              color: Colors.white, size: 18),
                         ),
                         title: Text(a['bank_name'] as String),
                         subtitle: Text(a['account_title'] as String? ?? ''),
@@ -138,10 +143,12 @@ class _BankAccountsScreenState extends State<BankAccountsScreen> {
                           children: [
                             Text(
                               'Rs. ${(a['current_balance'] as num).toStringAsFixed(0)}',
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                              icon: const Icon(Icons.delete_outline,
+                                  size: 18, color: Colors.red),
                               onPressed: () => _confirmDelete(a),
                             ),
                           ],

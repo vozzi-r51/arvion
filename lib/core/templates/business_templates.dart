@@ -1,12 +1,22 @@
 import 'package:flutter/material.dart';
 import '../business_types/business_type_catalog.dart';
 
+/// Single Chart-of-Accounts row used for per-category seeding.
+class CoaSeed {
+  final String code;
+  final String name;
+  final String type; // asset | liability | equity | income | expense
+  const CoaSeed(this.code, this.name, this.type);
+
+  Map<String, String> toMap() => {'code': code, 'name': name, 'type': type};
+}
+
 class BusinessTemplate {
   final String id;
   final String title;
   final IconData icon;
   final TemplateFamily family;
-  final List<String> defaultCoa;
+  final List<CoaSeed> defaultCoa;
   final List<String> defaultCategories;
   final List<String> defaultUnits;
   final List<String> enabledModules;
@@ -33,14 +43,90 @@ class BusinessTemplate {
   });
 }
 
+/// Reusable per-category COA definitions. The 5 user-requested categories
+/// (Retail, Trading, Manufacturing, Services, Restaurant) each get their
+/// own seeded chart of accounts so journal entries have the right accounts
+/// from day one.
+class _CategoryCoa {
+  // Base retail accounts — Cash, Bank, AR, Inventory, Liabilities, Equity
+  static const List<CoaSeed> retailBase = [
+    CoaSeed('1001', 'Cash', 'asset'),
+    CoaSeed('1002', 'Bank', 'asset'),
+    CoaSeed('1003', 'Accounts Receivable', 'asset'),
+    CoaSeed('1004', 'Inventory', 'asset'),
+    CoaSeed('1005', 'Fixed Assets', 'asset'),
+    CoaSeed('2001', 'Accounts Payable', 'liability'),
+    CoaSeed('2002', 'Loans', 'liability'),
+    CoaSeed('2003', 'Salaries Payable', 'liability'),
+    CoaSeed('2004', 'Sales Tax Payable', 'liability'),
+    CoaSeed('3001', "Owner's Capital", 'equity'),
+    CoaSeed('3002', "Owner's Drawings", 'equity'),
+    CoaSeed('3003', 'Retained Earnings', 'equity'),
+    CoaSeed('4001', 'Sales Revenue', 'income'),
+    CoaSeed('4002', 'Other Income', 'income'),
+    CoaSeed('5001', 'Cost of Goods Sold', 'expense'),
+    CoaSeed('5002', 'Operating Expenses', 'expense'),
+    CoaSeed('5003', 'Rent', 'expense'),
+    CoaSeed('5004', 'Electricity', 'expense'),
+    CoaSeed('5005', 'Salaries', 'expense'),
+    CoaSeed('5006', 'Taxes', 'expense'),
+    CoaSeed('5009', 'Office Supplies', 'expense'),
+  ];
+
+  static List<CoaSeed> trading() {
+    return [
+      ...retailBase,
+      const CoaSeed('4021', 'Purchase Discount', 'income'),
+      const CoaSeed('4022', 'Sales Returns', 'income'),
+      const CoaSeed('5007', 'Freight Inward', 'expense'),
+      const CoaSeed('5010', 'Import Duty', 'expense'),
+      const CoaSeed('5015', 'Clearing & Forwarding', 'expense'),
+    ];
+  }
+
+  static List<CoaSeed> manufacturing() {
+    return [
+      ...retailBase,
+      const CoaSeed('1006', 'Raw Materials Inventory', 'asset'),
+      const CoaSeed('1007', 'Work in Progress', 'asset'),
+      const CoaSeed('1008', 'Finished Goods Inventory', 'asset'),
+      const CoaSeed('5008', 'Manufacturing Overhead', 'expense'),
+      const CoaSeed('5011', 'Wages - Direct', 'expense'),
+      const CoaSeed('5012', 'Factory Supplies', 'expense'),
+    ];
+  }
+
+  static List<CoaSeed> service() {
+    return [
+      ...retailBase,
+      const CoaSeed('4010', 'Service Revenue', 'income'),
+      const CoaSeed('4011', 'Consulting Income', 'income'),
+      const CoaSeed('5013', 'Travel & Conveyance', 'expense'),
+      const CoaSeed('5014', 'Communication Expense', 'expense'),
+    ];
+  }
+
+  static List<CoaSeed> restaurant() {
+    return [
+      ...retailBase,
+      const CoaSeed('4030', 'Food Sales', 'income'),
+      const CoaSeed('4031', 'Beverage Sales', 'income'),
+      const CoaSeed('5020', 'Food Cost', 'expense'),
+      const CoaSeed('5021', 'Beverage Cost', 'expense'),
+      const CoaSeed('5022', 'Kitchen Supplies', 'expense'),
+      const CoaSeed('2010', 'Waiter Tips Payable', 'liability'),
+    ];
+  }
+}
+
 class BusinessTemplates {
   BusinessTemplates._();
 
-  static BusinessTemplate getByFamily(TemplateFamily family, {String? categoryTitle, IconData? icon}) {
+  static BusinessTemplate getByFamily(TemplateFamily family,
+      {String? categoryTitle, IconData? icon}) {
     switch (family) {
       case TemplateFamily.retailStandard:
       case TemplateFamily.projectBased:
-      case TemplateFamily.serviceJob:
       case TemplateFamily.propertyBased:
       case TemplateFamily.fleetBased:
       case TemplateFamily.enrollmentBased:
@@ -50,11 +136,43 @@ class BusinessTemplates {
           title: categoryTitle ?? 'General Retail',
           icon: icon ?? Icons.storefront,
           family: family,
-          defaultCoa: ['Sales', 'Cost of Goods Sold', 'Inventory Asset', 'Cash', 'Operating Expenses'],
+          defaultCoa: _CategoryCoa.retailBase,
           defaultCategories: ['Uncategorized'],
           defaultUnits: ['Piece', 'Pack', 'Box'],
-          enabledModules: ['sales', 'purchases', 'inventory', 'expenses', 'accounting'],
-          terminology: {'sale': 'Sale', 'invoice': 'Invoice', 'product': 'Product'},
+          enabledModules: [
+            'sales',
+            'purchases',
+            'inventory',
+            'expenses',
+            'accounting'
+          ],
+          terminology: {
+            'sale': 'Sale',
+            'invoice': 'Invoice',
+            'product': 'Product'
+          },
+        );
+      case TemplateFamily.trading:
+        return BusinessTemplate(
+          id: 'trading',
+          title: categoryTitle ?? 'Wholesale / Trading',
+          icon: icon ?? Icons.local_shipping,
+          family: family,
+          defaultCoa: _CategoryCoa.trading(),
+          defaultCategories: ['General Trading', 'Imports', 'Exports'],
+          defaultUnits: ['Piece', 'Carton', 'Kg'],
+          enabledModules: [
+            'sales',
+            'purchases',
+            'inventory',
+            'expenses',
+            'accounting'
+          ],
+          terminology: {
+            'sale': 'Sale',
+            'invoice': 'Invoice',
+            'product': 'Item'
+          },
         );
       case TemplateFamily.retailVariant:
         return BusinessTemplate(
@@ -62,11 +180,22 @@ class BusinessTemplates {
           title: categoryTitle ?? 'Clothing / Footwear',
           icon: icon ?? Icons.checkroom,
           family: family,
-          defaultCoa: ['Garment Sales', 'Cost of Goods Sold', 'Inventory Asset', 'Cash', 'Operating Expenses'],
+          defaultCoa: _CategoryCoa.retailBase,
           defaultCategories: ['Men', 'Women', 'Kids'],
           defaultUnits: ['Piece', 'Suit', 'Pair'],
-          enabledModules: ['sales', 'purchases', 'inventory', 'expenses', 'accounting', 'promotions'],
-          terminology: {'sale': 'Sale', 'invoice': 'Invoice', 'product': 'Item'},
+          enabledModules: [
+            'sales',
+            'purchases',
+            'inventory',
+            'expenses',
+            'accounting',
+            'promotions'
+          ],
+          terminology: {
+            'sale': 'Sale',
+            'invoice': 'Invoice',
+            'product': 'Item'
+          },
           hasVariants: true,
         );
       case TemplateFamily.retailCustomFields:
@@ -75,11 +204,21 @@ class BusinessTemplates {
           title: categoryTitle ?? 'Jewelry',
           icon: icon ?? Icons.diamond,
           family: family,
-          defaultCoa: ['Jewelry Sales', 'Gold Purchases', 'Inventory Asset', 'Cash', 'Operating Expenses'],
+          defaultCoa: _CategoryCoa.retailBase,
           defaultCategories: ['Gold', 'Silver', 'Diamond'],
           defaultUnits: ['Gram', 'Tola', 'Piece'],
-          enabledModules: ['sales', 'purchases', 'inventory', 'expenses', 'accounting'],
-          terminology: {'sale': 'Sale', 'invoice': 'Invoice', 'product': 'Jewelry'},
+          enabledModules: [
+            'sales',
+            'purchases',
+            'inventory',
+            'expenses',
+            'accounting'
+          ],
+          terminology: {
+            'sale': 'Sale',
+            'invoice': 'Invoice',
+            'product': 'Jewelry'
+          },
           hasCustomFields: true,
         );
       case TemplateFamily.serializedInventory:
@@ -88,11 +227,21 @@ class BusinessTemplates {
           title: categoryTitle ?? 'Electronics / Mobile',
           icon: icon ?? Icons.devices,
           family: family,
-          defaultCoa: ['Device Sales', 'Service Income', 'Cost of Goods Sold', 'Cash', 'Operating Expenses'],
+          defaultCoa: _CategoryCoa.retailBase,
           defaultCategories: ['Mobiles', 'Accessories', 'Laptops'],
           defaultUnits: ['Unit', 'Set', 'Piece'],
-          enabledModules: ['sales', 'purchases', 'inventory', 'expenses', 'accounting'],
-          terminology: {'sale': 'Sale', 'invoice': 'Invoice', 'product': 'Device'},
+          enabledModules: [
+            'sales',
+            'purchases',
+            'inventory',
+            'expenses',
+            'accounting'
+          ],
+          terminology: {
+            'sale': 'Sale',
+            'invoice': 'Invoice',
+            'product': 'Device'
+          },
           hasSerialNumbers: true,
         );
       case TemplateFamily.retailBatchExpiry:
@@ -101,11 +250,21 @@ class BusinessTemplates {
           title: categoryTitle ?? 'Pharmacy',
           icon: icon ?? Icons.local_pharmacy,
           family: family,
-          defaultCoa: ['Medicine Sales', 'COGS - Medicine', 'Inventory Asset', 'Cash', 'Operating Expenses'],
+          defaultCoa: _CategoryCoa.retailBase,
           defaultCategories: ['Tablets', 'Syrups', 'Surgical'],
           defaultUnits: ['Strip', 'Bottle', 'Piece'],
-          enabledModules: ['sales', 'purchases', 'inventory', 'expenses', 'accounting'],
-          terminology: {'sale': 'Sale', 'invoice': 'Invoice', 'product': 'Medicine'},
+          enabledModules: [
+            'sales',
+            'purchases',
+            'inventory',
+            'expenses',
+            'accounting'
+          ],
+          terminology: {
+            'sale': 'Sale',
+            'invoice': 'Invoice',
+            'product': 'Medicine'
+          },
           hasBatchExpiry: true,
         );
       case TemplateFamily.foodService:
@@ -114,11 +273,15 @@ class BusinessTemplates {
           title: categoryTitle ?? 'Restaurant / Cafe',
           icon: icon ?? Icons.restaurant,
           family: family,
-          defaultCoa: ['Food Sales', 'Beverage Sales', 'Food Cost', 'Kitchen Supplies', 'Cash', 'Waiter Tips'],
+          defaultCoa: _CategoryCoa.restaurant(),
           defaultCategories: ['Starters', 'Main Course', 'Beverages'],
           defaultUnits: ['Plate', 'Serving', 'Glass'],
           enabledModules: ['sales', 'inventory', 'expenses', 'hr'],
-          terminology: {'sale': 'Order', 'invoice': 'Bill', 'product': 'Menu Item'},
+          terminology: {
+            'sale': 'Order',
+            'invoice': 'Bill',
+            'product': 'Menu Item'
+          },
         );
       case TemplateFamily.bookingBased:
         return BusinessTemplate(
@@ -126,11 +289,15 @@ class BusinessTemplates {
           title: categoryTitle ?? 'Hospitality / Travel',
           icon: icon ?? Icons.hotel,
           family: family,
-          defaultCoa: ['Booking Revenue', 'Service Income', 'Cash', 'Maintenance Expense'],
+          defaultCoa: _CategoryCoa.service(),
           defaultCategories: ['Rooms', 'Packages', 'Services'],
           defaultUnits: ['Night', 'Person', 'Ticket'],
           enabledModules: ['sales', 'expenses', 'accounting'],
-          terminology: {'sale': 'Booking', 'invoice': 'Receipt', 'product': 'Service'},
+          terminology: {
+            'sale': 'Booking',
+            'invoice': 'Receipt',
+            'product': 'Service'
+          },
         );
       case TemplateFamily.workshopJob:
         return BusinessTemplate(
@@ -138,11 +305,21 @@ class BusinessTemplates {
           title: categoryTitle ?? 'Automotive / Workshop',
           icon: icon ?? Icons.directions_car,
           family: family,
-          defaultCoa: ['Parts Sales', 'Labor Income', 'Inventory Asset', 'Cash', 'Operating Expenses'],
+          defaultCoa: _CategoryCoa.service(),
           defaultCategories: ['Spare Parts', 'Lubricants', 'Services'],
           defaultUnits: ['Piece', 'Litre', 'Job'],
-          enabledModules: ['sales', 'purchases', 'inventory', 'expenses', 'accounting'],
-          terminology: {'sale': 'Job Card', 'invoice': 'Invoice', 'product': 'Part'},
+          enabledModules: [
+            'sales',
+            'purchases',
+            'inventory',
+            'expenses',
+            'accounting'
+          ],
+          terminology: {
+            'sale': 'Job Card',
+            'invoice': 'Invoice',
+            'product': 'Part'
+          },
         );
       case TemplateFamily.farmOperations:
         return BusinessTemplate(
@@ -150,11 +327,15 @@ class BusinessTemplates {
           title: categoryTitle ?? 'Agriculture / Farm',
           icon: icon ?? Icons.agriculture,
           family: family,
-          defaultCoa: ['Crop Sales', 'Livestock Sales', 'Feed Expense', 'Seed Purchases', 'Cash'],
+          defaultCoa: _CategoryCoa.retailBase,
           defaultCategories: ['Seeds', 'Fertilizers', 'Crops'],
           defaultUnits: ['Kg', 'Bag', 'Mound'],
           enabledModules: ['sales', 'purchases', 'inventory', 'expenses'],
-          terminology: {'sale': 'Sale', 'invoice': 'Invoice', 'product': 'Item'},
+          terminology: {
+            'sale': 'Sale',
+            'invoice': 'Invoice',
+            'product': 'Item'
+          },
         );
       case TemplateFamily.manufacturing:
         return BusinessTemplate(
@@ -162,20 +343,51 @@ class BusinessTemplates {
           title: categoryTitle ?? 'Manufacturing',
           icon: icon ?? Icons.precision_manufacturing,
           family: family,
-          defaultCoa: ['Finished Goods Sales', 'Raw Material Asset', 'WIP Inventory', 'Manufacturing Overhead', 'Factory Wages'],
+          defaultCoa: _CategoryCoa.manufacturing(),
           defaultCategories: ['Raw Materials', 'Finished Goods'],
           defaultUnits: ['Kg', 'Unit', 'Batch'],
-          enabledModules: ['sales', 'purchases', 'inventory', 'expenses', 'accounting', 'hr'],
-          terminology: {'sale': 'Sale', 'invoice': 'Invoice', 'product': 'Finished Good'},
+          enabledModules: [
+            'sales',
+            'purchases',
+            'inventory',
+            'expenses',
+            'accounting',
+            'hr'
+          ],
+          terminology: {
+            'sale': 'Sale',
+            'invoice': 'Invoice',
+            'product': 'Finished Good'
+          },
+        );
+      case TemplateFamily.serviceJob:
+        return BusinessTemplate(
+          id: 'service_job',
+          title: categoryTitle ?? 'Services',
+          icon: icon ?? Icons.miscellaneous_services,
+          family: family,
+          defaultCoa: _CategoryCoa.service(),
+          defaultCategories: ['Consulting', 'Repair', 'Other Services'],
+          defaultUnits: ['Hour', 'Visit', 'Job'],
+          enabledModules: ['sales', 'expenses', 'accounting'],
+          terminology: {
+            'sale': 'Service',
+            'invoice': 'Invoice',
+            'product': 'Service'
+          },
         );
       default:
-        // Fallback for others to retailStandard
-        return getByFamily(TemplateFamily.retailStandard, categoryTitle: categoryTitle, icon: icon);
+        // Fallback to retail so we always have a working COA.
+        return getByFamily(TemplateFamily.retailStandard,
+            categoryTitle: categoryTitle, icon: icon);
     }
   }
 
   static BusinessTemplate getById(String id) {
-    final cat = kBusinessCategories.firstWhere((c) => c.id == id, orElse: () => kBusinessCategories.first);
+    final cat = kBusinessCategories.firstWhere(
+      (c) => c.id == id,
+      orElse: () => kBusinessCategories.first,
+    );
     return getByFamily(cat.family, categoryTitle: cat.label, icon: cat.icon);
   }
 }

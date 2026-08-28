@@ -45,7 +45,8 @@ class DataArchiveRepository extends BaseRepository {
   /// Archive sales and purchases older than a specified year (e.g. older than 2024).
   Future<Map<String, int>> archiveTransactionsOlderThanYear({
     required int companyId,
-    required int cutoffYear, // e.g. 2024 (archives everything from 2023 and earlier)
+    required int
+        cutoffYear, // e.g. 2024 (archives everything from 2023 and earlier)
   }) async {
     await _ensureArchiveTablesExist();
     final cutoffDate = '$cutoffYear-01-01 00:00:00';
@@ -79,7 +80,8 @@ class DataArchiveRepository extends BaseRepository {
         final purchaseMap = Map<String, dynamic>.from(purchase);
         purchaseMap['archived_at'] = DateTime.now().toIso8601String();
         await txn.insert('purchases_archive', purchaseMap);
-        await txn.delete('purchases', where: 'id = ?', whereArgs: [purchase['id']]);
+        await txn
+            .delete('purchases', where: 'id = ?', whereArgs: [purchase['id']]);
         archivedPurchasesCount++;
       }
     });
@@ -88,7 +90,8 @@ class DataArchiveRepository extends BaseRepository {
       companyId: companyId,
       module: 'Archive',
       action: 'archive',
-      description: 'Archived $archivedSalesCount sales and $archivedPurchasesCount purchases older than year $cutoffYear',
+      description:
+          'Archived $archivedSalesCount sales and $archivedPurchasesCount purchases older than year $cutoffYear',
       afterValue: {
         'cutoff_year': cutoffYear,
         'archived_sales': archivedSalesCount,

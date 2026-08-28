@@ -13,7 +13,8 @@ class CommitteeInstallmentsTab extends StatefulWidget {
   });
 
   @override
-  State<CommitteeInstallmentsTab> createState() => _CommitteeInstallmentsTabState();
+  State<CommitteeInstallmentsTab> createState() =>
+      _CommitteeInstallmentsTabState();
 }
 
 class _CommitteeInstallmentsTabState extends State<CommitteeInstallmentsTab> {
@@ -31,7 +32,8 @@ class _CommitteeInstallmentsTabState extends State<CommitteeInstallmentsTab> {
     setState(() => _loading = true);
     final installments =
         await DBHelper.instance.getCommitteeInstallments(widget.committeeId);
-    final members = await DBHelper.instance.getCommitteeMembers(widget.committeeId);
+    final members =
+        await DBHelper.instance.getCommitteeMembers(widget.committeeId);
     setState(() {
       _installments = installments;
       _members = members;
@@ -41,16 +43,17 @@ class _CommitteeInstallmentsTabState extends State<CommitteeInstallmentsTab> {
 
   void _showRecordDialog() {
     if (_members.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Pehle Members tab mein member add karein')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Pehle Members tab mein member add karein')));
       return;
     }
 
     int? selectedMemberId = _members.first['id'] as int;
-    final amountCtrl = TextEditingController(text: widget.defaultAmount.toStringAsFixed(0));
+    final amountCtrl =
+        TextEditingController(text: widget.defaultAmount.toStringAsFixed(0));
     final now = DateTime.now();
-    final monthCtrl =
-        TextEditingController(text: '${now.year}-${now.month.toString().padLeft(2, '0')}');
+    final monthCtrl = TextEditingController(
+        text: '${now.year}-${now.month.toString().padLeft(2, '0')}');
     DateTime paymentDate = DateTime.now();
 
     showDialog(
@@ -82,13 +85,16 @@ class _CommitteeInstallmentsTabState extends State<CommitteeInstallmentsTab> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: amountCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Amount (Rs.) *'),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration:
+                      const InputDecoration(labelText: 'Amount (Rs.) *'),
                 ),
                 const SizedBox(height: 8),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text('Date: ${paymentDate.toIso8601String().substring(0, 10)}'),
+                  title: Text(
+                      'Date: ${paymentDate.toIso8601String().substring(0, 10)}'),
                   trailing: const Icon(Icons.calendar_today, size: 18),
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -97,18 +103,22 @@ class _CommitteeInstallmentsTabState extends State<CommitteeInstallmentsTab> {
                       firstDate: DateTime(2020),
                       lastDate: DateTime(2100),
                     );
-                    if (picked != null) setDialogState(() => paymentDate = picked);
+                    if (picked != null)
+                      setDialogState(() => paymentDate = picked);
                   },
                 ),
               ],
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
                 final amount = double.tryParse(amountCtrl.text.trim());
-                if (amount == null || amount <= 0 || selectedMemberId == null) return;
+                if (amount == null || amount <= 0 || selectedMemberId == null)
+                  return;
                 await DBHelper.instance.insertCommitteeInstallment({
                   'company_id': widget.companyId,
                   'committee_id': widget.committeeId,

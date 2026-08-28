@@ -11,7 +11,7 @@ class _PurchaseCartItem {
   final String name;
   double unitCost; // Price per base unit
   double qty; // Quantity in selected unit
-  
+
   String baseUnit;
   String? secondaryUnit;
   double conversionFactor;
@@ -31,8 +31,10 @@ class _PurchaseCartItem {
     this.conversionFactor = 1,
     this.isSecondary = false,
   }) {
-    costController = TextEditingController(text: displayCost.toStringAsFixed(0));
-    qtyController = TextEditingController(text: qty.toStringAsFixed(qty % 1 == 0 ? 0 : 1));
+    costController =
+        TextEditingController(text: displayCost.toStringAsFixed(0));
+    qtyController =
+        TextEditingController(text: qty.toStringAsFixed(qty % 1 == 0 ? 0 : 1));
   }
 
   void updateControllers() {
@@ -51,7 +53,8 @@ class _PurchaseCartItem {
     qtyController.dispose();
   }
 
-  double get displayCost => isSecondary ? unitCost * conversionFactor : unitCost;
+  double get displayCost =>
+      isSecondary ? unitCost * conversionFactor : unitCost;
   double get total => displayCost * qty;
   double get baseQty => isSecondary ? qty * conversionFactor : qty;
 }
@@ -97,7 +100,8 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
   double get _subtotal => _cart.fold(0, (sum, item) => sum + item.total);
   double get _discount => double.tryParse(_discountCtrl.text.trim()) ?? 0;
   double get _taxAmount => double.tryParse(_taxCtrl.text.trim()) ?? 0;
-  double get _grandTotal => (_subtotal - _discount + _taxAmount).clamp(0, double.infinity);
+  double get _grandTotal =>
+      (_subtotal - _discount + _taxAmount).clamp(0, double.infinity);
 
   Future<void> _pickPurchaseDate() async {
     final picked = await showDatePicker(
@@ -153,27 +157,29 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
       }
     }
 
-    final existingIndex = _cart.indexWhere((c) => c.productId == productId && c.variantId == selectedVariantId);
+    final existingIndex = _cart.indexWhere(
+        (c) => c.productId == productId && c.variantId == selectedVariantId);
 
-      if (existingIndex >= 0) {
-        setState(() {
-          _cart[existingIndex].qty += 1;
-          _cart[existingIndex].updateControllers();
-        });
-      } else {
-        setState(() {
-          _cart.add(_PurchaseCartItem(
-            productId: productId,
-            variantId: selectedVariantId,
-            name: '${selected['name']}$variantLabel',
-            unitCost: variantCost,
-            qty: 1,
-            baseUnit: selected['base_unit'] as String? ?? 'Pc',
-            secondaryUnit: selected['secondary_unit'] as String?,
-            conversionFactor: (selected['conversion_factor'] as num?)?.toDouble() ?? 1,
-          ));
-        });
-      }
+    if (existingIndex >= 0) {
+      setState(() {
+        _cart[existingIndex].qty += 1;
+        _cart[existingIndex].updateControllers();
+      });
+    } else {
+      setState(() {
+        _cart.add(_PurchaseCartItem(
+          productId: productId,
+          variantId: selectedVariantId,
+          name: '${selected['name']}$variantLabel',
+          unitCost: variantCost,
+          qty: 1,
+          baseUnit: selected['base_unit'] as String? ?? 'Pc',
+          secondaryUnit: selected['secondary_unit'] as String?,
+          conversionFactor:
+              (selected['conversion_factor'] as num?)?.toDouble() ?? 1,
+        ));
+      });
+    }
   }
 
   void _removeItem(int index) {
@@ -190,7 +196,9 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
 
     if (_purchaseType == 'due' && _selectedSupplierId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Due purchase ke liye supplier select karna zaroori hai')),
+        const SnackBar(
+            content:
+                Text('Due purchase ke liye supplier select karna zaroori hai')),
       );
       return;
     }
@@ -203,7 +211,7 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
     final dueAmount = (_grandTotal - paidAmount).clamp(0, double.infinity);
 
     final invoiceNumber =
-    await DBHelper.instance.generatePurchaseInvoiceNumber(widget.companyId);
+        await DBHelper.instance.generatePurchaseInvoiceNumber(widget.companyId);
 
     String? supplierName;
     if (_selectedSupplierId != null) {
@@ -231,14 +239,14 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
 
     final itemsData = _cart
         .map((c) => {
-      'product_id': c.productId,
-      'variant_id': c.variantId,
-      'product_name': c.name,
-      'quantity': c.baseQty,
-      'unit_cost': c.unitCost,
-      'packing': c.isSecondary ? c.secondaryUnit : c.baseUnit,
-      'total': c.total,
-    })
+              'product_id': c.productId,
+              'variant_id': c.variantId,
+              'product_name': c.name,
+              'quantity': c.baseQty,
+              'unit_cost': c.unitCost,
+              'packing': c.isSecondary ? c.secondaryUnit : c.baseUnit,
+              'total': c.total,
+            })
         .toList();
 
     try {
@@ -259,13 +267,15 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
       companyId: widget.companyId,
       module: 'Purchase',
       action: AuditLogger.create,
-      description: 'Purchase banayi: $invoiceNumber (Rs. ${_grandTotal.toStringAsFixed(0)})',
+      description:
+          'Purchase banayi: $invoiceNumber (Rs. ${_grandTotal.toStringAsFixed(0)})',
     );
     await AuditLogger.log(
       companyId: widget.companyId,
       module: 'Product',
       action: AuditLogger.stockChange,
-      description: 'Stock barha ${_cart.length} product(s) ka — Purchase $invoiceNumber ki wajah se',
+      description:
+          'Stock barha ${_cart.length} product(s) ka — Purchase $invoiceNumber ki wajah se',
     );
 
     setState(() => _saving = false);
@@ -296,113 +306,135 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
         children: [
           ListTile(
             leading: const Icon(Icons.calendar_today, size: 20),
-            title: Text('Purchase Date: ${_purchaseDate.toIso8601String().substring(0, 10)}'),
-            trailing: TextButton(onPressed: _pickPurchaseDate, child: const Text('Badlein')),
+            title: Text(
+                'Purchase Date: ${_purchaseDate.toIso8601String().substring(0, 10)}'),
+            trailing: TextButton(
+                onPressed: _pickPurchaseDate, child: const Text('Badlein')),
           ),
           const Divider(height: 1),
           Expanded(
             child: _cart.isEmpty
-                ? const Center(child: Text('Cart khali hai — product add karein'))
+                ? const Center(
+                    child: Text('Cart khali hai — product add karein'))
                 : ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: _cart.length,
-              itemBuilder: (ctx, i) {
-                final item = _cart[i];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(item.name,
-                                  style: const TextStyle(fontWeight: FontWeight.bold)),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.close, size: 18, color: Colors.red),
-                              onPressed: () => _removeItem(i),
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                            ),
-                          ],
+                    padding: const EdgeInsets.all(12),
+                    itemCount: _cart.length,
+                    itemBuilder: (ctx, i) {
+                      final item = _cart[i];
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(item.name,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold)),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.close,
+                                        size: 18, color: Colors.red),
+                                    onPressed: () => _removeItem(i),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      controller: item.qtyController,
+                                      keyboardType:
+                                          const TextInputType.numberWithOptions(
+                                              decimal: true),
+                                      decoration: const InputDecoration(
+                                          labelText: 'Quantity', isDense: true),
+                                      onChanged: (v) {
+                                        final val = double.tryParse(v) ?? 0;
+                                        setState(() => item.qty = val);
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: TextField(
+                                      controller: item.costController,
+                                      keyboardType:
+                                          const TextInputType.numberWithOptions(
+                                              decimal: true),
+                                      decoration: const InputDecoration(
+                                          labelText: 'Unit Cost (Rs.)',
+                                          isDense: true),
+                                      onChanged: (v) {
+                                        final val = double.tryParse(v) ?? 0;
+                                        setState(() {
+                                          if (item.isSecondary) {
+                                            item.unitCost =
+                                                val / item.conversionFactor;
+                                          } else {
+                                            item.unitCost = val;
+                                          }
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                  if (item.secondaryUnit != null &&
+                                      item.secondaryUnit!.isNotEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                          left: 8.0, top: 12),
+                                      child: FilterChip(
+                                        label: Text(
+                                            item.isSecondary
+                                                ? item.secondaryUnit!
+                                                : item.baseUnit,
+                                            style:
+                                                const TextStyle(fontSize: 10)),
+                                        selected: item.isSecondary,
+                                        onSelected: (v) => setState(() {
+                                          item.isSecondary = v;
+                                          item.updateControllers();
+                                        }),
+                                        padding: EdgeInsets.zero,
+                                        visualDensity: VisualDensity.compact,
+                                      ),
+                                    ),
+                                  const SizedBox(width: 10),
+                                  SizedBox(
+                                    width: 80,
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(top: 12.0),
+                                      child: Text(
+                                        'Rs. ${item.total.toStringAsFixed(0)}',
+                                        textAlign: TextAlign.right,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: item.qtyController,
-                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                decoration: const InputDecoration(
-                                    labelText: 'Quantity', isDense: true),
-                                onChanged: (v) {
-                                  final val = double.tryParse(v) ?? 0;
-                                  setState(() => item.qty = val);
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: TextField(
-                                controller: item.costController,
-                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                decoration: const InputDecoration(
-                                    labelText: 'Unit Cost (Rs.)', isDense: true),
-                                onChanged: (v) {
-                                  final val = double.tryParse(v) ?? 0;
-                                  setState(() {
-                                    if (item.isSecondary) {
-                                      item.unitCost = val / item.conversionFactor;
-                                    } else {
-                                      item.unitCost = val;
-                                    }
-                                  });
-                                },
-                              ),
-                            ),
-                            if (item.secondaryUnit != null && item.secondaryUnit!.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(left: 8.0, top: 12),
-                                child: FilterChip(
-                                  label: Text(item.isSecondary ? item.secondaryUnit! : item.baseUnit, style: const TextStyle(fontSize: 10)),
-                                  selected: item.isSecondary,
-                                  onSelected: (v) => setState(() {
-                                    item.isSecondary = v;
-                                    item.updateControllers();
-                                  }),
-                                  padding: EdgeInsets.zero,
-                                  visualDensity: VisualDensity.compact,
-                                ),
-                              ),
-                            const SizedBox(width: 10),
-                            SizedBox(
-                              width: 80,
-                              child: Padding(
-                                padding: const EdgeInsets.only(top: 12.0),
-                                child: Text(
-                                  'Rs. ${item.total.toStringAsFixed(0)}',
-                                  textAlign: TextAlign.right,
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, -2)),
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.06),
+                    blurRadius: 8,
+                    offset: const Offset(0, -2)),
               ],
             ),
             child: Column(
@@ -418,11 +450,12 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
                   value: _selectedSupplierId,
                   decoration: const InputDecoration(labelText: 'Supplier'),
                   items: [
-                    const DropdownMenuItem<int?>(value: null, child: Text('Select Nahi Kiya')),
+                    const DropdownMenuItem<int?>(
+                        value: null, child: Text('Select Nahi Kiya')),
                     ..._suppliers.map((s) => DropdownMenuItem<int?>(
-                      value: s['id'] as int,
-                      child: Text(s['company_name'] as String),
-                    )),
+                          value: s['id'] as int,
+                          child: Text(s['company_name'] as String),
+                        )),
                   ],
                   onChanged: (v) => setState(() => _selectedSupplierId = v),
                 ),
@@ -454,8 +487,10 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
                     Expanded(
                       child: TextField(
                         controller: _discountCtrl,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        decoration: const InputDecoration(labelText: 'Discount (Rs.)'),
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        decoration:
+                            const InputDecoration(labelText: 'Discount (Rs.)'),
                         onChanged: (_) => setState(() {}),
                       ),
                     ),
@@ -463,8 +498,10 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
                     Expanded(
                       child: TextField(
                         controller: _taxCtrl,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        decoration: const InputDecoration(labelText: 'Tax (GST)'),
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        decoration:
+                            const InputDecoration(labelText: 'Tax (GST)'),
                         onChanged: (_) => setState(() {}),
                       ),
                     ),
@@ -473,8 +510,10 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
                       Expanded(
                         child: TextField(
                           controller: _paidCtrl,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          decoration: const InputDecoration(labelText: 'Paid Amount (Rs.)'),
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          decoration: const InputDecoration(
+                              labelText: 'Paid Amount (Rs.)'),
                         ),
                       ),
                     ],
@@ -487,7 +526,8 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
                     const Text('Total', style: TextStyle(fontSize: 16)),
                     Text(
                       'Rs. ${_grandTotal.toStringAsFixed(0)}',
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -496,9 +536,10 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
                   onPressed: _saving ? null : _savePurchase,
                   child: _saving
                       ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white))
                       : const Text('Purchase Complete Karein'),
                 ),
               ],
@@ -569,7 +610,8 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Text('Product Select Karein', style: Theme.of(context).textTheme.titleMedium),
+            Text('Product Select Karein',
+                style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 10),
             TextField(
               decoration: InputDecoration(
@@ -590,20 +632,20 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
                   : _products.isEmpty
-                  ? const Center(child: Text('Koi product nahi mila'))
-                  : ListView.builder(
-                controller: scrollController,
-                itemCount: _products.length,
-                itemBuilder: (ctx, i) {
-                  final p = _products[i];
-                  return ListTile(
-                    title: Text(p['name'] as String),
-                    subtitle: Text(
-                        'Current Stock: ${p['current_stock']}  •  Cost: Rs. ${p['purchase_price']}'),
-                    onTap: () => Navigator.of(context).pop(p),
-                  );
-                },
-              ),
+                      ? const Center(child: Text('Koi product nahi mila'))
+                      : ListView.builder(
+                          controller: scrollController,
+                          itemCount: _products.length,
+                          itemBuilder: (ctx, i) {
+                            final p = _products[i];
+                            return ListTile(
+                              title: Text(p['name'] as String),
+                              subtitle: Text(
+                                  'Current Stock: ${p['current_stock']}  •  Cost: Rs. ${p['purchase_price']}'),
+                              onTap: () => Navigator.of(context).pop(p),
+                            );
+                          },
+                        ),
             ),
           ],
         ),

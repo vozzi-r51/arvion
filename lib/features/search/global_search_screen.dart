@@ -79,8 +79,8 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
           cursorColor: isDark ? Colors.white : Colors.black,
           decoration: InputDecoration(
             hintText: 'Product, customer ya supplier search karein...',
-            hintStyle: TextStyle(
-                color: isDark ? Colors.white60 : Colors.black45),
+            hintStyle:
+                TextStyle(color: isDark ? Colors.white60 : Colors.black45),
             border: InputBorder.none,
             enabledBorder: InputBorder.none,
             focusedBorder: InputBorder.none,
@@ -94,53 +94,44 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
               padding: const EdgeInsets.all(12),
               children: [
                 if (_products.isNotEmpty)
-                  ..._section(
-                      'Products',
-                      _products,
-                      (p) => p['name'] as String,
+                  ..._section('Products', _products, (p) => p['name'] as String,
                       (p) {
-                        if (!isOwner) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Cashier products edit nahi kar sakta'))
-                          );
-                          return;
-                        }
-                        Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => ProductFormScreen(
-                              companyId: widget.companyId, existing: p)));
-                      }),
+                    if (!isOwner) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content:
+                              Text('Cashier products edit nahi kar sakta')));
+                      return;
+                    }
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => ProductFormScreen(
+                            companyId: widget.companyId, existing: p)));
+                  }),
                 if (_customers.isNotEmpty)
                   ..._section(
-                      'Customers',
-                      _customers,
-                      (c) => c['name'] as String,
-                      (c) {
-                        if (!isOwner) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Cashier customers edit nahi kar sakta'))
-                          );
-                          return;
-                        }
-                        Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => CustomerFormScreen(
-                              companyId: widget.companyId, existing: c)));
-                      }),
+                      'Customers', _customers, (c) => c['name'] as String, (c) {
+                    if (!isOwner) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content:
+                              Text('Cashier customers edit nahi kar sakta')));
+                      return;
+                    }
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => CustomerFormScreen(
+                            companyId: widget.companyId, existing: c)));
+                  }),
                 if (_suppliers.isNotEmpty)
-                  ..._section(
-                      'Suppliers',
-                      _suppliers,
-                      (s) => s['company_name'] as String,
-                      (s) {
-                        if (!isOwner) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Cashier suppliers edit nahi kar sakta'))
-                          );
-                          return;
-                        }
-                        Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => SupplierFormScreen(
-                              companyId: widget.companyId, existing: s)));
-                      }),
+                  ..._section('Suppliers', _suppliers,
+                      (s) => s['company_name'] as String, (s) {
+                    if (!isOwner) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content:
+                              Text('Cashier suppliers edit nahi kar sakta')));
+                      return;
+                    }
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => SupplierFormScreen(
+                            companyId: widget.companyId, existing: s)));
+                  }),
               ],
             ),
     );

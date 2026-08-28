@@ -22,24 +22,24 @@ class CostCenter {
   });
 
   Map<String, dynamic> toMap() => {
-    'id': id,
-    'company_id': companyId,
-    'code': code,
-    'name': name,
-    'type': type,
-    'description': description,
-    'is_active': isActive ? 1 : 0,
-    'created_at': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'company_id': companyId,
+        'code': code,
+        'name': name,
+        'type': type,
+        'description': description,
+        'is_active': isActive ? 1 : 0,
+        'created_at': createdAt.toIso8601String(),
+      };
 
   factory CostCenter.fromMap(Map<String, dynamic> map) => CostCenter(
-    id: map['id'] as int,
-    companyId: map['company_id'] as int,
-    code: map['code'] as String,
-    name: map['name'] as String,
-    type: map['type'] as String,
-    description: map['description'] as String?,
-    isActive: (map['is_active'] as int?) == 1,
-    createdAt: DateTime.parse(map['created_at'] as String),
-  );
+        id: map['id'] as int,
+        companyId: map['company_id'] as int,
+        code: map['code'] as String,
+        name: map['name'] as String,
+        type: map['type'] as String,
+        description: map['description'] as String?,
+        isActive: (map['is_active'] as int?) == 1,
+        createdAt: DateTime.parse(map['created_at'] as String),
+      );
 }

@@ -52,7 +52,8 @@ class PurchaseService {
     int? limit,
     int? offset,
   }) async {
-    return await _purchaseRepo.listPurchases(companyId, limit: limit, offset: offset);
+    return await _purchaseRepo.listPurchases(companyId,
+        limit: limit, offset: offset);
   }
 
   /// Get purchase items.

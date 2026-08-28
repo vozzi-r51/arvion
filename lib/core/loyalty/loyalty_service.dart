@@ -41,10 +41,12 @@ class LoyaltyService {
 
     if (customerRows.isEmpty) return 0.0;
 
-    final currentPoints = (customerRows.first['loyalty_points'] as num?)?.toDouble() ?? 0.0;
+    final currentPoints =
+        (customerRows.first['loyalty_points'] as num?)?.toDouble() ?? 0.0;
 
     if (pointsRedeemed > currentPoints) {
-      throw FormatException('Redeemed points ($pointsRedeemed) cannot exceed available points ($currentPoints)');
+      throw FormatException(
+          'Redeemed points ($pointsRedeemed) cannot exceed available points ($currentPoints)');
     }
 
     final newBalance = currentPoints - pointsRedeemed + pointsEarned;

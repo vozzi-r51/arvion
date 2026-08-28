@@ -54,6 +54,8 @@ class TemplateMessaging {
 
       case TemplateFamily.nonprofit:
         return 'Donor tracking aur fund management setup ho gaya — nonprofit operations ready hain!';
+      case TemplateFamily.trading:
+        return 'Wholesale aur distribution setup ready — freight, duties, aur supplier returns sab enabled hain!';
     }
   }
 
@@ -92,6 +94,8 @@ class TemplateMessaging {
         return 'Enrollment System';
       case TemplateFamily.nonprofit:
         return 'Nonprofit Setup';
+      case TemplateFamily.trading:
+        return 'Wholesale & Trading';
     }
   }
 
@@ -118,7 +122,12 @@ class TemplateMessaging {
         return [...baseFeatures, 'Serial Numbers', 'Accounting'];
 
       case TemplateFamily.retailBatchExpiry:
-        return [...baseFeatures, 'Batch Tracking', 'Expiry Dates', 'Accounting'];
+        return [
+          ...baseFeatures,
+          'Batch Tracking',
+          'Expiry Dates',
+          'Accounting'
+        ];
 
       case TemplateFamily.foodService:
         return ['Sales', 'Tables', 'Kitchen Orders', 'Inventory', 'HR'];
@@ -137,6 +146,15 @@ class TemplateMessaging {
 
       case TemplateFamily.serviceJob:
         return ['Services', 'Appointments', 'Billing', 'Accounting'];
+
+      case TemplateFamily.trading:
+        return [
+          ...baseFeatures,
+          'Wholesale Pricing',
+          'Freight & Duties',
+          'Supplier Returns',
+          'Accounting'
+        ];
     }
   }
 

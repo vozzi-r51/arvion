@@ -18,7 +18,8 @@ class HrRepository extends BaseRepository {
   }
 
   Future<Map<String, dynamic>?> getEmployeeById(int id) async {
-    final rows = await db.query('employees', where: 'id = ?', whereArgs: [id], limit: 1);
+    final rows =
+        await db.query('employees', where: 'id = ?', whereArgs: [id], limit: 1);
     return rows.isEmpty ? null : rows.first;
   }
 
@@ -39,14 +40,16 @@ class HrRepository extends BaseRepository {
     return await db.insert('attendance', data);
   }
 
-  Future<List<Map<String, dynamic>>> getAttendance(int employeeId, {String? month}) async {
+  Future<List<Map<String, dynamic>>> getAttendance(int employeeId,
+      {String? month}) async {
     String where = 'employee_id = ?';
     List<dynamic> args = [employeeId];
     if (month != null) {
       where += ' AND date LIKE ?';
       args.add('$month%');
     }
-    return await db.query('attendance', where: where, whereArgs: args, orderBy: 'date DESC');
+    return await db.query('attendance',
+        where: where, whereArgs: args, orderBy: 'date DESC');
   }
 
   Future<int> recordSalary(Map<String, dynamic> data) async {

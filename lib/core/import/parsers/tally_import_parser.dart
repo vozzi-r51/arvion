@@ -20,7 +20,8 @@ class TallyImportParser {
     // Default Excel/CSV fallback for Tally exports
     final genericResult = await GenericCsvExcelParser().parseFile(filePath);
     final List<String> headers = List<String>.from(genericResult['headers']);
-    final List<Map<String, String>> rows = List<Map<String, String>>.from(genericResult['rows']);
+    final List<Map<String, String>> rows =
+        List<Map<String, String>>.from(genericResult['rows']);
 
     final mappings = SmartColumnMapper.mapColumns(
       headers: headers,
@@ -36,7 +37,8 @@ class TallyImportParser {
   }
 
   /// Parses Tally XML export files safely.
-  Future<Map<String, dynamic>> _parseTallyXml(String filePath, ImportEntityType entityType) async {
+  Future<Map<String, dynamic>> _parseTallyXml(
+      String filePath, ImportEntityType entityType) async {
     final file = File(filePath);
     final content = await file.readAsString();
 
@@ -47,7 +49,9 @@ class TallyImportParser {
     final List<Map<String, String>> rows = [];
 
     // Simple regex extraction for Tally XML tags
-    final itemMatches = RegExp(r'<STOCKITEM NAME="([^"]+)">([\s\S]*?)</STOCKITEM>', caseSensitive: false)
+    final itemMatches = RegExp(
+            r'<STOCKITEM NAME="([^"]+)">([\s\S]*?)</STOCKITEM>',
+            caseSensitive: false)
         .allMatches(content);
 
     for (final match in itemMatches) {
@@ -55,7 +59,8 @@ class TallyImportParser {
       final body = match.group(2) ?? '';
 
       final rateMatch = RegExp(r'<RATE>([^<]+)</RATE>').firstMatch(body);
-      final qtyMatch = RegExp(r'<OPENINGBALANCE>([^<]+)</OPENINGBALANCE>').firstMatch(body);
+      final qtyMatch =
+          RegExp(r'<OPENINGBALANCE>([^<]+)</OPENINGBALANCE>').firstMatch(body);
 
       rows.add({
         'Stock Item Name': name,

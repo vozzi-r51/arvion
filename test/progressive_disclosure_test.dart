@@ -18,7 +18,9 @@ void main() {
     await databaseFactory.deleteDatabase(path);
   });
 
-  test('progressive disclosure: simple mode default, manual toggle & auto-detect for existing advanced users', () async {
+  test(
+      'progressive disclosure: simple mode default, manual toggle & auto-detect for existing advanced users',
+      () async {
     final db = DBHelper.instance;
 
     final companyId = await db.insertCompany({

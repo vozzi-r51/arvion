@@ -12,7 +12,8 @@ class MultiLevelBomEngine {
     required int candidateRawMaterialId,
   }) async {
     if (finishedProductId == candidateRawMaterialId) {
-      throw StateError('Cannot create BOM: Product cannot be a raw material of itself.');
+      throw StateError(
+          'Cannot create BOM: Product cannot be a raw material of itself.');
     }
 
     final db = await DBHelper.instance.database;
@@ -37,11 +38,14 @@ class MultiLevelBomEngine {
     required int depth,
   }) async {
     if (depth > 15) {
-      throw StateError('Cannot save BOM: Maximum recursion depth exceeded (corrupt/deep cycle).');
+      throw StateError(
+          'Cannot save BOM: Maximum recursion depth exceeded (corrupt/deep cycle).');
     }
 
-    if (currentProductId == targetProductId || visited.contains(currentProductId)) {
-      throw StateError('Cannot create BOM: Circular dependency detected involving Product #$currentProductId.');
+    if (currentProductId == targetProductId ||
+        visited.contains(currentProductId)) {
+      throw StateError(
+          'Cannot create BOM: Circular dependency detected involving Product #$currentProductId.');
     }
 
     visited.add(currentProductId);
@@ -123,7 +127,8 @@ class MultiLevelBomEngine {
 
     if (bomRows.isEmpty) {
       // Base raw material
-      requiredMaterials[productId] = (requiredMaterials[productId] ?? 0.0) + quantityNeeded;
+      requiredMaterials[productId] =
+          (requiredMaterials[productId] ?? 0.0) + quantityNeeded;
       return;
     }
 
@@ -144,8 +149,12 @@ class MultiLevelBomEngine {
       limit: 1,
     );
 
-    final currentStock = prodRows.isNotEmpty ? (prodRows.first['current_stock'] as num?)?.toDouble() ?? 0.0 : 0.0;
-    final name = prodRows.isNotEmpty ? prodRows.first['name'] as String : 'Product #$productId';
+    final currentStock = prodRows.isNotEmpty
+        ? (prodRows.first['current_stock'] as num?)?.toDouble() ?? 0.0
+        : 0.0;
+    final name = prodRows.isNotEmpty
+        ? prodRows.first['name'] as String
+        : 'Product #$productId';
 
     if (depth > 0 && currentStock < quantityNeeded) {
       final shortage = quantityNeeded - currentStock;

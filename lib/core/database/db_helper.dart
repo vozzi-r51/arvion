@@ -115,7 +115,7 @@ class DBHelper {
     if (oldVersion < 3) {
       // Phase 3: Category / Brand / Product management.
       await _createUnitsTable(db);
-    await _createCategoryBrandProductTables(db);
+      await _createCategoryBrandProductTables(db);
     }
     if (oldVersion < 4) {
       // Phase 4: Customer / Supplier management.
@@ -132,7 +132,7 @@ class DBHelper {
         FOREIGN KEY (finished_product_id) REFERENCES products (id) ON DELETE CASCADE
       )
     ''');
-    await db.execute('''
+      await db.execute('''
       CREATE TABLE bom_items (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         bom_id INTEGER NOT NULL,
@@ -143,7 +143,7 @@ class DBHelper {
         FOREIGN KEY (raw_material_product_id) REFERENCES products (id) ON DELETE CASCADE
       )
     ''');
-    await db.execute('''
+      await db.execute('''
       CREATE TABLE production_orders (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         company_id INTEGER NOT NULL,
@@ -160,7 +160,7 @@ class DBHelper {
         FOREIGN KEY (bom_id) REFERENCES bill_of_materials (id) ON DELETE CASCADE
       )
     ''');
-    await db.execute('''
+      await db.execute('''
       CREATE TABLE restaurant_tables (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         company_id INTEGER NOT NULL,
@@ -170,7 +170,7 @@ class DBHelper {
         FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
       )
     ''');
-    await db.execute('''
+      await db.execute('''
       CREATE TABLE service_jobs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         company_id INTEGER NOT NULL,
@@ -185,7 +185,7 @@ class DBHelper {
         FOREIGN KEY (customer_id) REFERENCES customers (id)
       )
     ''');
-    await db.execute('''
+      await db.execute('''
       CREATE TABLE tax_codes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         company_id INTEGER NOT NULL,
@@ -195,7 +195,7 @@ class DBHelper {
         FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
       )
     ''');
-    await db.execute('''
+      await db.execute('''
       CREATE TABLE price_lists (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         company_id INTEGER NOT NULL,
@@ -203,7 +203,7 @@ class DBHelper {
         FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
       )
     ''');
-    await db.execute('''
+      await db.execute('''
       CREATE TABLE product_prices (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         price_list_id INTEGER NOT NULL,
@@ -213,7 +213,7 @@ class DBHelper {
         FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE
       )
     ''');
-    await _createCustomerSupplierTables(db);
+      await _createCustomerSupplierTables(db);
     }
     if (oldVersion < 5) {
       // Phase 5: Sales / POS module.
@@ -264,17 +264,23 @@ class DBHelper {
       await db.execute('ALTER TABLE employees ADD COLUMN deleted_at TEXT');
     }
     if (oldVersion < 19) {
-      await db.execute('ALTER TABLE app_security ADD COLUMN security_question TEXT');
-      await db.execute('ALTER TABLE app_security ADD COLUMN security_answer TEXT');
+      await db.execute(
+          'ALTER TABLE app_security ADD COLUMN security_question TEXT');
+      await db
+          .execute('ALTER TABLE app_security ADD COLUMN security_answer TEXT');
     }
     if (oldVersion < 20) {
-      await db.execute('ALTER TABLE products ADD COLUMN base_unit TEXT DEFAULT "Pc"');
+      await db.execute(
+          'ALTER TABLE products ADD COLUMN base_unit TEXT DEFAULT "Pc"');
       await db.execute('ALTER TABLE products ADD COLUMN secondary_unit TEXT');
-      await db.execute('ALTER TABLE products ADD COLUMN conversion_factor REAL DEFAULT 1');
+      await db.execute(
+          'ALTER TABLE products ADD COLUMN conversion_factor REAL DEFAULT 1');
     }
     if (oldVersion < 21) {
-      await db.execute('ALTER TABLE journal_entries ADD COLUMN source_type TEXT');
-      await db.execute('ALTER TABLE journal_entries ADD COLUMN source_id INTEGER');
+      await db
+          .execute('ALTER TABLE journal_entries ADD COLUMN source_type TEXT');
+      await db
+          .execute('ALTER TABLE journal_entries ADD COLUMN source_id INTEGER');
     }
     if (oldVersion < 22) {
       await _createDatabaseIndexes(db);
@@ -282,13 +288,18 @@ class DBHelper {
     if (oldVersion < 23) {
       await _createQuotationTables(db);
       await _createPromotionTable(db);
-      await db.execute('CREATE INDEX idx_quotations_company ON quotations (company_id)');
-      await db.execute('CREATE INDEX idx_promotions_company ON promotions (company_id)');
+      await db.execute(
+          'CREATE INDEX idx_quotations_company ON quotations (company_id)');
+      await db.execute(
+          'CREATE INDEX idx_promotions_company ON promotions (company_id)');
     }
     if (oldVersion < 24) {
-      await db.execute('ALTER TABLE purchases ADD COLUMN tax_amount REAL DEFAULT 0');
-      await db.execute('ALTER TABLE purchase_items ADD COLUMN tax_amount REAL DEFAULT 0');
-      await db.execute('ALTER TABLE bank_transactions ADD COLUMN is_reconciled INTEGER DEFAULT 0');
+      await db.execute(
+          'ALTER TABLE purchases ADD COLUMN tax_amount REAL DEFAULT 0');
+      await db.execute(
+          'ALTER TABLE purchase_items ADD COLUMN tax_amount REAL DEFAULT 0');
+      await db.execute(
+          'ALTER TABLE bank_transactions ADD COLUMN is_reconciled INTEGER DEFAULT 0');
       await _createRecurringTemplatesTable(db);
     }
     if (oldVersion < 25) {
@@ -296,22 +307,28 @@ class DBHelper {
       await _createStaffUsersTable(db);
     }
     if (oldVersion < 26) {
-      await db.execute('ALTER TABLE customers ADD COLUMN loyalty_points REAL DEFAULT 0');
+      await db.execute(
+          'ALTER TABLE customers ADD COLUMN loyalty_points REAL DEFAULT 0');
     }
     if (oldVersion < 27) {
       await db.execute('ALTER TABLE companies ADD COLUMN enabled_modules TEXT');
-      await db.execute("ALTER TABLE companies ADD COLUMN currency_symbol TEXT DEFAULT 'Rs.'");
+      await db.execute(
+          "ALTER TABLE companies ADD COLUMN currency_symbol TEXT DEFAULT 'Rs.'");
       await db.execute('ALTER TABLE companies ADD COLUMN business_type TEXT');
     }
     if (oldVersion < 28) {
-      await db.execute('ALTER TABLE companies ADD COLUMN branding_color INTEGER');
+      await db
+          .execute('ALTER TABLE companies ADD COLUMN branding_color INTEGER');
     }
     if (oldVersion < 29) {
-      await db.execute('ALTER TABLE companies ADD COLUMN business_category TEXT');
-      await db.execute('ALTER TABLE companies ADD COLUMN terminology_profile TEXT');
+      await db
+          .execute('ALTER TABLE companies ADD COLUMN business_category TEXT');
+      await db
+          .execute('ALTER TABLE companies ADD COLUMN terminology_profile TEXT');
     }
     if (oldVersion < 30) {
-      await db.execute('ALTER TABLE companies ADD COLUMN business_subtype TEXT');
+      await db
+          .execute('ALTER TABLE companies ADD COLUMN business_subtype TEXT');
       await db.execute('ALTER TABLE companies ADD COLUMN template_family TEXT');
     }
     if (oldVersion < 31) {
@@ -320,12 +337,13 @@ class DBHelper {
     if (oldVersion < 32) {
       await db.execute('ALTER TABLE products ADD COLUMN parent_id INTEGER');
       await db.execute('ALTER TABLE products ADD COLUMN variant_label TEXT');
-      await db.execute('ALTER TABLE products ADD COLUMN is_serialized INTEGER DEFAULT 0');
+      await db.execute(
+          'ALTER TABLE products ADD COLUMN is_serialized INTEGER DEFAULT 0');
       await db.execute('ALTER TABLE products ADD COLUMN weight_unit TEXT');
       await db.execute('ALTER TABLE products ADD COLUMN weight_value REAL');
       await db.execute('ALTER TABLE products ADD COLUMN purity TEXT');
       await db.execute('ALTER TABLE products ADD COLUMN hallmark_number TEXT');
-      
+
       await db.execute('''
         CREATE TABLE product_serials (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -387,8 +405,10 @@ class DBHelper {
       ''');
 
       // 3. Item Types & Variants Flag
-      await db.execute('ALTER TABLE products ADD COLUMN item_type TEXT DEFAULT "inventory"');
-      await db.execute('ALTER TABLE products ADD COLUMN has_variants INTEGER DEFAULT 0');
+      await db.execute(
+          'ALTER TABLE products ADD COLUMN item_type TEXT DEFAULT "inventory"');
+      await db.execute(
+          'ALTER TABLE products ADD COLUMN has_variants INTEGER DEFAULT 0');
       await db.execute('ALTER TABLE products ADD COLUMN uom_id INTEGER');
 
       // 4. Custom Fields
@@ -421,11 +441,16 @@ class DBHelper {
     }
     if (oldVersion < 36) {
       // 1. Regional & Numbering columns on companies
-      await db.execute('ALTER TABLE companies ADD COLUMN decimal_places INTEGER DEFAULT 2');
-      await db.execute('ALTER TABLE companies ADD COLUMN date_format TEXT DEFAULT "dd/MM/yyyy"');
-      await db.execute('ALTER TABLE companies ADD COLUMN number_format TEXT DEFAULT "standard"');
-      await db.execute('ALTER TABLE companies ADD COLUMN invoice_prefix TEXT DEFAULT "INV"');
-      await db.execute('ALTER TABLE companies ADD COLUMN invoice_number_format TEXT DEFAULT "{PREFIX}-{NUMBER}"');
+      await db.execute(
+          'ALTER TABLE companies ADD COLUMN decimal_places INTEGER DEFAULT 2');
+      await db.execute(
+          'ALTER TABLE companies ADD COLUMN date_format TEXT DEFAULT "dd/MM/yyyy"');
+      await db.execute(
+          'ALTER TABLE companies ADD COLUMN number_format TEXT DEFAULT "standard"');
+      await db.execute(
+          'ALTER TABLE companies ADD COLUMN invoice_prefix TEXT DEFAULT "INV"');
+      await db.execute(
+          'ALTER TABLE companies ADD COLUMN invoice_number_format TEXT DEFAULT "{PREFIX}-{NUMBER}"');
 
       // 2. Tax Codes — IF NOT EXISTS because this table was first
       // created at v4 (line 153). Old DBs upgrading past v36 used to
@@ -466,9 +491,12 @@ class DBHelper {
       // 4. Per-item tax columns
       await db.execute('ALTER TABLE products ADD COLUMN tax_code_id INTEGER');
       await db.execute('ALTER TABLE sale_items ADD COLUMN tax_code_id INTEGER');
-      await db.execute('ALTER TABLE sale_items ADD COLUMN tax_rate REAL DEFAULT 0');
-      await db.execute('ALTER TABLE purchase_items ADD COLUMN tax_code_id INTEGER');
-      await db.execute('ALTER TABLE purchase_items ADD COLUMN tax_rate REAL DEFAULT 0');
+      await db
+          .execute('ALTER TABLE sale_items ADD COLUMN tax_rate REAL DEFAULT 0');
+      await db
+          .execute('ALTER TABLE purchase_items ADD COLUMN tax_code_id INTEGER');
+      await db.execute(
+          'ALTER TABLE purchase_items ADD COLUMN tax_rate REAL DEFAULT 0');
     }
     if (oldVersion < 37) {
       await _createCustomRolesTable(db);
@@ -493,21 +521,27 @@ class DBHelper {
         await db.execute('ALTER TABLE sales ADD COLUMN cost_center_id INTEGER');
         await db.execute('ALTER TABLE sales ADD COLUMN currency_code TEXT');
         await db.execute('ALTER TABLE sales ADD COLUMN foreign_amount REAL');
-        await db.execute('ALTER TABLE sales ADD COLUMN exchange_rate REAL DEFAULT 1.0');
+        await db.execute(
+            'ALTER TABLE sales ADD COLUMN exchange_rate REAL DEFAULT 1.0');
       } catch (_) {}
 
       try {
-        await db.execute('ALTER TABLE purchases ADD COLUMN cost_center_id INTEGER');
+        await db
+            .execute('ALTER TABLE purchases ADD COLUMN cost_center_id INTEGER');
         await db.execute('ALTER TABLE purchases ADD COLUMN currency_code TEXT');
-        await db.execute('ALTER TABLE purchases ADD COLUMN foreign_amount REAL');
-        await db.execute('ALTER TABLE purchases ADD COLUMN exchange_rate REAL DEFAULT 1.0');
+        await db
+            .execute('ALTER TABLE purchases ADD COLUMN foreign_amount REAL');
+        await db.execute(
+            'ALTER TABLE purchases ADD COLUMN exchange_rate REAL DEFAULT 1.0');
       } catch (_) {}
 
       try {
-        await db.execute('ALTER TABLE expenses ADD COLUMN cost_center_id INTEGER');
+        await db
+            .execute('ALTER TABLE expenses ADD COLUMN cost_center_id INTEGER');
         await db.execute('ALTER TABLE expenses ADD COLUMN currency_code TEXT');
         await db.execute('ALTER TABLE expenses ADD COLUMN foreign_amount REAL');
-        await db.execute('ALTER TABLE expenses ADD COLUMN exchange_rate REAL DEFAULT 1.0');
+        await db.execute(
+            'ALTER TABLE expenses ADD COLUMN exchange_rate REAL DEFAULT 1.0');
       } catch (_) {}
     }
     if (oldVersion < 39) {
@@ -536,17 +570,24 @@ class DBHelper {
     }
     if (oldVersion < 41) {
       try {
-        await db.execute('ALTER TABLE companies ADD COLUMN currency_code TEXT DEFAULT "PKR"');
-        await db.execute('ALTER TABLE companies ADD COLUMN currency_symbol TEXT DEFAULT "Rs."');
-        await db.execute('ALTER TABLE companies ADD COLUMN decimal_places INTEGER DEFAULT 2');
-        await db.execute('ALTER TABLE companies ADD COLUMN thousand_separator TEXT DEFAULT ","');
-        await db.execute('ALTER TABLE companies ADD COLUMN decimal_separator TEXT DEFAULT "."');
-        await db.execute('ALTER TABLE companies ADD COLUMN date_format TEXT DEFAULT "dd/MM/yyyy"');
+        await db.execute(
+            'ALTER TABLE companies ADD COLUMN currency_code TEXT DEFAULT "PKR"');
+        await db.execute(
+            'ALTER TABLE companies ADD COLUMN currency_symbol TEXT DEFAULT "Rs."');
+        await db.execute(
+            'ALTER TABLE companies ADD COLUMN decimal_places INTEGER DEFAULT 2');
+        await db.execute(
+            'ALTER TABLE companies ADD COLUMN thousand_separator TEXT DEFAULT ","');
+        await db.execute(
+            'ALTER TABLE companies ADD COLUMN decimal_separator TEXT DEFAULT "."');
+        await db.execute(
+            'ALTER TABLE companies ADD COLUMN date_format TEXT DEFAULT "dd/MM/yyyy"');
       } catch (_) {}
     }
     if (oldVersion < 42) {
       try {
-        await db.execute('ALTER TABLE companies ADD COLUMN ui_mode TEXT DEFAULT "simple"');
+        await db.execute(
+            'ALTER TABLE companies ADD COLUMN ui_mode TEXT DEFAULT "simple"');
       } catch (_) {}
     }
     if (oldVersion < 43) {
@@ -554,30 +595,44 @@ class DBHelper {
       await _createLoyaltyLedgerTable(db);
 
       try {
-        await db.execute('ALTER TABLE promotions ADD COLUMN min_quantity INTEGER DEFAULT 0');
-        await db.execute('ALTER TABLE promotions ADD COLUMN free_quantity INTEGER DEFAULT 0');
-        await db.execute('ALTER TABLE promotions ADD COLUMN max_uses_total INTEGER NULL');
-        await db.execute('ALTER TABLE promotions ADD COLUMN max_uses_per_customer INTEGER NULL');
-        await db.execute('ALTER TABLE promotions ADD COLUMN current_use_count INTEGER DEFAULT 0');
-        await db.execute('ALTER TABLE promotions ADD COLUMN coupon_code TEXT NULL');
+        await db.execute(
+            'ALTER TABLE promotions ADD COLUMN min_quantity INTEGER DEFAULT 0');
+        await db.execute(
+            'ALTER TABLE promotions ADD COLUMN free_quantity INTEGER DEFAULT 0');
+        await db.execute(
+            'ALTER TABLE promotions ADD COLUMN max_uses_total INTEGER NULL');
+        await db.execute(
+            'ALTER TABLE promotions ADD COLUMN max_uses_per_customer INTEGER NULL');
+        await db.execute(
+            'ALTER TABLE promotions ADD COLUMN current_use_count INTEGER DEFAULT 0');
+        await db
+            .execute('ALTER TABLE promotions ADD COLUMN coupon_code TEXT NULL');
       } catch (_) {}
 
       try {
-        await db.execute('ALTER TABLE companies ADD COLUMN loyalty_points_per_currency REAL DEFAULT 0.01');
-        await db.execute('ALTER TABLE companies ADD COLUMN loyalty_redemption_rate REAL DEFAULT 1.0');
+        await db.execute(
+            'ALTER TABLE companies ADD COLUMN loyalty_points_per_currency REAL DEFAULT 0.01');
+        await db.execute(
+            'ALTER TABLE companies ADD COLUMN loyalty_redemption_rate REAL DEFAULT 1.0');
       } catch (_) {}
 
       try {
-        await db.execute('ALTER TABLE customers ADD COLUMN loyalty_points REAL DEFAULT 0');
+        await db.execute(
+            'ALTER TABLE customers ADD COLUMN loyalty_points REAL DEFAULT 0');
       } catch (_) {}
     }
     if (oldVersion < 44) {
       try {
-        await db.execute('ALTER TABLE recurring_templates ADD COLUMN customer_id INTEGER');
-        await db.execute('ALTER TABLE recurring_templates ADD COLUMN line_items TEXT');
-        await db.execute('ALTER TABLE recurring_templates ADD COLUMN tax_percent REAL DEFAULT 0');
-        await db.execute('ALTER TABLE recurring_templates ADD COLUMN discount_amount REAL DEFAULT 0');
-        await db.execute('ALTER TABLE recurring_templates ADD COLUMN last_generated_at TEXT');
+        await db.execute(
+            'ALTER TABLE recurring_templates ADD COLUMN customer_id INTEGER');
+        await db.execute(
+            'ALTER TABLE recurring_templates ADD COLUMN line_items TEXT');
+        await db.execute(
+            'ALTER TABLE recurring_templates ADD COLUMN tax_percent REAL DEFAULT 0');
+        await db.execute(
+            'ALTER TABLE recurring_templates ADD COLUMN discount_amount REAL DEFAULT 0');
+        await db.execute(
+            'ALTER TABLE recurring_templates ADD COLUMN last_generated_at TEXT');
       } catch (_) {}
     }
     if (oldVersion < 45) {
@@ -587,7 +642,8 @@ class DBHelper {
       await _createRestaurantTablesTable(db);
       try {
         await db.execute('ALTER TABLE sales ADD COLUMN table_id INTEGER');
-        await db.execute('ALTER TABLE service_jobs ADD COLUMN technician_employee_id INTEGER');
+        await db.execute(
+            'ALTER TABLE service_jobs ADD COLUMN technician_employee_id INTEGER');
       } catch (_) {}
     }
     if (oldVersion < 47) {
@@ -595,10 +651,14 @@ class DBHelper {
       await _createBomRoutingStepsTable(db);
       await _createProductionRoutingProgressTable(db);
       try {
-        await db.execute('ALTER TABLE production_orders ADD COLUMN expected_wastage_percent REAL DEFAULT 0');
-        await db.execute('ALTER TABLE production_orders ADD COLUMN actual_wastage_quantity REAL DEFAULT 0');
-        await db.execute('ALTER TABLE production_orders ADD COLUMN actual_output_quantity REAL DEFAULT 0');
-        await db.execute('ALTER TABLE production_orders ADD COLUMN parent_production_order_id INTEGER');
+        await db.execute(
+            'ALTER TABLE production_orders ADD COLUMN expected_wastage_percent REAL DEFAULT 0');
+        await db.execute(
+            'ALTER TABLE production_orders ADD COLUMN actual_wastage_quantity REAL DEFAULT 0');
+        await db.execute(
+            'ALTER TABLE production_orders ADD COLUMN actual_output_quantity REAL DEFAULT 0');
+        await db.execute(
+            'ALTER TABLE production_orders ADD COLUMN parent_production_order_id INTEGER');
       } catch (_) {}
     }
     if (oldVersion < 48) {
@@ -764,16 +824,6 @@ class DBHelper {
       )
     ''');
     await db.execute('''
-      CREATE TABLE restaurant_tables (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        company_id INTEGER NOT NULL,
-        table_number TEXT NOT NULL,
-        status TEXT NOT NULL DEFAULT 'free',
-        created_at TEXT NOT NULL,
-        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
-      )
-    ''');
-    await db.execute('''
       CREATE TABLE service_jobs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         company_id INTEGER NOT NULL,
@@ -848,34 +898,65 @@ class DBHelper {
     await _createQuotationTables(db);
     await _createPromotionTable(db);
     await _createRecurringTemplatesTable(db);
+    await _createCostCentersTable(db);
+    await _createFixedAssetsTable(db);
+    await _createEcommerceChannelsTable(db);
+    await _createBudgetsTable(db);
+    await _createFiscalYearClosingTable(db);
+    await _createCurrencyRatesTable(db);
+    await _createPromotionUsagesTable(db);
+    await _createLoyaltyLedgerTable(db);
+    await _createRolePermissionsTable(db);
+    await _createRestaurantTablesTable(db);
+    await _createWorkCentersTable(db);
+    await _createBomRoutingStepsTable(db);
+    await _createProductionRoutingProgressTable(db);
+    await _createPhase19IndustryTables(db);
+    await _createCompositeIndexes(db);
     await _createDatabaseIndexes(db);
-    await db.execute('CREATE INDEX idx_quotations_company ON quotations (company_id)');
-    await db.execute('CREATE INDEX idx_promotions_company ON promotions (company_id)');
+    await db.execute(
+        'CREATE INDEX idx_quotations_company ON quotations (company_id)');
+    await db.execute(
+        'CREATE INDEX idx_promotions_company ON promotions (company_id)');
   }
 
   Future<void> _createDatabaseIndexes(Database db) async {
     // Company scoping indexes
-    await db.execute('CREATE INDEX idx_products_company ON products (company_id)');
-    await db.execute('CREATE INDEX idx_customers_company ON customers (company_id)');
-    await db.execute('CREATE INDEX idx_suppliers_company ON suppliers (company_id)');
+    await db
+        .execute('CREATE INDEX idx_products_company ON products (company_id)');
+    await db.execute(
+        'CREATE INDEX idx_customers_company ON customers (company_id)');
+    await db.execute(
+        'CREATE INDEX idx_suppliers_company ON suppliers (company_id)');
     await db.execute('CREATE INDEX idx_sales_company ON sales (company_id)');
-    await db.execute('CREATE INDEX idx_purchases_company ON purchases (company_id)');
-    await db.execute('CREATE INDEX idx_journal_company ON journal_entries (company_id)');
+    await db.execute(
+        'CREATE INDEX idx_purchases_company ON purchases (company_id)');
+    await db.execute(
+        'CREATE INDEX idx_journal_company ON journal_entries (company_id)');
 
     // Search indexes
-    await db.execute('CREATE INDEX idx_products_barcode ON products (company_id, barcode)');
-    await db.execute('CREATE INDEX idx_products_name ON products (company_id, name)');
-    await db.execute('CREATE INDEX idx_customers_mobile ON customers (company_id, mobile)');
+    await db.execute(
+        'CREATE INDEX idx_products_barcode ON products (company_id, barcode)');
+    await db.execute(
+        'CREATE INDEX idx_products_name ON products (company_id, name)');
+    await db.execute(
+        'CREATE INDEX idx_customers_mobile ON customers (company_id, mobile)');
 
     // Date range indexes for reports
-    await db.execute('CREATE INDEX idx_sales_date ON sales (company_id, sale_date)');
-    await db.execute('CREATE INDEX idx_purchases_date ON purchases (company_id, purchase_date)');
-    await db.execute('CREATE INDEX idx_journal_date ON journal_entries (company_id, entry_date)');
+    await db.execute(
+        'CREATE INDEX idx_sales_date ON sales (company_id, sale_date)');
+    await db.execute(
+        'CREATE INDEX idx_purchases_date ON purchases (company_id, purchase_date)');
+    await db.execute(
+        'CREATE INDEX idx_journal_date ON journal_entries (company_id, entry_date)');
 
     // Foreign Key lookup indexes (line items)
-    await db.execute('CREATE INDEX idx_sale_items_parent ON sale_items (sale_id)');
-    await db.execute('CREATE INDEX idx_purchase_items_parent ON purchase_items (purchase_id)');
-    await db.execute('CREATE INDEX idx_journal_lines_parent ON journal_entry_lines (journal_entry_id)');
+    await db
+        .execute('CREATE INDEX idx_sale_items_parent ON sale_items (sale_id)');
+    await db.execute(
+        'CREATE INDEX idx_purchase_items_parent ON purchase_items (purchase_id)');
+    await db.execute(
+        'CREATE INDEX idx_journal_lines_parent ON journal_entry_lines (journal_entry_id)');
   }
 
   Future<void> _createStaffUsersTable(Database db) async {
@@ -1896,14 +1977,22 @@ class DBHelper {
   }
 
   Future<void> _createCompositeIndexes(Database db) async {
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_products_company_status ON products(company_id, status)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_sales_company_date ON sales(company_id, sale_date)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_purchases_company_date ON purchases(company_id, purchase_date)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_expenses_company_date ON expenses(company_id, expense_date)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_customers_company_name ON customers(company_id, name)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_suppliers_company_name ON suppliers(company_id, company_name)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_bank_transactions_comp_acc ON bank_transactions(company_id, bank_account_id, is_reconciled)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_audit_log_comp_time ON audit_log(company_id, timestamp)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_products_company_status ON products(company_id, status)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_sales_company_date ON sales(company_id, sale_date)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_purchases_company_date ON purchases(company_id, purchase_date)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_expenses_company_date ON expenses(company_id, expense_date)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_customers_company_name ON customers(company_id, name)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_suppliers_company_name ON suppliers(company_id, company_name)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_bank_transactions_comp_acc ON bank_transactions(company_id, bank_account_id, is_reconciled)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_audit_log_comp_time ON audit_log(company_id, timestamp)');
   }
 
   Future<void> _createPhase19IndustryTables(Database db) async {
@@ -2100,7 +2189,8 @@ class DBHelper {
     // row is left in `companies`.
     final name = (data['name'] as String?)?.trim() ?? '';
     if (name.isEmpty) {
-      throw ArgumentError.value(data['name'], 'name', 'Company name is required');
+      throw ArgumentError.value(
+          data['name'], 'name', 'Company name is required');
     }
 
     // Reject duplicate names (case-insensitive) to prevent two "shops"
@@ -2152,8 +2242,11 @@ class DBHelper {
         });
       }
 
-      // 3. Seed Chart of Accounts
-      await _ensureChartOfAccountsInTransaction(txn, id);
+      // 3. Seed Chart of Accounts (per category/template)
+      final coaAsMaps = template.defaultCoa
+          .map((seed) => seed.toMap())
+          .toList(growable: false);
+      await _ensureChartOfAccountsInTransaction(txn, id, coaAsMaps);
     });
     return id;
   }
@@ -2161,8 +2254,12 @@ class DBHelper {
   String _guessAccountType(String name) {
     final n = name.toLowerCase();
     if (n.contains('sale') || n.contains('income')) return 'Revenue';
-    if (n.contains('cost') || n.contains('expense') || n.contains('wage')) return 'Expense';
-    if (n.contains('asset') || n.contains('inventory') || n.contains('cash') || n.contains('bank')) return 'Asset';
+    if (n.contains('cost') || n.contains('expense') || n.contains('wage'))
+      return 'Expense';
+    if (n.contains('asset') ||
+        n.contains('inventory') ||
+        n.contains('cash') ||
+        n.contains('bank')) return 'Asset';
     if (n.contains('payable') || n.contains('loan')) return 'Liability';
     return 'Equity';
   }
@@ -2215,7 +2312,8 @@ class DBHelper {
     return rows.isNotEmpty;
   }
 
-  Future<void> savePin(String pinHash, String salt, {String? question, String? answer}) async {
+  Future<void> savePin(String pinHash, String salt,
+      {String? question, String? answer}) async {
     final db = await database;
     await db.insert(
       'app_security',
@@ -2307,16 +2405,25 @@ class DBHelper {
     if (searchQuery != null && searchQuery.trim().isNotEmpty) {
       return db.query(
         'products',
-        where: 'company_id = ? AND deleted_at IS NULL AND (name LIKE ? OR product_code LIKE ? OR barcode LIKE ?)',
-        whereArgs: [companyId, '%$searchQuery%', '%$searchQuery%', '%$searchQuery%'],
+        where:
+            'company_id = ? AND deleted_at IS NULL AND (name LIKE ? OR product_code LIKE ? OR barcode LIKE ?)',
+        whereArgs: [
+          companyId,
+          '%$searchQuery%',
+          '%$searchQuery%',
+          '%$searchQuery%'
+        ],
         orderBy: 'name ASC',
         limit: limit,
         offset: offset,
       );
     }
     return db.query('products',
-        where: 'company_id = ? AND deleted_at IS NULL', whereArgs: [companyId], orderBy: 'name ASC',
-        limit: limit, offset: offset);
+        where: 'company_id = ? AND deleted_at IS NULL',
+        whereArgs: [companyId],
+        orderBy: 'name ASC',
+        limit: limit,
+        offset: offset);
   }
 
   Future<void> updateProduct(int id, Map<String, dynamic> data) async {
@@ -2326,19 +2433,23 @@ class DBHelper {
 
   Future<void> deleteProduct(int id) async {
     final db = await database;
-    await db.update('products', {'deleted_at': DateTime.now().toIso8601String()},
+    await db.update(
+        'products', {'deleted_at': DateTime.now().toIso8601String()},
         where: 'id = ?', whereArgs: [id]);
   }
 
   Future<List<Map<String, dynamic>>> getDeletedProducts(int companyId) async {
     final db = await database;
     return db.query('products',
-        where: 'company_id = ? AND deleted_at IS NOT NULL', whereArgs: [companyId], orderBy: 'deleted_at DESC');
+        where: 'company_id = ? AND deleted_at IS NOT NULL',
+        whereArgs: [companyId],
+        orderBy: 'deleted_at DESC');
   }
 
   Future<void> restoreProduct(int id) async {
     final db = await database;
-    await db.update('products', {'deleted_at': null}, where: 'id = ?', whereArgs: [id]);
+    await db.update('products', {'deleted_at': null},
+        where: 'id = ?', whereArgs: [id]);
   }
 
   Future<void> permanentlyDeleteProduct(int id) async {
@@ -2365,7 +2476,8 @@ class DBHelper {
   Future<List<Map<String, dynamic>>> getLowStockProducts(int companyId) async {
     final db = await database;
     return db.query('products',
-        where: 'company_id = ? AND current_stock <= low_stock_level AND deleted_at IS NULL',
+        where:
+            'company_id = ? AND current_stock <= low_stock_level AND deleted_at IS NULL',
         whereArgs: [companyId],
         orderBy: 'current_stock ASC');
   }
@@ -2383,13 +2495,16 @@ class DBHelper {
     if (searchQuery != null && searchQuery.trim().isNotEmpty) {
       return db.query(
         'customers',
-        where: 'company_id = ? AND deleted_at IS NULL AND (name LIKE ? OR mobile LIKE ?)',
+        where:
+            'company_id = ? AND deleted_at IS NULL AND (name LIKE ? OR mobile LIKE ?)',
         whereArgs: [companyId, '%$searchQuery%', '%$searchQuery%'],
         orderBy: 'name ASC',
       );
     }
     return db.query('customers',
-        where: 'company_id = ? AND deleted_at IS NULL', whereArgs: [companyId], orderBy: 'name ASC');
+        where: 'company_id = ? AND deleted_at IS NULL',
+        whereArgs: [companyId],
+        orderBy: 'name ASC');
   }
 
   Future<void> updateCustomer(int id, Map<String, dynamic> data) async {
@@ -2399,19 +2514,23 @@ class DBHelper {
 
   Future<void> deleteCustomer(int id) async {
     final db = await database;
-    await db.update('customers', {'deleted_at': DateTime.now().toIso8601String()},
+    await db.update(
+        'customers', {'deleted_at': DateTime.now().toIso8601String()},
         where: 'id = ?', whereArgs: [id]);
   }
 
   Future<List<Map<String, dynamic>>> getDeletedCustomers(int companyId) async {
     final db = await database;
     return db.query('customers',
-        where: 'company_id = ? AND deleted_at IS NOT NULL', whereArgs: [companyId], orderBy: 'deleted_at DESC');
+        where: 'company_id = ? AND deleted_at IS NOT NULL',
+        whereArgs: [companyId],
+        orderBy: 'deleted_at DESC');
   }
 
   Future<void> restoreCustomer(int id) async {
     final db = await database;
-    await db.update('customers', {'deleted_at': null}, where: 'id = ?', whereArgs: [id]);
+    await db.update('customers', {'deleted_at': null},
+        where: 'id = ?', whereArgs: [id]);
   }
 
   Future<void> permanentlyDeleteCustomer(int id) async {
@@ -2433,14 +2552,18 @@ class DBHelper {
     return rows.isEmpty ? null : rows.first;
   }
 
-  Future<Map<String, dynamic>?> findDuplicateCustomer(int companyId, String name, String mobile, {int? excludeId}) async {
+  Future<Map<String, dynamic>?> findDuplicateCustomer(
+      int companyId, String name, String mobile,
+      {int? excludeId}) async {
     final db = await database;
     final rows = await db.query(
       'customers',
-      where: 'company_id = ? AND (LOWER(name) = ? OR mobile = ?) AND deleted_at IS NULL' + (excludeId != null ? ' AND id != ?' : ''),
-      whereArgs: excludeId != null 
-        ? [companyId, name.toLowerCase(), mobile, excludeId]
-        : [companyId, name.toLowerCase(), mobile],
+      where:
+          'company_id = ? AND (LOWER(name) = ? OR mobile = ?) AND deleted_at IS NULL' +
+              (excludeId != null ? ' AND id != ?' : ''),
+      whereArgs: excludeId != null
+          ? [companyId, name.toLowerCase(), mobile, excludeId]
+          : [companyId, name.toLowerCase(), mobile],
       limit: 1,
     );
     return rows.isEmpty ? null : rows.first;
@@ -2459,7 +2582,8 @@ class DBHelper {
     if (searchQuery != null && searchQuery.trim().isNotEmpty) {
       return db.query(
         'suppliers',
-        where: 'company_id = ? AND deleted_at IS NULL AND (company_name LIKE ? OR phone LIKE ?)',
+        where:
+            'company_id = ? AND deleted_at IS NULL AND (company_name LIKE ? OR phone LIKE ?)',
         whereArgs: [companyId, '%$searchQuery%', '%$searchQuery%'],
         orderBy: 'company_name ASC',
       );
@@ -2477,19 +2601,23 @@ class DBHelper {
 
   Future<void> deleteSupplier(int id) async {
     final db = await database;
-    await db.update('suppliers', {'deleted_at': DateTime.now().toIso8601String()},
+    await db.update(
+        'suppliers', {'deleted_at': DateTime.now().toIso8601String()},
         where: 'id = ?', whereArgs: [id]);
   }
 
   Future<List<Map<String, dynamic>>> getDeletedSuppliers(int companyId) async {
     final db = await database;
     return db.query('suppliers',
-        where: 'company_id = ? AND deleted_at IS NOT NULL', whereArgs: [companyId], orderBy: 'deleted_at DESC');
+        where: 'company_id = ? AND deleted_at IS NOT NULL',
+        whereArgs: [companyId],
+        orderBy: 'deleted_at DESC');
   }
 
   Future<void> restoreSupplier(int id) async {
     final db = await database;
-    await db.update('suppliers', {'deleted_at': null}, where: 'id = ?', whereArgs: [id]);
+    await db.update('suppliers', {'deleted_at': null},
+        where: 'id = ?', whereArgs: [id]);
   }
 
   Future<void> permanentlyDeleteSupplier(int id) async {
@@ -2511,14 +2639,18 @@ class DBHelper {
     return rows.isEmpty ? null : rows.first;
   }
 
-  Future<Map<String, dynamic>?> findDuplicateSupplier(int companyId, String name, String phone, {int? excludeId}) async {
+  Future<Map<String, dynamic>?> findDuplicateSupplier(
+      int companyId, String name, String phone,
+      {int? excludeId}) async {
     final db = await database;
     final rows = await db.query(
       'suppliers',
-      where: 'company_id = ? AND (LOWER(company_name) = ? OR phone = ?) AND deleted_at IS NULL' + (excludeId != null ? ' AND id != ?' : ''),
-      whereArgs: excludeId != null 
-        ? [companyId, name.toLowerCase(), phone, excludeId]
-        : [companyId, name.toLowerCase(), phone],
+      where:
+          'company_id = ? AND (LOWER(company_name) = ? OR phone = ?) AND deleted_at IS NULL' +
+              (excludeId != null ? ' AND id != ?' : ''),
+      whereArgs: excludeId != null
+          ? [companyId, name.toLowerCase(), phone, excludeId]
+          : [companyId, name.toLowerCase(), phone],
       limit: 1,
     );
     return rows.isEmpty ? null : rows.first;
@@ -2533,10 +2665,14 @@ class DBHelper {
     final count = (Sqflite.firstIntValue(result) ?? 0) + 1;
     final numStr = count.toString().padLeft(6, '0');
 
-    final companies = await db.query('companies', columns: ['invoice_prefix', 'invoice_number_format'], where: 'id = ?', whereArgs: [companyId]);
+    final companies = await db.query('companies',
+        columns: ['invoice_prefix', 'invoice_number_format'],
+        where: 'id = ?',
+        whereArgs: [companyId]);
     if (companies.isNotEmpty) {
       final prefix = companies.first['invoice_prefix'] as String? ?? 'INV';
-      final fmt = companies.first['invoice_number_format'] as String? ?? '{PREFIX}-{NUMBER}';
+      final fmt = companies.first['invoice_number_format'] as String? ??
+          '{PREFIX}-{NUMBER}';
       final year = DateTime.now().year.toString();
 
       return fmt
@@ -2587,9 +2723,12 @@ class DBHelper {
 
         if (productId != null) {
           // Check item type
-          final pRows = await txn.query('products', columns: ['item_type'], where: 'id = ?', whereArgs: [productId]);
-          final type = pRows.isNotEmpty ? pRows.first['item_type'] as String? : 'inventory';
-          
+          final pRows = await txn.query('products',
+              columns: ['item_type'], where: 'id = ?', whereArgs: [productId]);
+          final type = pRows.isNotEmpty
+              ? pRows.first['item_type'] as String?
+              : 'inventory';
+
           if (type == 'inventory') {
             if (variantId != null) {
               await txn.rawUpdate(
@@ -2621,7 +2760,8 @@ class DBHelper {
       // --- LOYALTY POINTS ---
       if (customerId != null && totalAmount > 0) {
         final prefs = await SharedPreferences.getInstance();
-        final double rate = prefs.getDouble('loyalty_points_rate') ?? 100.0; // 1 point per 100 Rs
+        final double rate = prefs.getDouble('loyalty_points_rate') ??
+            100.0; // 1 point per 100 Rs
         if (rate > 0) {
           final pointsEarned = totalAmount / rate;
           await txn.rawUpdate(
@@ -2629,9 +2769,10 @@ class DBHelper {
             [pointsEarned, customerId],
           );
         }
-        
+
         // Handle Point Redemption (Redeemed as discount)
-        final double redeemedPoints = (sale['redeemed_points'] as num?)?.toDouble() ?? 0;
+        final double redeemedPoints =
+            (sale['redeemed_points'] as num?)?.toDouble() ?? 0;
         if (redeemedPoints > 0) {
           await txn.rawUpdate(
             'UPDATE customers SET loyalty_points = loyalty_points - ? WHERE id = ?',
@@ -2642,9 +2783,14 @@ class DBHelper {
 
       // --- AUTOMATED ACCOUNTING ENTRIES ---
       await _ensureChartOfAccountsInTransaction(txn, companyId);
-      final coaRows = await txn.query('chart_of_accounts', where: 'company_id = ?', whereArgs: [companyId]);
+      final coaRows = await txn.query('chart_of_accounts',
+          where: 'company_id = ?', whereArgs: [companyId]);
       int? getAccId(String name) {
-        try { return coaRows.firstWhere((r) => r['name'] == name)['id'] as int; } catch(_) { return null; }
+        try {
+          return coaRows.firstWhere((r) => r['name'] == name)['id'] as int;
+        } catch (_) {
+          return null;
+        }
       }
 
       final cashAcc = getAccId('Cash');
@@ -2653,27 +2799,37 @@ class DBHelper {
       final cogsAcc = getAccId('Cost of Goods Sold');
       final invAcc = getAccId('Inventory');
 
-      if (cashAcc == null || recAcc == null || salesAcc == null || cogsAcc == null || invAcc == null) {
-        throw StateError('Accounting for Sales is not fully configured (Missing AR, Sales, COGS, or Inventory accounts).');
+      if (cashAcc == null ||
+          recAcc == null ||
+          salesAcc == null ||
+          cogsAcc == null ||
+          invAcc == null) {
+        throw StateError(
+            'Accounting for Sales is not fully configured (Missing AR, Sales, COGS, or Inventory accounts).');
       }
 
       final List<Map<String, dynamic>> journalLines = [];
 
       // 1. Revenue Entry
       if (paidAmount > 0) {
-        journalLines.add({'account_id': cashAcc, 'debit': paidAmount, 'credit': 0.0});
+        journalLines
+            .add({'account_id': cashAcc, 'debit': paidAmount, 'credit': 0.0});
       }
       if (dueAmount > 0) {
-        journalLines.add({'account_id': recAcc, 'debit': dueAmount, 'credit': 0.0});
+        journalLines
+            .add({'account_id': recAcc, 'debit': dueAmount, 'credit': 0.0});
       }
       if (totalAmount > 0) {
-        journalLines.add({'account_id': salesAcc, 'debit': 0.0, 'credit': totalAmount});
+        journalLines
+            .add({'account_id': salesAcc, 'debit': 0.0, 'credit': totalAmount});
       }
 
       // 2. COGS Entry (if cost data exists)
       if (totalCost > 0) {
-        journalLines.add({'account_id': cogsAcc, 'debit': totalCost, 'credit': 0.0});
-        journalLines.add({'account_id': invAcc, 'debit': 0.0, 'credit': totalCost});
+        journalLines
+            .add({'account_id': cogsAcc, 'debit': totalCost, 'credit': 0.0});
+        journalLines
+            .add({'account_id': invAcc, 'debit': 0.0, 'credit': totalCost});
       }
 
       if (journalLines.isNotEmpty) {
@@ -2690,11 +2846,15 @@ class DBHelper {
     });
   }
 
-  Future<List<Map<String, dynamic>>> getSales(int companyId, {int? limit, int? offset}) async {
+  Future<List<Map<String, dynamic>>> getSales(int companyId,
+      {int? limit, int? offset}) async {
     final db = await database;
     return db.query('sales',
-        where: 'company_id = ?', whereArgs: [companyId], orderBy: 'id DESC',
-        limit: limit, offset: offset);
+        where: 'company_id = ?',
+        whereArgs: [companyId],
+        orderBy: 'id DESC',
+        limit: limit,
+        offset: offset);
   }
 
   Future<List<Map<String, dynamic>>> getSaleItems(int saleId) async {
@@ -2705,7 +2865,8 @@ class DBHelper {
   Future<void> voidSale(int saleId) async {
     final db = await database;
     await db.transaction((txn) async {
-      final rows = await txn.query('sales', where: 'id = ?', whereArgs: [saleId]);
+      final rows =
+          await txn.query('sales', where: 'id = ?', whereArgs: [saleId]);
       if (rows.isEmpty) return;
       final sale = rows.first;
       await _enforcePeriodLock(sale['sale_date'] as String);
@@ -2717,7 +2878,8 @@ class DBHelper {
       final dueAmount = (sale['due_amount'] as num).toDouble();
 
       // Reverse Stock
-      final items = await txn.query('sale_items', where: 'sale_id = ?', whereArgs: [saleId]);
+      final items = await txn
+          .query('sale_items', where: 'sale_id = ?', whereArgs: [saleId]);
       for (final item in items) {
         final productId = item['product_id'] as int?;
         final qty = item['quantity'] as num;
@@ -2738,37 +2900,42 @@ class DBHelper {
       }
 
       // Create Reversal Journal
-      final journals = await txn.query('journal_entries', 
-          where: 'company_id = ? AND source_type = ? AND source_id = ?', 
+      final journals = await txn.query('journal_entries',
+          where: 'company_id = ? AND source_type = ? AND source_id = ?',
           whereArgs: [companyId, 'sale', saleId]);
-      
+
       if (journals.isNotEmpty) {
         final journalId = journals.first['id'] as int;
-        final lines = await txn.query('journal_entry_lines', where: 'journal_entry_id = ?', whereArgs: [journalId]);
-        
-        final reversalLines = lines.map((l) => {
-          'account_id': l['account_id'],
-          'debit': l['credit'],
-          'credit': l['debit'],
-        }).toList();
+        final lines = await txn.query('journal_entry_lines',
+            where: 'journal_entry_id = ?', whereArgs: [journalId]);
 
-        await postAutomatedEntry(txn, 
-            companyId: companyId, 
-            date: DateTime.now().toIso8601String(), 
+        final reversalLines = lines
+            .map((l) => {
+                  'account_id': l['account_id'],
+                  'debit': l['credit'],
+                  'credit': l['debit'],
+                })
+            .toList();
+
+        await postAutomatedEntry(txn,
+            companyId: companyId,
+            date: DateTime.now().toIso8601String(),
             description: 'VOID: Sale Invoice $invoiceNum',
             sourceType: 'reversal',
             sourceId: journalId,
             lines: reversalLines);
       }
 
-      await txn.update('sales', {'status': 'voided'}, where: 'id = ?', whereArgs: [saleId]);
+      await txn.update('sales', {'status': 'voided'},
+          where: 'id = ?', whereArgs: [saleId]);
     });
   }
 
   Future<void> deleteSale(int saleId) async {
     final db = await database;
     await db.transaction((txn) async {
-      final rows = await txn.query('sales', where: 'id = ?', whereArgs: [saleId]);
+      final rows =
+          await txn.query('sales', where: 'id = ?', whereArgs: [saleId]);
       if (rows.isNotEmpty) {
         await _enforcePeriodLock(rows.first['sale_date'] as String);
       }
@@ -2832,7 +2999,8 @@ class DBHelper {
   Future<String> generatePurchaseInvoiceNumber(int companyId) async {
     final db = await database;
     final result = await db.rawQuery(
-        'SELECT COUNT(*) as cnt FROM purchases WHERE company_id = ?', [companyId]);
+        'SELECT COUNT(*) as cnt FROM purchases WHERE company_id = ?',
+        [companyId]);
     final count = (Sqflite.firstIntValue(result) ?? 0) + 1;
     return 'PUR-${count.toString().padLeft(6, '0')}';
   }
@@ -2872,19 +3040,27 @@ class DBHelper {
 
         if (productId != null) {
           // Check item type
-          final pRows = await txn.query('products', columns: ['item_type', 'current_stock', 'purchase_price'], where: 'id = ?', whereArgs: [productId]);
-          final type = pRows.isNotEmpty ? pRows.first['item_type'] as String? : 'inventory';
+          final pRows = await txn.query('products',
+              columns: ['item_type', 'current_stock', 'purchase_price'],
+              where: 'id = ?',
+              whereArgs: [productId]);
+          final type = pRows.isNotEmpty
+              ? pRows.first['item_type'] as String?
+              : 'inventory';
 
           if (type == 'inventory') {
             // Calculate Weighted Average Cost
             double newAvgCost = unitCost;
             if (pRows.isNotEmpty) {
-              final currentStock = (pRows.first['current_stock'] as num).toDouble();
-              final currentPrice = (pRows.first['purchase_price'] as num).toDouble();
+              final currentStock =
+                  (pRows.first['current_stock'] as num).toDouble();
+              final currentPrice =
+                  (pRows.first['purchase_price'] as num).toDouble();
 
               if (currentStock > 0) {
-                newAvgCost = ((currentStock * currentPrice) + (qty * unitCost)) /
-                    (currentStock + qty);
+                newAvgCost =
+                    ((currentStock * currentPrice) + (qty * unitCost)) /
+                        (currentStock + qty);
               }
             }
 
@@ -2922,9 +3098,14 @@ class DBHelper {
 
       // --- AUTOMATED ACCOUNTING ENTRIES ---
       await _ensureChartOfAccountsInTransaction(txn, companyId);
-      final coaRows = await txn.query('chart_of_accounts', where: 'company_id = ?', whereArgs: [companyId]);
+      final coaRows = await txn.query('chart_of_accounts',
+          where: 'company_id = ?', whereArgs: [companyId]);
       int? getAccId(String name) {
-        try { return coaRows.firstWhere((r) => r['name'] == name)['id'] as int; } catch(_) { return null; }
+        try {
+          return coaRows.firstWhere((r) => r['name'] == name)['id'] as int;
+        } catch (_) {
+          return null;
+        }
       }
 
       final cashAcc = getAccId('Cash');
@@ -2932,29 +3113,37 @@ class DBHelper {
       final invAcc = getAccId('Inventory');
       final taxAcc = getAccId('Taxes Payable');
 
-      if (cashAcc == null || payAcc == null || invAcc == null || taxAcc == null) {
-        throw StateError('Accounting for Purchases is not fully configured (Missing Cash, AP, Inventory, or Taxes accounts).');
+      if (cashAcc == null ||
+          payAcc == null ||
+          invAcc == null ||
+          taxAcc == null) {
+        throw StateError(
+            'Accounting for Purchases is not fully configured (Missing Cash, AP, Inventory, or Taxes accounts).');
       }
 
       final List<Map<String, dynamic>> journalLines = [];
       final taxAmount = (purchase['tax_amount'] as num?)?.toDouble() ?? 0.0;
 
       if (totalAmount > 0) {
-        // Inventory is recorded at cost BEFORE tax (if tax is recoverable) 
-        // or total inclusive (if tax is expense). 
+        // Inventory is recorded at cost BEFORE tax (if tax is recoverable)
+        // or total inclusive (if tax is expense).
         // For standard GST/VAT, Inventory is at subtotal.
         final subtotal = (purchase['subtotal'] as num).toDouble();
-        journalLines.add({'account_id': invAcc, 'debit': subtotal, 'credit': 0.0});
+        journalLines
+            .add({'account_id': invAcc, 'debit': subtotal, 'credit': 0.0});
       }
       if (taxAmount > 0) {
         // Tax paid on purchase is an asset (input credit) or reduction of liability.
-        journalLines.add({'account_id': taxAcc, 'debit': taxAmount, 'credit': 0.0});
+        journalLines
+            .add({'account_id': taxAcc, 'debit': taxAmount, 'credit': 0.0});
       }
       if (paidAmount > 0) {
-        journalLines.add({'account_id': cashAcc, 'debit': 0.0, 'credit': paidAmount});
+        journalLines
+            .add({'account_id': cashAcc, 'debit': 0.0, 'credit': paidAmount});
       }
       if (dueAmount > 0) {
-        journalLines.add({'account_id': payAcc, 'debit': 0.0, 'credit': dueAmount});
+        journalLines
+            .add({'account_id': payAcc, 'debit': 0.0, 'credit': dueAmount});
       }
 
       if (journalLines.isNotEmpty) {
@@ -2971,11 +3160,15 @@ class DBHelper {
     });
   }
 
-  Future<List<Map<String, dynamic>>> getPurchases(int companyId, {int? limit, int? offset}) async {
+  Future<List<Map<String, dynamic>>> getPurchases(int companyId,
+      {int? limit, int? offset}) async {
     final db = await database;
     return db.query('purchases',
-        where: 'company_id = ?', whereArgs: [companyId], orderBy: 'id DESC',
-        limit: limit, offset: offset);
+        where: 'company_id = ?',
+        whereArgs: [companyId],
+        orderBy: 'id DESC',
+        limit: limit,
+        offset: offset);
   }
 
   Future<List<Map<String, dynamic>>> getPurchaseItems(int purchaseId) async {
@@ -2987,7 +3180,8 @@ class DBHelper {
   Future<void> voidPurchase(int purchaseId) async {
     final db = await database;
     await db.transaction((txn) async {
-      final rows = await txn.query('purchases', where: 'id = ?', whereArgs: [purchaseId]);
+      final rows = await txn
+          .query('purchases', where: 'id = ?', whereArgs: [purchaseId]);
       if (rows.isEmpty) return;
       final purchase = rows.first;
       await _enforcePeriodLock(purchase['purchase_date'] as String);
@@ -2999,7 +3193,8 @@ class DBHelper {
       final dueAmount = (purchase['due_amount'] as num).toDouble();
 
       // Reverse Stock (Deduct what was added)
-      final items = await txn.query('purchase_items', where: 'purchase_id = ?', whereArgs: [purchaseId]);
+      final items = await txn.query('purchase_items',
+          where: 'purchase_id = ?', whereArgs: [purchaseId]);
       for (final item in items) {
         final productId = item['product_id'] as int?;
         final qty = item['quantity'] as num;
@@ -3020,37 +3215,42 @@ class DBHelper {
       }
 
       // Create Reversal Journal
-      final journals = await txn.query('journal_entries', 
-          where: 'company_id = ? AND source_type = ? AND source_id = ?', 
+      final journals = await txn.query('journal_entries',
+          where: 'company_id = ? AND source_type = ? AND source_id = ?',
           whereArgs: [companyId, 'purchase', purchaseId]);
-      
+
       if (journals.isNotEmpty) {
         final journalId = journals.first['id'] as int;
-        final lines = await txn.query('journal_entry_lines', where: 'journal_entry_id = ?', whereArgs: [journalId]);
-        
-        final reversalLines = lines.map((l) => {
-          'account_id': l['account_id'],
-          'debit': l['credit'],
-          'credit': l['debit'],
-        }).toList();
+        final lines = await txn.query('journal_entry_lines',
+            where: 'journal_entry_id = ?', whereArgs: [journalId]);
 
-        await postAutomatedEntry(txn, 
-            companyId: companyId, 
-            date: DateTime.now().toIso8601String(), 
+        final reversalLines = lines
+            .map((l) => {
+                  'account_id': l['account_id'],
+                  'debit': l['credit'],
+                  'credit': l['debit'],
+                })
+            .toList();
+
+        await postAutomatedEntry(txn,
+            companyId: companyId,
+            date: DateTime.now().toIso8601String(),
             description: 'VOID: Purchase Invoice $invoiceNum',
             sourceType: 'reversal',
             sourceId: journalId,
             lines: reversalLines);
       }
 
-      await txn.update('purchases', {'status': 'voided'}, where: 'id = ?', whereArgs: [purchaseId]);
+      await txn.update('purchases', {'status': 'voided'},
+          where: 'id = ?', whereArgs: [purchaseId]);
     });
   }
 
   Future<void> deletePurchase(int purchaseId) async {
     final db = await database;
     await db.transaction((txn) async {
-      final rows = await txn.query('purchases', where: 'id = ?', whereArgs: [purchaseId]);
+      final rows = await txn
+          .query('purchases', where: 'id = ?', whereArgs: [purchaseId]);
       if (rows.isNotEmpty) {
         await _enforcePeriodLock(rows.first['purchase_date'] as String);
       }
@@ -3081,9 +3281,16 @@ class DBHelper {
     final expenseId = await txn.insert('expenses', data);
 
     // Automated Accounting
-    final coaRows = await txn.query('chart_of_accounts', where: 'company_id = ?', whereArgs: [companyId]);
+    final coaRows = await txn.query('chart_of_accounts',
+        where: 'company_id = ?', whereArgs: [companyId]);
     int? getAccId(String name) {
-      try { return coaRows.firstWhere((r) => r['name'].toString().toLowerCase() == name.toLowerCase())['id'] as int; } catch(_) { return null; }
+      try {
+        return coaRows.firstWhere((r) =>
+                r['name'].toString().toLowerCase() == name.toLowerCase())['id']
+            as int;
+      } catch (_) {
+        return null;
+      }
     }
 
     int? expAccId = getAccId(category);
@@ -3118,7 +3325,8 @@ class DBHelper {
   Future<void> updateExpense(int id, Map<String, dynamic> data) async {
     final db = await database;
     await db.transaction((txn) async {
-      final rows = await txn.query('expenses', where: 'id = ?', whereArgs: [id], limit: 1);
+      final rows = await txn.query('expenses',
+          where: 'id = ?', whereArgs: [id], limit: 1);
       if (rows.isEmpty) return;
       final oldExpense = rows.first;
       await _enforcePeriodLock(oldExpense['expense_date'] as String);
@@ -3140,12 +3348,16 @@ class DBHelper {
         reversalDescription: 'REVERSAL: Expense #$id',
       );
       await txn.update('expenses', data, where: 'id = ?', whereArgs: [id]);
-      final accounts = await txn.query('chart_of_accounts', where: 'company_id = ?', whereArgs: [companyId]);
+      final accounts = await txn.query('chart_of_accounts',
+          where: 'company_id = ?', whereArgs: [companyId]);
       int? accountId(String name) {
-        final matches = accounts.where((row) => row['name'].toString().toLowerCase() == name.toLowerCase());
+        final matches = accounts.where((row) =>
+            row['name'].toString().toLowerCase() == name.toLowerCase());
         return matches.isEmpty ? null : matches.first['id'] as int;
       }
-      final expenseAccountId = accountId(category) ?? accountId('Operating Expenses');
+
+      final expenseAccountId =
+          accountId(category) ?? accountId('Operating Expenses');
       final sourceAccountId = accountId(method) ?? accountId('Cash');
       if (expenseAccountId == null || sourceAccountId == null) {
         throw StateError('Expense accounts are not configured.');
@@ -3166,7 +3378,8 @@ class DBHelper {
   Future<void> deleteExpense(int id) async {
     final db = await database;
     await db.transaction((txn) async {
-      final rows = await txn.query('expenses', where: 'id = ?', whereArgs: [id], limit: 1);
+      final rows = await txn.query('expenses',
+          where: 'id = ?', whereArgs: [id], limit: 1);
       if (rows.isEmpty) return;
       final expense = rows.first;
       await _enforcePeriodLock(expense['expense_date'] as String);
@@ -3206,8 +3419,8 @@ class DBHelper {
       whereArgs: [companyId],
     );
     int? accountId(String name) {
-      final matches = accounts.where((row) =>
-          row['name'].toString().toLowerCase() == name.toLowerCase());
+      final matches = accounts.where(
+          (row) => row['name'].toString().toLowerCase() == name.toLowerCase());
       return matches.isEmpty ? null : matches.first['id'] as int;
     }
 
@@ -3238,7 +3451,8 @@ class DBHelper {
   Future<void> updateIncome(int id, Map<String, dynamic> data) async {
     final db = await database;
     await db.transaction((txn) async {
-      final rows = await txn.query('income', where: 'id = ?', whereArgs: [id], limit: 1);
+      final rows =
+          await txn.query('income', where: 'id = ?', whereArgs: [id], limit: 1);
       if (rows.isEmpty) return;
       final oldIncome = rows.first;
       await _enforcePeriodLock(oldIncome['income_date'] as String);
@@ -3281,7 +3495,8 @@ class DBHelper {
   Future<void> deleteIncome(int id) async {
     final db = await database;
     await db.transaction((txn) async {
-      final rows = await txn.query('income', where: 'id = ?', whereArgs: [id], limit: 1);
+      final rows =
+          await txn.query('income', where: 'id = ?', whereArgs: [id], limit: 1);
       if (rows.isEmpty) return;
       final income = rows.first;
       await _enforcePeriodLock(income['income_date'] as String);
@@ -3324,9 +3539,16 @@ class DBHelper {
       );
 
       // Automated Accounting
-      final coaRows = await txn.query('chart_of_accounts', where: 'company_id = ?', whereArgs: [companyId]);
+      final coaRows = await txn.query('chart_of_accounts',
+          where: 'company_id = ?', whereArgs: [companyId]);
       int? getAccId(String name) {
-        try { return coaRows.firstWhere((r) => r['name'].toString().toLowerCase() == name.toLowerCase())['id'] as int; } catch(_) { return null; }
+        try {
+          return coaRows.firstWhere((r) =>
+              r['name'].toString().toLowerCase() ==
+              name.toLowerCase())['id'] as int;
+        } catch (_) {
+          return null;
+        }
       }
 
       final targetAccId = getAccId(method) ?? getAccId('Cash');
@@ -3350,7 +3572,9 @@ class DBHelper {
   Future<List<Map<String, dynamic>>> getCustomerPayments(int customerId) async {
     final db = await database;
     return db.query('customer_payments',
-        where: 'customer_id = ?', whereArgs: [customerId], orderBy: 'payment_date DESC');
+        where: 'customer_id = ?',
+        whereArgs: [customerId],
+        orderBy: 'payment_date DESC');
   }
 
   // ---------------- Supplier Ledger helpers ----------------
@@ -3380,9 +3604,16 @@ class DBHelper {
       );
 
       // Automated Accounting
-      final coaRows = await txn.query('chart_of_accounts', where: 'company_id = ?', whereArgs: [companyId]);
+      final coaRows = await txn.query('chart_of_accounts',
+          where: 'company_id = ?', whereArgs: [companyId]);
       int? getAccId(String name) {
-        try { return coaRows.firstWhere((r) => r['name'].toString().toLowerCase() == name.toLowerCase())['id'] as int; } catch(_) { return null; }
+        try {
+          return coaRows.firstWhere((r) =>
+              r['name'].toString().toLowerCase() ==
+              name.toLowerCase())['id'] as int;
+        } catch (_) {
+          return null;
+        }
       }
 
       final sourceAccId = getAccId(method) ?? getAccId('Cash');
@@ -3406,7 +3637,9 @@ class DBHelper {
   Future<List<Map<String, dynamic>>> getSupplierPayments(int supplierId) async {
     final db = await database;
     return db.query('supplier_payments',
-        where: 'supplier_id = ?', whereArgs: [supplierId], orderBy: 'payment_date DESC');
+        where: 'supplier_id = ?',
+        whereArgs: [supplierId],
+        orderBy: 'payment_date DESC');
   }
 
   // ---------------- Cash Book helpers ----------------
@@ -3423,13 +3656,16 @@ class DBHelper {
   Future<List<Map<String, dynamic>>> getCashTransactions(int companyId) async {
     final db = await database;
     return db.query('cash_transactions',
-        where: 'company_id = ?', whereArgs: [companyId], orderBy: 'transaction_date DESC, id DESC');
+        where: 'company_id = ?',
+        whereArgs: [companyId],
+        orderBy: 'transaction_date DESC, id DESC');
   }
 
   Future<void> deleteCashTransaction(int id) async {
     final db = await database;
     await db.transaction((txn) async {
-      final rows = await txn.query('cash_transactions', where: 'id = ?', whereArgs: [id]);
+      final rows = await txn
+          .query('cash_transactions', where: 'id = ?', whereArgs: [id]);
       if (rows.isEmpty) return;
       await _enforcePeriodLock(rows.first['transaction_date'] as String);
       _validateCashTransaction(rows.first);
@@ -3447,7 +3683,9 @@ class DBHelper {
   Future<List<Map<String, dynamic>>> getBankAccounts(int companyId) async {
     final db = await database;
     return db.query('bank_accounts',
-        where: 'company_id = ?', whereArgs: [companyId], orderBy: 'bank_name ASC');
+        where: 'company_id = ?',
+        whereArgs: [companyId],
+        orderBy: 'bank_name ASC');
   }
 
   Future<void> updateBankAccount(int id, Map<String, dynamic> data) async {
@@ -3473,12 +3711,11 @@ class DBHelper {
         limit: 1,
       );
       if (accountRows.isEmpty) {
-        throw ArgumentError('The bank account must belong to the selected company.');
+        throw ArgumentError(
+            'The bank account must belong to the selected company.');
       }
       await txn.insert('bank_transactions', data);
-      final delta = (data['type'] == 'deposit')
-          ? amount
-          : -amount;
+      final delta = (data['type'] == 'deposit') ? amount : -amount;
       await txn.rawUpdate(
         'UPDATE bank_accounts SET current_balance = current_balance + ? WHERE id = ?',
         [delta, data['bank_account_id']],
@@ -3486,7 +3723,8 @@ class DBHelper {
     });
   }
 
-  Future<List<Map<String, dynamic>>> getBankTransactions(int bankAccountId) async {
+  Future<List<Map<String, dynamic>>> getBankTransactions(
+      int bankAccountId) async {
     final db = await database;
     return db.query('bank_transactions',
         where: 'bank_account_id = ?',
@@ -3497,7 +3735,8 @@ class DBHelper {
   Future<void> deleteBankTransaction(int id) async {
     final db = await database;
     await db.transaction((txn) async {
-      final rows = await txn.query('bank_transactions', where: 'id = ?', whereArgs: [id]);
+      final rows = await txn
+          .query('bank_transactions', where: 'id = ?', whereArgs: [id]);
       if (rows.isEmpty) return;
       final transaction = rows.first;
       await _enforcePeriodLock(transaction['transaction_date'] as String);
@@ -3625,13 +3864,16 @@ class DBHelper {
     if (searchQuery != null && searchQuery.trim().isNotEmpty) {
       return db.query(
         'employees',
-        where: 'company_id = ? AND deleted_at IS NULL AND (name LIKE ? OR designation LIKE ?)',
+        where:
+            'company_id = ? AND deleted_at IS NULL AND (name LIKE ? OR designation LIKE ?)',
         whereArgs: [companyId, '%$searchQuery%', '%$searchQuery%'],
         orderBy: 'name ASC',
       );
     }
     return db.query('employees',
-        where: 'company_id = ? AND deleted_at IS NULL', whereArgs: [companyId], orderBy: 'name ASC');
+        where: 'company_id = ? AND deleted_at IS NULL',
+        whereArgs: [companyId],
+        orderBy: 'name ASC');
   }
 
   Future<void> updateEmployee(int id, Map<String, dynamic> data) async {
@@ -3641,19 +3883,23 @@ class DBHelper {
 
   Future<void> deleteEmployee(int id) async {
     final db = await database;
-    await db.update('employees', {'deleted_at': DateTime.now().toIso8601String()},
+    await db.update(
+        'employees', {'deleted_at': DateTime.now().toIso8601String()},
         where: 'id = ?', whereArgs: [id]);
   }
 
   Future<List<Map<String, dynamic>>> getDeletedEmployees(int companyId) async {
     final db = await database;
     return db.query('employees',
-        where: 'company_id = ? AND deleted_at IS NOT NULL', whereArgs: [companyId], orderBy: 'deleted_at DESC');
+        where: 'company_id = ? AND deleted_at IS NOT NULL',
+        whereArgs: [companyId],
+        orderBy: 'deleted_at DESC');
   }
 
   Future<void> restoreEmployee(int id) async {
     final db = await database;
-    await db.update('employees', {'deleted_at': null}, where: 'id = ?', whereArgs: [id]);
+    await db.update('employees', {'deleted_at': null},
+        where: 'id = ?', whereArgs: [id]);
   }
 
   Future<void> permanentlyDeleteEmployee(int id) async {
@@ -3664,7 +3910,8 @@ class DBHelper {
   Future<int> getEmployeeCount(int companyId) async {
     final db = await database;
     final result = await db.rawQuery(
-        'SELECT COUNT(*) as cnt FROM employees WHERE company_id = ?', [companyId]);
+        'SELECT COUNT(*) as cnt FROM employees WHERE company_id = ?',
+        [companyId]);
     return Sqflite.firstIntValue(result) ?? 0;
   }
 
@@ -3681,7 +3928,9 @@ class DBHelper {
       int employeeId) async {
     final db = await database;
     return db.query('attendance',
-        where: 'employee_id = ?', whereArgs: [employeeId], orderBy: 'date DESC');
+        where: 'employee_id = ?',
+        whereArgs: [employeeId],
+        orderBy: 'date DESC');
   }
 
   Future<Map<String, dynamic>?> getAttendanceForDate(
@@ -3705,7 +3954,9 @@ class DBHelper {
   Future<List<Map<String, dynamic>>> getSalaryPayments(int employeeId) async {
     final db = await database;
     return db.query('salary_payments',
-        where: 'employee_id = ?', whereArgs: [employeeId], orderBy: 'payment_date DESC');
+        where: 'employee_id = ?',
+        whereArgs: [employeeId],
+        orderBy: 'payment_date DESC');
   }
 
   // ---------------- Advance Salary helpers ----------------
@@ -3725,7 +3976,9 @@ class DBHelper {
   Future<List<Map<String, dynamic>>> getAdvances(int employeeId) async {
     final db = await database;
     return db.query('advance_salary',
-        where: 'employee_id = ?', whereArgs: [employeeId], orderBy: 'advance_date DESC');
+        where: 'employee_id = ?',
+        whereArgs: [employeeId],
+        orderBy: 'advance_date DESC');
   }
 
   /// Records a recovery against a pending advance and updates its status.
@@ -3735,7 +3988,8 @@ class DBHelper {
       if (!recoveryAmount.isFinite || recoveryAmount <= 0) {
         throw ArgumentError('Recovery amount must be positive and finite.');
       }
-      final rows = await txn.query('advance_salary', where: 'id = ?', whereArgs: [advanceId]);
+      final rows = await txn
+          .query('advance_salary', where: 'id = ?', whereArgs: [advanceId]);
       if (rows.isEmpty) return;
       final advance = rows.first;
       final recovered = (advance['recovered_amount'] as num).toDouble();
@@ -3769,7 +4023,9 @@ class DBHelper {
   Future<List<Map<String, dynamic>>> getCommissions(int employeeId) async {
     final db = await database;
     return db.query('commissions',
-        where: 'employee_id = ?', whereArgs: [employeeId], orderBy: 'commission_date DESC');
+        where: 'employee_id = ?',
+        whereArgs: [employeeId],
+        orderBy: 'commission_date DESC');
   }
 
   // ---------------- Committee helpers ----------------
@@ -3800,7 +4056,8 @@ class DBHelper {
     return db.insert('committee_members', data);
   }
 
-  Future<List<Map<String, dynamic>>> getCommitteeMembers(int committeeId) async {
+  Future<List<Map<String, dynamic>>> getCommitteeMembers(
+      int committeeId) async {
     final db = await database;
     return db.query('committee_members',
         where: 'committee_id = ?', whereArgs: [committeeId], orderBy: 'id ASC');
@@ -3830,7 +4087,9 @@ class DBHelper {
       int committeeId) async {
     final db = await database;
     return db.query('committee_installments',
-        where: 'committee_id = ?', whereArgs: [committeeId], orderBy: 'payment_date DESC');
+        where: 'committee_id = ?',
+        whereArgs: [committeeId],
+        orderBy: 'payment_date DESC');
   }
 
   Future<void> insertCommitteeDraw(Map<String, dynamic> data) async {
@@ -3854,7 +4113,9 @@ class DBHelper {
   Future<List<Map<String, dynamic>>> getCommitteeDraws(int committeeId) async {
     final db = await database;
     return db.query('committee_draws',
-        where: 'committee_id = ?', whereArgs: [committeeId], orderBy: 'draw_date DESC');
+        where: 'committee_id = ?',
+        whereArgs: [committeeId],
+        orderBy: 'draw_date DESC');
   }
 
   // ---------------- Cheque helpers ----------------
@@ -3875,7 +4136,8 @@ class DBHelper {
 
   Future<void> updateChequeStatus(int id, String status) async {
     final db = await database;
-    await db.update('cheques', {'status': status}, where: 'id = ?', whereArgs: [id]);
+    await db.update('cheques', {'status': status},
+        where: 'id = ?', whereArgs: [id]);
   }
 
   Future<void> deleteCheque(int id) async {
@@ -3888,7 +4150,8 @@ class DBHelper {
   Future<String> generateSalesReturnNumber(int companyId) async {
     final db = await database;
     final result = await db.rawQuery(
-        'SELECT COUNT(*) as cnt FROM sales_returns WHERE company_id = ?', [companyId]);
+        'SELECT COUNT(*) as cnt FROM sales_returns WHERE company_id = ?',
+        [companyId]);
     final count = (Sqflite.firstIntValue(result) ?? 0) + 1;
     return 'SR-${count.toString().padLeft(6, '0')}';
   }
@@ -3940,11 +4203,16 @@ class DBHelper {
         );
       }
 
-      final cashId = await _findAccountId(txn, salesReturn['company_id'] as int, 'Cash');
-      final receivableId = await _findAccountId(txn, salesReturn['company_id'] as int, 'Accounts Receivable');
-      final revenueId = await _findAccountId(txn, salesReturn['company_id'] as int, 'Sales Revenue');
-      final refundAccountId = salesReturn['refund_method'] == 'adjust_due' ? receivableId : cashId;
-      final totalAmount = _validateLedgerAmount(salesReturn['total_amount'], 'Sales return');
+      final cashId =
+          await _findAccountId(txn, salesReturn['company_id'] as int, 'Cash');
+      final receivableId = await _findAccountId(
+          txn, salesReturn['company_id'] as int, 'Accounts Receivable');
+      final revenueId = await _findAccountId(
+          txn, salesReturn['company_id'] as int, 'Sales Revenue');
+      final refundAccountId =
+          salesReturn['refund_method'] == 'adjust_due' ? receivableId : cashId;
+      final totalAmount =
+          _validateLedgerAmount(salesReturn['total_amount'], 'Sales return');
       if (refundAccountId == null || revenueId == null) {
         throw StateError('Sales return accounts are not configured.');
       }
@@ -3956,7 +4224,11 @@ class DBHelper {
           sourceId: returnId,
           lines: [
             {'account_id': revenueId, 'debit': totalAmount, 'credit': 0.0},
-            {'account_id': refundAccountId, 'debit': 0.0, 'credit': totalAmount},
+            {
+              'account_id': refundAccountId,
+              'debit': 0.0,
+              'credit': totalAmount
+            },
           ]);
 
       return returnId;
@@ -3980,7 +4252,8 @@ class DBHelper {
   Future<String> generatePurchaseReturnNumber(int companyId) async {
     final db = await database;
     final result = await db.rawQuery(
-        'SELECT COUNT(*) as cnt FROM purchase_returns WHERE company_id = ?', [companyId]);
+        'SELECT COUNT(*) as cnt FROM purchase_returns WHERE company_id = ?',
+        [companyId]);
     final count = (Sqflite.firstIntValue(result) ?? 0) + 1;
     return 'PR-${count.toString().padLeft(6, '0')}';
   }
@@ -4031,22 +4304,31 @@ class DBHelper {
         );
       }
 
-      final cashId = await _findAccountId(txn, purchaseReturn['company_id'] as int, 'Cash');
-      final payableId = await _findAccountId(txn, purchaseReturn['company_id'] as int, 'Accounts Payable');
-      final inventoryId = await _findAccountId(txn, purchaseReturn['company_id'] as int, 'Inventory');
+      final cashId = await _findAccountId(
+          txn, purchaseReturn['company_id'] as int, 'Cash');
+      final payableId = await _findAccountId(
+          txn, purchaseReturn['company_id'] as int, 'Accounts Payable');
+      final inventoryId = await _findAccountId(
+          txn, purchaseReturn['company_id'] as int, 'Inventory');
       final settlementAccountId = cashId ?? payableId;
-      final totalAmount = _validateLedgerAmount(purchaseReturn['total_amount'], 'Purchase return');
+      final totalAmount = _validateLedgerAmount(
+          purchaseReturn['total_amount'], 'Purchase return');
       if (settlementAccountId == null || inventoryId == null) {
         throw StateError('Purchase return accounts are not configured.');
       }
       await postAutomatedEntry(txn,
           companyId: purchaseReturn['company_id'] as int,
           date: purchaseReturn['return_date'] as String,
-          description: 'Auto: Purchase Return ${purchaseReturn['return_number']}',
+          description:
+              'Auto: Purchase Return ${purchaseReturn['return_number']}',
           sourceType: 'purchase_return',
           sourceId: returnId,
           lines: [
-            {'account_id': settlementAccountId, 'debit': totalAmount, 'credit': 0.0},
+            {
+              'account_id': settlementAccountId,
+              'debit': totalAmount,
+              'credit': 0.0
+            },
             {'account_id': inventoryId, 'debit': 0.0, 'credit': totalAmount},
           ]);
 
@@ -4060,7 +4342,8 @@ class DBHelper {
         where: 'company_id = ?', whereArgs: [companyId], orderBy: 'id DESC');
   }
 
-  Future<List<Map<String, dynamic>>> getPurchaseReturnItems(int returnId) async {
+  Future<List<Map<String, dynamic>>> getPurchaseReturnItems(
+      int returnId) async {
     final db = await database;
     return db.query('purchase_return_items',
         where: 'return_id = ?', whereArgs: [returnId]);
@@ -4071,7 +4354,8 @@ class DBHelper {
   Future<String> generateChallanNumber(int companyId) async {
     final db = await database;
     final result = await db.rawQuery(
-        'SELECT COUNT(*) as cnt FROM delivery_challans WHERE company_id = ?', [companyId]);
+        'SELECT COUNT(*) as cnt FROM delivery_challans WHERE company_id = ?',
+        [companyId]);
     final count = (Sqflite.firstIntValue(result) ?? 0) + 1;
     return 'DC-${count.toString().padLeft(6, '0')}';
   }
@@ -4122,7 +4406,8 @@ class DBHelper {
   Future<String> generatePoNumber(int companyId) async {
     final db = await database;
     final result = await db.rawQuery(
-        'SELECT COUNT(*) as cnt FROM purchase_orders WHERE company_id = ?', [companyId]);
+        'SELECT COUNT(*) as cnt FROM purchase_orders WHERE company_id = ?',
+        [companyId]);
     final count = (Sqflite.firstIntValue(result) ?? 0) + 1;
     return 'PO-${count.toString().padLeft(6, '0')}';
   }
@@ -4152,7 +4437,8 @@ class DBHelper {
 
   Future<List<Map<String, dynamic>>> getPurchaseOrderItems(int poId) async {
     final db = await database;
-    return db.query('purchase_order_items', where: 'po_id = ?', whereArgs: [poId]);
+    return db
+        .query('purchase_order_items', where: 'po_id = ?', whereArgs: [poId]);
   }
 
   Future<void> updatePurchaseOrderStatus(int id, String status) async {
@@ -4164,7 +4450,8 @@ class DBHelper {
   Future<void> deletePurchaseOrder(int id) async {
     final db = await database;
     await db.transaction((txn) async {
-      await txn.delete('purchase_order_items', where: 'po_id = ?', whereArgs: [id]);
+      await txn
+          .delete('purchase_order_items', where: 'po_id = ?', whereArgs: [id]);
       await txn.delete('purchase_orders', where: 'id = ?', whereArgs: [id]);
     });
   }
@@ -4174,7 +4461,8 @@ class DBHelper {
   Future<String> generateQuoteNumber(int companyId) async {
     final db = await database;
     final result = await db.rawQuery(
-        'SELECT COUNT(*) as cnt FROM quotations WHERE company_id = ?', [companyId]);
+        'SELECT COUNT(*) as cnt FROM quotations WHERE company_id = ?',
+        [companyId]);
     final count = (Sqflite.firstIntValue(result) ?? 0) + 1;
     return 'QT-${count.toString().padLeft(6, '0')}';
   }
@@ -4204,12 +4492,14 @@ class DBHelper {
 
   Future<List<Map<String, dynamic>>> getQuotationItems(int quoteId) async {
     final db = await database;
-    return db.query('quotation_items', where: 'quote_id = ?', whereArgs: [quoteId]);
+    return db
+        .query('quotation_items', where: 'quote_id = ?', whereArgs: [quoteId]);
   }
 
   Future<void> updateQuotationStatus(int id, String status) async {
     final db = await database;
-    await db.update('quotations', {'status': status}, where: 'id = ?', whereArgs: [id]);
+    await db.update('quotations', {'status': status},
+        where: 'id = ?', whereArgs: [id]);
   }
 
   Future<int> convertQuotationToSale({
@@ -4220,7 +4510,8 @@ class DBHelper {
     final db = await database;
     return db.transaction<int>((txn) async {
       // 1. Get items from quotation
-      final items = await txn.query('quotation_items', where: 'quote_id = ?', whereArgs: [quoteId]);
+      final items = await txn.query('quotation_items',
+          where: 'quote_id = ?', whereArgs: [quoteId]);
       final saleItems = items.map((it) {
         final map = Map<String, dynamic>.from(it);
         map.remove('id');
@@ -4263,9 +4554,12 @@ class DBHelper {
 
         if (productId != null) {
           // Check item type
-          final pRows = await txn.query('products', columns: ['item_type'], where: 'id = ?', whereArgs: [productId]);
-          final type = pRows.isNotEmpty ? pRows.first['item_type'] as String? : 'inventory';
-          
+          final pRows = await txn.query('products',
+              columns: ['item_type'], where: 'id = ?', whereArgs: [productId]);
+          final type = pRows.isNotEmpty
+              ? pRows.first['item_type'] as String?
+              : 'inventory';
+
           if (type == 'inventory') {
             if (variantId != null) {
               await txn.rawUpdate(
@@ -4296,9 +4590,14 @@ class DBHelper {
 
       // Accounting entries
       await _ensureChartOfAccountsInTransaction(txn, companyId);
-      final coaRows = await txn.query('chart_of_accounts', where: 'company_id = ?', whereArgs: [companyId]);
+      final coaRows = await txn.query('chart_of_accounts',
+          where: 'company_id = ?', whereArgs: [companyId]);
       int? getAccId(String name) {
-        try { return coaRows.firstWhere((r) => r['name'] == name)['id'] as int; } catch(_) { return null; }
+        try {
+          return coaRows.firstWhere((r) => r['name'] == name)['id'] as int;
+        } catch (_) {
+          return null;
+        }
       }
 
       final cashAcc = getAccId('Cash');
@@ -4307,37 +4606,49 @@ class DBHelper {
       final cogsAcc = getAccId('Cost of Goods Sold');
       final invAcc = getAccId('Inventory');
 
-      if (cashAcc == null || recAcc == null || salesAcc == null || cogsAcc == null || invAcc == null) {
-        throw StateError('Accounting for Sales is not fully configured (Missing AR, Sales, COGS, or Inventory accounts).');
+      if (cashAcc == null ||
+          recAcc == null ||
+          salesAcc == null ||
+          cogsAcc == null ||
+          invAcc == null) {
+        throw StateError(
+            'Accounting for Sales is not fully configured (Missing AR, Sales, COGS, or Inventory accounts).');
       }
 
       final List<Map<String, dynamic>> journalLines = [];
       if (paidAmount > 0) {
-        journalLines.add({'account_id': cashAcc, 'debit': paidAmount, 'credit': 0.0});
+        journalLines
+            .add({'account_id': cashAcc, 'debit': paidAmount, 'credit': 0.0});
       }
       if (dueAmount > 0) {
-        journalLines.add({'account_id': recAcc, 'debit': dueAmount, 'credit': 0.0});
+        journalLines
+            .add({'account_id': recAcc, 'debit': dueAmount, 'credit': 0.0});
       }
       if (totalAmount > 0) {
-        journalLines.add({'account_id': salesAcc, 'debit': 0.0, 'credit': totalAmount});
+        journalLines
+            .add({'account_id': salesAcc, 'debit': 0.0, 'credit': totalAmount});
       }
       if (totalCost > 0) {
-        journalLines.add({'account_id': cogsAcc, 'debit': totalCost, 'credit': 0.0});
-        journalLines.add({'account_id': invAcc, 'debit': 0.0, 'credit': totalCost});
+        journalLines
+            .add({'account_id': cogsAcc, 'debit': totalCost, 'credit': 0.0});
+        journalLines
+            .add({'account_id': invAcc, 'debit': 0.0, 'credit': totalCost});
       }
 
       if (journalLines.isNotEmpty) {
         await postAutomatedEntry(txn,
             companyId: companyId,
             date: saleDate,
-            description: 'Auto: Sale Invoice $invoiceNum (Converted from Quote $quoteId)',
+            description:
+                'Auto: Sale Invoice $invoiceNum (Converted from Quote $quoteId)',
             sourceType: 'sale',
             sourceId: saleId,
             lines: journalLines);
       }
 
       // 3. Mark quotation as converted
-      await txn.update('quotations', {'status': 'converted'}, where: 'id = ?', whereArgs: [quoteId]);
+      await txn.update('quotations', {'status': 'converted'},
+          where: 'id = ?', whereArgs: [quoteId]);
 
       return saleId;
     });
@@ -4352,14 +4663,16 @@ class DBHelper {
 
   Future<List<Map<String, dynamic>>> getPromotions(int companyId) async {
     final db = await database;
-    return db.query('promotions', where: 'company_id = ?', whereArgs: [companyId], orderBy: 'id DESC');
+    return db.query('promotions',
+        where: 'company_id = ?', whereArgs: [companyId], orderBy: 'id DESC');
   }
 
   Future<List<Map<String, dynamic>>> getActivePromotions(int companyId) async {
     final db = await database;
     final now = DateTime.now().toIso8601String();
     return db.query('promotions',
-        where: 'company_id = ? AND active = 1 AND start_date <= ? AND end_date >= ?',
+        where:
+            'company_id = ? AND active = 1 AND start_date <= ? AND end_date >= ?',
         whereArgs: [companyId, now, now]);
   }
 
@@ -4373,7 +4686,8 @@ class DBHelper {
     await db.delete('promotions', where: 'id = ?', whereArgs: [id]);
   }
 
-  Future<List<Map<String, dynamic>>> getUnreconciledBankTransactions(int bankAccountId) async {
+  Future<List<Map<String, dynamic>>> getUnreconciledBankTransactions(
+      int bankAccountId) async {
     final db = await database;
     return db.query('bank_transactions',
         where: 'bank_account_id = ? AND is_reconciled = 0',
@@ -4398,13 +4712,15 @@ class DBHelper {
     return db.insert('recurring_templates', data);
   }
 
-  Future<List<Map<String, dynamic>>> getRecurringTemplates(int companyId) async {
+  Future<List<Map<String, dynamic>>> getRecurringTemplates(
+      int companyId) async {
     final db = await database;
     return db.query('recurring_templates',
         where: 'company_id = ?', whereArgs: [companyId], orderBy: 'id DESC');
   }
 
-  Future<List<Map<String, dynamic>>> getDueRecurringTemplates(int companyId) async {
+  Future<List<Map<String, dynamic>>> getDueRecurringTemplates(
+      int companyId) async {
     final db = await database;
     final now = DateTime.now().toIso8601String();
     return db.query('recurring_templates',
@@ -4459,16 +4775,17 @@ class DBHelper {
       }
 
       await txn.update('recurring_templates',
-        {'next_due_date': newNextDue.toIso8601String()},
-        where: 'id = ?', whereArgs: [template['id']]);
+          {'next_due_date': newNextDue.toIso8601String()},
+          where: 'id = ?', whereArgs: [template['id']]);
     });
   }
 
   // ---------------- Tax Report helper ----------------
 
-  Future<Map<String, double>> getTaxSummary(int companyId, String fromDate, String toDate) async {
+  Future<Map<String, double>> getTaxSummary(
+      int companyId, String fromDate, String toDate) async {
     final db = await database;
-    
+
     final salesRes = await db.rawQuery('''
       SELECT SUM(total_amount) as sales, SUM(tax_amount) as tax 
       FROM sales 
@@ -4484,12 +4801,14 @@ class DBHelper {
     return {
       'total_sales': (salesRes.first['sales'] as num?)?.toDouble() ?? 0.0,
       'tax_collected': (salesRes.first['tax'] as num?)?.toDouble() ?? 0.0,
-      'total_purchases': (purchaseRes.first['purchases'] as num?)?.toDouble() ?? 0.0,
+      'total_purchases':
+          (purchaseRes.first['purchases'] as num?)?.toDouble() ?? 0.0,
       'tax_paid': (purchaseRes.first['tax'] as num?)?.toDouble() ?? 0.0,
     };
   }
 
-  Future<List<Map<String, dynamic>>> getTopSellingProducts(int companyId, {int limit = 5}) async {
+  Future<List<Map<String, dynamic>>> getTopSellingProducts(int companyId,
+      {int limit = 5}) async {
     final db = await database;
     return db.rawQuery('''
       SELECT product_name, SUM(quantity) as total_qty
@@ -4537,7 +4856,11 @@ class DBHelper {
     }
 
     return db.query('audit_log',
-        where: where.toString(), whereArgs: args, orderBy: 'id DESC', limit: limit ?? 100, offset: offset);
+        where: where.toString(),
+        whereArgs: args,
+        orderBy: 'id DESC',
+        limit: limit ?? 100,
+        offset: offset);
   }
 
   // ---------------- Inventory Adjustment helpers ----------------
@@ -4546,12 +4869,14 @@ class DBHelper {
     final db = await database;
     await db.transaction((txn) async {
       await _enforcePeriodLock(data['adjustment_date'] as String);
-      final quantity = _validateLedgerAmount(data['quantity'], 'Stock adjustment');
+      final quantity =
+          _validateLedgerAmount(data['quantity'], 'Stock adjustment');
       final productId = data['product_id'];
       final companyId = data['company_id'];
-        if (productId is! int || companyId is! int ||
+      if (productId is! int ||
+          companyId is! int ||
           !const {'increase', 'decrease', 'damage', 'lost'}
-            .contains(data['type'])) {
+              .contains(data['type'])) {
         throw ArgumentError('Stock adjustment details are invalid.');
       }
       final products = await txn.query('products',
@@ -4560,7 +4885,8 @@ class DBHelper {
           whereArgs: [productId, companyId],
           limit: 1);
       if (products.isEmpty) {
-        throw ArgumentError('The adjusted product must belong to the selected company.');
+        throw ArgumentError(
+            'The adjusted product must belong to the selected company.');
       }
       final adjId = await txn.insert('stock_adjustments', data);
       final type = data['type'] as String;
@@ -4569,10 +4895,12 @@ class DBHelper {
         'UPDATE products SET current_stock = current_stock + ? WHERE id = ?',
         [delta, data['product_id']],
       );
-      final value = quantity * (products.first['purchase_price'] as num).toDouble();
+      final value =
+          quantity * (products.first['purchase_price'] as num).toDouble();
       await _ensureChartOfAccountsInTransaction(txn, companyId);
       final inventoryId = await _findAccountId(txn, companyId, 'Inventory');
-      final offsetName = type == 'increase' ? 'Other Income' : 'Operating Expenses';
+      final offsetName =
+          type == 'increase' ? 'Other Income' : 'Operating Expenses';
       final offsetId = await _findAccountId(txn, companyId, offsetName);
       if (inventoryId == null || offsetId == null || value <= 0) {
         throw StateError('Stock adjustment accounts are not configured.');
@@ -4659,7 +4987,10 @@ class DBHelper {
   }
 
   Future<void> _ensureChartOfAccountsInTransaction(
-      Transaction txn, int companyId) async {
+    Transaction txn,
+    int companyId, [
+    List<Map<String, String>>? templateCoa,
+  ]) async {
     final existing = await txn.query(
       'chart_of_accounts',
       columns: ['id'],
@@ -4669,13 +5000,23 @@ class DBHelper {
     );
     if (existing.isNotEmpty) return;
 
+    // Per-category COA wins if the template provided one; otherwise fall
+    // back to the static default list. Each entry must have code+name+type.
+    final source = (templateCoa != null && templateCoa.isNotEmpty)
+        ? templateCoa
+        : defaultChartOfAccounts;
+
     final now = DateTime.now().toIso8601String();
-    for (final account in defaultChartOfAccounts) {
+    for (final account in source) {
+      final code = account['code'];
+      final name = account['name'];
+      final type = account['type'];
+      if (code == null || name == null || type == null) continue;
       await txn.insert('chart_of_accounts', {
         'company_id': companyId,
-        'code': account['code'],
-        'name': account['name'],
-        'type': account['type'],
+        'code': code,
+        'name': name,
+        'type': type,
         'created_at': now,
       });
     }
@@ -4696,7 +5037,8 @@ class DBHelper {
       );
       final entryId = await txn.insert('journal_entries', entry);
       for (final line in lines) {
-        await txn.insert('journal_entry_lines', {...line, 'journal_entry_id': entryId});
+        await txn.insert(
+            'journal_entry_lines', {...line, 'journal_entry_id': entryId});
       }
       return entryId;
     });
@@ -4705,10 +5047,13 @@ class DBHelper {
   Future<List<Map<String, dynamic>>> getJournalEntries(int companyId) async {
     final db = await database;
     return db.query('journal_entries',
-        where: 'company_id = ?', whereArgs: [companyId], orderBy: 'entry_date DESC, id DESC');
+        where: 'company_id = ?',
+        whereArgs: [companyId],
+        orderBy: 'entry_date DESC, id DESC');
   }
 
-  Future<List<Map<String, dynamic>>> getJournalEntryLines(int journalEntryId) async {
+  Future<List<Map<String, dynamic>>> getJournalEntryLines(
+      int journalEntryId) async {
     final db = await database;
     return db.rawQuery('''
       SELECT jel.*, coa.name as account_name, coa.code as account_code
@@ -4721,11 +5066,13 @@ class DBHelper {
   Future<void> deleteJournalEntry(int id) async {
     final db = await database;
     await db.transaction((txn) async {
-      final rows = await txn.query('journal_entries', where: 'id = ?', whereArgs: [id]);
+      final rows =
+          await txn.query('journal_entries', where: 'id = ?', whereArgs: [id]);
       if (rows.isNotEmpty) {
         await _enforcePeriodLock(rows.first['entry_date'] as String);
       }
-      await txn.delete('journal_entry_lines', where: 'journal_entry_id = ?', whereArgs: [id]);
+      await txn.delete('journal_entry_lines',
+          where: 'journal_entry_id = ?', whereArgs: [id]);
       await txn.delete('journal_entries', where: 'id = ?', whereArgs: [id]);
     });
   }
@@ -4786,10 +5133,12 @@ class DBHelper {
     });
   }
 
-  Future<void> saveProductVariants(int productId, List<Map<String, dynamic>> variants) async {
+  Future<void> saveProductVariants(
+      int productId, List<Map<String, dynamic>> variants) async {
     final db = await database;
     await db.transaction((txn) async {
-      await txn.delete('product_variants', where: 'product_id = ?', whereArgs: [productId]);
+      await txn.delete('product_variants',
+          where: 'product_id = ?', whereArgs: [productId]);
       for (final v in variants) {
         await txn.insert('product_variants', {
           'product_id': productId,
@@ -4805,7 +5154,8 @@ class DBHelper {
 
   Future<List<Map<String, dynamic>>> getProductVariants(int productId) async {
     final db = await database;
-    return db.query('product_variants', where: 'product_id = ?', whereArgs: [productId]);
+    return db.query('product_variants',
+        where: 'product_id = ?', whereArgs: [productId]);
   }
 
   // ---------------- Custom Fields helpers ----------------
@@ -4815,13 +5165,15 @@ class DBHelper {
     return db.insert('custom_field_definitions', data);
   }
 
-  Future<List<Map<String, dynamic>>> getCustomFieldDefinitions(int companyId, String module) async {
+  Future<List<Map<String, dynamic>>> getCustomFieldDefinitions(
+      int companyId, String module) async {
     final db = await database;
     return db.query('custom_field_definitions',
         where: 'company_id = ? AND module = ?', whereArgs: [companyId, module]);
   }
 
-  Future<void> saveCustomFieldValues(int recordId, Map<int, String> values) async {
+  Future<void> saveCustomFieldValues(
+      int recordId, Map<int, String> values) async {
     final db = await database;
     await db.transaction((txn) async {
       for (final entry in values.entries) {
@@ -4836,7 +5188,8 @@ class DBHelper {
 
   Future<Map<int, String>> getCustomFieldValues(int recordId) async {
     final db = await database;
-    final rows = await db.query('custom_field_values', where: 'record_id = ?', whereArgs: [recordId]);
+    final rows = await db.query('custom_field_values',
+        where: 'record_id = ?', whereArgs: [recordId]);
     final map = <int, String>{};
     for (final r in rows) {
       map[r['definition_id'] as int] = r['value'] as String? ?? '';
@@ -4906,7 +5259,8 @@ class DBHelper {
   Future<void> startProductionOrder(int orderId) async {
     final db = await database;
     await db.transaction((txn) async {
-      final orders = await txn.query('production_orders', where: 'id = ?', whereArgs: [orderId]);
+      final orders = await txn
+          .query('production_orders', where: 'id = ?', whereArgs: [orderId]);
       if (orders.isEmpty) throw StateError('Production order not found');
       final po = orders.first;
 
@@ -4919,7 +5273,8 @@ class DBHelper {
       final qtyToProduce = (po['quantity_to_produce'] as num).toDouble();
 
       // Get BOM info
-      final boms = await txn.query('bill_of_materials', where: 'id = ?', whereArgs: [bomId]);
+      final boms = await txn
+          .query('bill_of_materials', where: 'id = ?', whereArgs: [bomId]);
       final bom = boms.first;
       final outputQty = (bom['output_quantity'] as num).toDouble();
       final multiplier = qtyToProduce / outputQty;
@@ -4936,7 +5291,8 @@ class DBHelper {
 
       for (final item in items) {
         final productId = item['raw_material_product_id'] as int;
-        final reqQty = (item['quantity_required'] as num).toDouble() * multiplier;
+        final reqQty =
+            (item['quantity_required'] as num).toDouble() * multiplier;
         final cost = (item['purchase_price'] as num).toDouble();
 
         totalMaterialCost += reqQty * cost;
@@ -4965,9 +5321,10 @@ class DBHelper {
       // --- ACCOUNTING INTEGRATION ---
       // Credit: Raw Materials Inventory, Debit: Work in Progress (WIP)
       await _ensureChartOfAccountsInTransaction(txn, companyId);
-      final rmAcc = await _findAccountId(txn, companyId, 'Raw Materials Inventory') ??
-          await _findAccountId(txn, companyId, 'Inventory') ??
-          await _findAccountId(txn, companyId, 'Inventory Asset');
+      final rmAcc =
+          await _findAccountId(txn, companyId, 'Raw Materials Inventory') ??
+              await _findAccountId(txn, companyId, 'Inventory') ??
+              await _findAccountId(txn, companyId, 'Inventory Asset');
       final wipAcc = await _findAccountId(txn, companyId, 'Work in Progress') ??
           await _findAccountId(txn, companyId, 'Inventory') ??
           await _findAccountId(txn, companyId, 'Inventory Asset');
@@ -4977,7 +5334,8 @@ class DBHelper {
           txn,
           companyId: companyId,
           date: startDate,
-          description: 'Auto: Start Production Order #$orderId (Raw Materials Issued)',
+          description:
+              'Auto: Start Production Order #$orderId (Raw Materials Issued)',
           sourceType: 'production_start',
           sourceId: orderId,
           lines: [
@@ -4994,7 +5352,8 @@ class DBHelper {
   Future<void> completeProductionOrder(int orderId) async {
     final db = await database;
     await db.transaction((txn) async {
-      final orders = await txn.query('production_orders', where: 'id = ?', whereArgs: [orderId]);
+      final orders = await txn
+          .query('production_orders', where: 'id = ?', whereArgs: [orderId]);
       if (orders.isEmpty) throw StateError('Production order not found');
       final po = orders.first;
 
@@ -5007,13 +5366,16 @@ class DBHelper {
       final qtyToProduce = (po['quantity_to_produce'] as num).toDouble();
       final laborCost = (po['labor_cost'] as num?)?.toDouble() ?? 0;
       final overheadCost = (po['overhead_cost'] as num?)?.toDouble() ?? 0;
-      final rawMaterialCost = (po['total_raw_material_cost'] as num?)?.toDouble() ?? 0;
+      final rawMaterialCost =
+          (po['total_raw_material_cost'] as num?)?.toDouble() ?? 0;
 
       final totalProductionCost = rawMaterialCost + laborCost + overheadCost;
-      final unitCost = qtyToProduce > 0 ? totalProductionCost / qtyToProduce : 0.0;
+      final unitCost =
+          qtyToProduce > 0 ? totalProductionCost / qtyToProduce : 0.0;
 
       // Get Finished Product
-      final boms = await txn.query('bill_of_materials', where: 'id = ?', whereArgs: [bomId]);
+      final boms = await txn
+          .query('bill_of_materials', where: 'id = ?', whereArgs: [bomId]);
       final finishedProductId = boms.first['finished_product_id'] as int;
 
       // Update Finished Product Stock & Average Cost
@@ -5028,8 +5390,9 @@ class DBHelper {
         final currentPrice = (pRows.first['purchase_price'] as num).toDouble();
 
         if (currentStock > 0) {
-          newAvgCost = ((currentStock * currentPrice) + (qtyToProduce * unitCost)) /
-              (currentStock + qtyToProduce);
+          newAvgCost =
+              ((currentStock * currentPrice) + (qtyToProduce * unitCost)) /
+                  (currentStock + qtyToProduce);
         }
       }
 
@@ -5057,16 +5420,18 @@ class DBHelper {
       final wipAcc = await _findAccountId(txn, companyId, 'Work in Progress') ??
           await _findAccountId(txn, companyId, 'Inventory') ??
           await _findAccountId(txn, companyId, 'Inventory Asset');
-      final fgAcc = await _findAccountId(txn, companyId, 'Finished Goods Inventory') ??
-          await _findAccountId(txn, companyId, 'Inventory') ??
-          await _findAccountId(txn, companyId, 'Inventory Asset');
+      final fgAcc =
+          await _findAccountId(txn, companyId, 'Finished Goods Inventory') ??
+              await _findAccountId(txn, companyId, 'Inventory') ??
+              await _findAccountId(txn, companyId, 'Inventory Asset');
 
       if (wipAcc != null && fgAcc != null && totalProductionCost > 0) {
         await postAutomatedEntry(
           txn,
           companyId: companyId,
           date: completionDate,
-          description: 'Auto: Complete Production Order #$orderId (Finished Goods Produced)',
+          description:
+              'Auto: Complete Production Order #$orderId (Finished Goods Produced)',
           sourceType: 'production_complete',
           sourceId: orderId,
           lines: [
@@ -5080,16 +5445,19 @@ class DBHelper {
 
   // ---------------- Duplicate barcode check ----------------
 
-  Future<bool> isBarcodeTaken(int companyId, String barcode, {int? excludingProductId}) async {
+  Future<bool> isBarcodeTaken(int companyId, String barcode,
+      {int? excludingProductId}) async {
     if (barcode.trim().isEmpty) return false;
     final db = await database;
-    final where = StringBuffer('company_id = ? AND deleted_at IS NULL AND barcode = ?');
+    final where =
+        StringBuffer('company_id = ? AND deleted_at IS NULL AND barcode = ?');
     final args = <Object?>[companyId, barcode.trim()];
     if (excludingProductId != null) {
       where.write(' AND id != ?');
       args.add(excludingProductId);
     }
-    final rows = await db.query('products', where: where.toString(), whereArgs: args);
+    final rows =
+        await db.query('products', where: where.toString(), whereArgs: args);
     return rows.isNotEmpty;
   }
 
@@ -5120,7 +5488,8 @@ class DBHelper {
         where: 'company_id = ?', whereArgs: [companyId], orderBy: 'name ASC');
   }
 
-  Future<void> saveProductPrices(int priceListId, Map<int, double> prices) async {
+  Future<void> saveProductPrices(
+      int priceListId, Map<int, double> prices) async {
     final db = await database;
     await db.transaction((txn) async {
       for (final entry in prices.entries) {
@@ -5157,12 +5526,15 @@ class DBHelper {
   Future<List<Map<String, dynamic>>> getRestaurantTables(int companyId) async {
     final db = await database;
     return db.query('restaurant_tables',
-        where: 'company_id = ?', whereArgs: [companyId], orderBy: 'table_number ASC');
+        where: 'company_id = ?',
+        whereArgs: [companyId],
+        orderBy: 'table_number ASC');
   }
 
   Future<void> updateTableStatus(int id, String status) async {
     final db = await database;
-    await db.update('restaurant_tables', {'status': status}, where: 'id = ?', whereArgs: [id]);
+    await db.update('restaurant_tables', {'status': status},
+        where: 'id = ?', whereArgs: [id]);
   }
 
   // ---------------- Service Jobs helpers ----------------
@@ -5180,7 +5552,8 @@ class DBHelper {
 
   Future<void> updateServiceJobStatus(int id, String status) async {
     final db = await database;
-    await db.update('service_jobs', {'status': status}, where: 'id = ?', whereArgs: [id]);
+    await db.update('service_jobs', {'status': status},
+        where: 'id = ?', whereArgs: [id]);
   }
 
   // ---------------- Staff / Roles helpers ----------------
@@ -5192,7 +5565,8 @@ class DBHelper {
 
   Future<List<Map<String, dynamic>>> getStaffUsers(int companyId) async {
     final db = await database;
-    return db.query('staff_users', where: 'company_id = ?', whereArgs: [companyId], orderBy: 'name ASC');
+    return db.query('staff_users',
+        where: 'company_id = ?', whereArgs: [companyId], orderBy: 'name ASC');
   }
 
   Future<void> deleteStaffUser(int id) async {
@@ -5214,12 +5588,14 @@ class DBHelper {
 
   Future<List<Map<String, dynamic>>> getCustomRoles(int companyId) async {
     final db = await database;
-    return db.query('custom_roles', where: 'company_id = ?', whereArgs: [companyId], orderBy: 'name ASC');
+    return db.query('custom_roles',
+        where: 'company_id = ?', whereArgs: [companyId], orderBy: 'name ASC');
   }
 
   Future<Map<String, dynamic>?> getCustomRoleById(int id) async {
     final db = await database;
-    final list = await db.query('custom_roles', where: 'id = ?', whereArgs: [id]);
+    final list =
+        await db.query('custom_roles', where: 'id = ?', whereArgs: [id]);
     if (list.isNotEmpty) return list.first;
     return null;
   }
@@ -5241,19 +5617,24 @@ class DBHelper {
 
   // ---------------- Duplicate barcode check ----------------
 
-  Future<List<Map<String, dynamic>>> getSerialsForProduct(int productId, {String status = 'available'}) async {
+  Future<List<Map<String, dynamic>>> getSerialsForProduct(int productId,
+      {String status = 'available'}) async {
     final db = await database;
     return db.query('product_serials',
-        where: 'product_id = ? AND status = ?',
-        whereArgs: [productId, status]);
+        where: 'product_id = ? AND status = ?', whereArgs: [productId, status]);
   }
 
-  Future<void> updateSerialStatus(String serial, String status, {int? saleId}) async {
+  Future<void> updateSerialStatus(String serial, String status,
+      {int? saleId}) async {
     final db = await database;
-    await db.update('product_serials', {
-      'status': status,
-      'sale_id': saleId,
-    }, where: 'serial_number = ?', whereArgs: [serial]);
+    await db.update(
+        'product_serials',
+        {
+          'status': status,
+          'sale_id': saleId,
+        },
+        where: 'serial_number = ?',
+        whereArgs: [serial]);
   }
 
   Future<void> deleteCompanyPermanently(int companyId) async {
@@ -5261,7 +5642,7 @@ class DBHelper {
     // Temporarily disable foreign keys for mass deletion.
     // Note: This must happen outside a transaction in some SQLite versions.
     await db.execute('PRAGMA foreign_keys = OFF');
-    
+
     try {
       await db.transaction((txn) async {
         // 1. Delete data from all tables that have a 'company_id' column.
@@ -5272,8 +5653,7 @@ class DBHelper {
           final tableName = tableMap['name'] as String;
           final List<Map<String, dynamic>> columns =
               await txn.rawQuery("PRAGMA table_info($tableName)");
-          final hasCompanyId =
-              columns.any((c) => c['name'] == 'company_id');
+          final hasCompanyId = columns.any((c) => c['name'] == 'company_id');
 
           if (hasCompanyId) {
             await txn.delete(tableName,
@@ -5337,11 +5717,14 @@ class DBHelper {
     if (lockDate == null || targetDate == null) return;
 
     // Normalize both to date only for comparison
-    final normalizedLock = DateTime(lockDate.year, lockDate.month, lockDate.day);
-    final normalizedTarget = DateTime(targetDate.year, targetDate.month, targetDate.day);
+    final normalizedLock =
+        DateTime(lockDate.year, lockDate.month, lockDate.day);
+    final normalizedTarget =
+        DateTime(targetDate.year, targetDate.month, targetDate.day);
 
     if (normalizedTarget.isBefore(normalizedLock)) {
-      throw StateError('Ye transaction locked period mein hai (${lockStr.substring(0,10)} se pehle). Tabdeeli nahi ho sakti.');
+      throw StateError(
+          'Ye transaction locked period mein hai (${lockStr.substring(0, 10)} se pehle). Tabdeeli nahi ho sakti.');
     }
   }
 
@@ -5357,7 +5740,8 @@ class DBHelper {
   }
 
   /// Posts an automated journal entry into the system.
-  Future<void> postAutomatedEntry(DatabaseExecutor txn, {
+  Future<void> postAutomatedEntry(
+    DatabaseExecutor txn, {
     required int companyId,
     required String date,
     required String description,
@@ -5404,7 +5788,8 @@ class DBHelper {
           credit < 0 ||
           (debit > 0 && credit > 0) ||
           (debit == 0 && credit == 0)) {
-        throw ArgumentError('Each journal line must have one positive debit or credit.');
+        throw ArgumentError(
+            'Each journal line must have one positive debit or credit.');
       }
       totalDebit += debit;
       totalCredit += credit;
@@ -5416,7 +5801,7 @@ class DBHelper {
   }
 
   Future<void> _validateJournalAccounts(
-      DatabaseExecutor txn,
+    DatabaseExecutor txn,
     int companyId,
     List<Map<String, dynamic>> lines,
   ) async {
@@ -5424,11 +5809,13 @@ class DBHelper {
     final accounts = await txn.query(
       'chart_of_accounts',
       columns: ['id'],
-      where: 'company_id = ? AND id IN (${List.filled(accountIds.length, '?').join(',')})',
+      where:
+          'company_id = ? AND id IN (${List.filled(accountIds.length, '?').join(',')})',
       whereArgs: [companyId, ...accountIds],
     );
     if (accounts.length != accountIds.length) {
-      throw ArgumentError('Every journal account must belong to the selected company.');
+      throw ArgumentError(
+          'Every journal account must belong to the selected company.');
     }
   }
 
@@ -5449,9 +5836,14 @@ class DBHelper {
       final quantity = (item['quantity'] as num?)?.toDouble();
       final price = (item[priceKey] as num?)?.toDouble();
       final productId = item['product_id'];
-      if (quantity == null || !quantity.isFinite || quantity <= 0 ||
-          price == null || !price.isFinite || price < 0) {
-        throw ArgumentError('Each inventory item must have a valid quantity and price.');
+      if (quantity == null ||
+          !quantity.isFinite ||
+          quantity <= 0 ||
+          price == null ||
+          !price.isFinite ||
+          price < 0) {
+        throw ArgumentError(
+            'Each inventory item must have a valid quantity and price.');
       }
       if (productId != null) {
         if (productId is! int) {
@@ -5466,11 +5858,13 @@ class DBHelper {
     final products = await txn.query(
       'products',
       columns: ['id', 'name', 'current_stock'],
-      where: 'company_id = ? AND id IN (${List.filled(productIds.length, '?').join(',')})',
+      where:
+          'company_id = ? AND id IN (${List.filled(productIds.length, '?').join(',')})',
       whereArgs: [companyId, ...productIds],
     );
     if (products.length != productIds.length) {
-      throw ArgumentError('Every inventory product must belong to the selected company.');
+      throw ArgumentError(
+          'Every inventory product must belong to the selected company.');
     }
 
     if (!allowNegativeStock) {
@@ -5479,7 +5873,8 @@ class DBHelper {
         final stock = (p['current_stock'] as num).toDouble();
         final requested = requestedQtys[id]!;
         if (requested > stock) {
-          throw StateError('Stock kam hai: ${p['name']} (Available: $stock, Requested: $requested)');
+          throw StateError(
+              'Stock kam hai: ${p['name']} (Available: $stock, Requested: $requested)');
         }
       }
     }
@@ -5493,7 +5888,9 @@ class DBHelper {
     required Object? amount,
   }) async {
     final numericAmount = (amount as num?)?.toDouble();
-    if (numericAmount == null || !numericAmount.isFinite || numericAmount <= 0) {
+    if (numericAmount == null ||
+        !numericAmount.isFinite ||
+        numericAmount <= 0) {
       throw ArgumentError('Payment amount must be a positive finite number.');
     }
     if (partyId is! int) {
@@ -5508,7 +5905,8 @@ class DBHelper {
       limit: 1,
     );
     if (rows.isEmpty) {
-      throw ArgumentError('The ledger party must belong to the selected company.');
+      throw ArgumentError(
+          'The ledger party must belong to the selected company.');
     }
   }
 
@@ -5576,7 +5974,8 @@ class DBHelper {
     final committeeId = data['committee_id'];
     final memberId = data['member_id'];
     if (companyId is! int || committeeId is! int || memberId is! int) {
-      throw ArgumentError('A valid company, committee, and member are required.');
+      throw ArgumentError(
+          'A valid company, committee, and member are required.');
     }
     final rows = await txn.rawQuery('''
       SELECT cm.id
@@ -5585,11 +5984,13 @@ class DBHelper {
       WHERE cm.id = ? AND cm.committee_id = ? AND c.company_id = ?
     ''', [memberId, committeeId, companyId]);
     if (rows.isEmpty) {
-      throw ArgumentError('The committee member must belong to the selected committee.');
+      throw ArgumentError(
+          'The committee member must belong to the selected committee.');
     }
   }
 
-  Future<int?> _findAccountId(Transaction txn, int companyId, String name) async {
+  Future<int?> _findAccountId(
+      Transaction txn, int companyId, String name) async {
     final rows = await txn.query(
       'chart_of_accounts',
       columns: ['id'],
@@ -5647,12 +6048,18 @@ class DBHelper {
     final saleId = salesReturn['sale_id'];
     final companyId = salesReturn['company_id'];
     if (saleId is! int || companyId is! int) {
-      throw ArgumentError('A valid sale and company are required for a return.');
+      throw ArgumentError(
+          'A valid sale and company are required for a return.');
     }
     final saleRows = await txn.query('sales',
-        columns: ['id'], where: 'id = ? AND company_id = ?', whereArgs: [saleId, companyId], limit: 1);
-    if (saleRows.isEmpty) throw ArgumentError('The sale must belong to the selected company.');
-    final original = await txn.query('sale_items', where: 'sale_id = ?', whereArgs: [saleId]);
+        columns: ['id'],
+        where: 'id = ? AND company_id = ?',
+        whereArgs: [saleId, companyId],
+        limit: 1);
+    if (saleRows.isEmpty)
+      throw ArgumentError('The sale must belong to the selected company.');
+    final original = await txn
+        .query('sale_items', where: 'sale_id = ?', whereArgs: [saleId]);
     final returned = await txn.rawQuery('''
       SELECT sri.product_id, COALESCE(SUM(sri.quantity), 0) AS quantity
       FROM sales_return_items sri
@@ -5671,12 +6078,18 @@ class DBHelper {
     final purchaseId = purchaseReturn['purchase_id'];
     final companyId = purchaseReturn['company_id'];
     if (purchaseId is! int || companyId is! int) {
-      throw ArgumentError('A valid purchase and company are required for a return.');
+      throw ArgumentError(
+          'A valid purchase and company are required for a return.');
     }
     final purchaseRows = await txn.query('purchases',
-        columns: ['id'], where: 'id = ? AND company_id = ?', whereArgs: [purchaseId, companyId], limit: 1);
-    if (purchaseRows.isEmpty) throw ArgumentError('The purchase must belong to the selected company.');
-    final original = await txn.query('purchase_items', where: 'purchase_id = ?', whereArgs: [purchaseId]);
+        columns: ['id'],
+        where: 'id = ? AND company_id = ?',
+        whereArgs: [purchaseId, companyId],
+        limit: 1);
+    if (purchaseRows.isEmpty)
+      throw ArgumentError('The purchase must belong to the selected company.');
+    final original = await txn.query('purchase_items',
+        where: 'purchase_id = ?', whereArgs: [purchaseId]);
     final returned = await txn.rawQuery('''
       SELECT pri.product_id, COALESCE(SUM(pri.quantity), 0) AS quantity
       FROM purchase_return_items pri
@@ -5684,7 +6097,8 @@ class DBHelper {
       WHERE pr.purchase_id = ?
       GROUP BY pri.product_id
     ''', [purchaseId]);
-    await _validateReturnQuantities(items, original, returned, 'Purchase return');
+    await _validateReturnQuantities(
+        items, original, returned, 'Purchase return');
   }
 
   Future<void> _validateReturnQuantities(
@@ -5697,24 +6111,30 @@ class DBHelper {
     for (final row in original) {
       final productId = row['product_id'];
       if (productId is int) {
-        originalByProduct[productId] =
-            (originalByProduct[productId] ?? 0) + (row['quantity'] as num).toDouble();
+        originalByProduct[productId] = (originalByProduct[productId] ?? 0) +
+            (row['quantity'] as num).toDouble();
       }
     }
     final returnedByProduct = <int, double>{};
     for (final row in returned) {
       final productId = row['product_id'];
-      if (productId is int) returnedByProduct[productId] = (row['quantity'] as num).toDouble();
+      if (productId is int)
+        returnedByProduct[productId] = (row['quantity'] as num).toDouble();
     }
     for (final item in items) {
       final productId = item['product_id'];
       final quantity = (item['quantity'] as num?)?.toDouble();
-      if (productId is! int || quantity == null || !quantity.isFinite || quantity <= 0) {
+      if (productId is! int ||
+          quantity == null ||
+          !quantity.isFinite ||
+          quantity <= 0) {
         throw ArgumentError('$label item is invalid.');
       }
-      final available = (originalByProduct[productId] ?? 0) - (returnedByProduct[productId] ?? 0);
+      final available = (originalByProduct[productId] ?? 0) -
+          (returnedByProduct[productId] ?? 0);
       if (quantity > available + 0.000001) {
-        throw ArgumentError('$label quantity exceeds the available original quantity.');
+        throw ArgumentError(
+            '$label quantity exceeds the available original quantity.');
       }
     }
   }

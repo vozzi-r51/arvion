@@ -4,7 +4,8 @@ import '../../core/database/db_helper.dart';
 class AdvanceTab extends StatefulWidget {
   final int companyId;
   final int employeeId;
-  const AdvanceTab({super.key, required this.companyId, required this.employeeId});
+  const AdvanceTab(
+      {super.key, required this.companyId, required this.employeeId});
 
   @override
   State<AdvanceTab> createState() => _AdvanceTabState();
@@ -50,13 +51,16 @@ class _AdvanceTabState extends State<AdvanceTab> {
               children: [
                 TextField(
                   controller: amountCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Amount (Rs.) *'),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration:
+                      const InputDecoration(labelText: 'Amount (Rs.) *'),
                 ),
                 const SizedBox(height: 8),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text('Date: ${date.toIso8601String().substring(0, 10)}'),
+                  title:
+                      Text('Date: ${date.toIso8601String().substring(0, 10)}'),
                   trailing: const Icon(Icons.calendar_today, size: 18),
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -76,7 +80,9 @@ class _AdvanceTabState extends State<AdvanceTab> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
                 final amount = double.tryParse(amountCtrl.text.trim());
@@ -104,7 +110,8 @@ class _AdvanceTabState extends State<AdvanceTab> {
   }
 
   void _showRecoverDialog(Map<String, dynamic> advance) {
-    final pending = (advance['amount'] as num) - (advance['recovered_amount'] as num);
+    final pending =
+        (advance['amount'] as num) - (advance['recovered_amount'] as num);
     final amountCtrl = TextEditingController(text: pending.toStringAsFixed(0));
 
     showDialog(
@@ -118,18 +125,22 @@ class _AdvanceTabState extends State<AdvanceTab> {
             const SizedBox(height: 10),
             TextField(
               controller: amountCtrl,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(labelText: 'Recover Amount (Rs.)'),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              decoration:
+                  const InputDecoration(labelText: 'Recover Amount (Rs.)'),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
               final amount = double.tryParse(amountCtrl.text.trim());
               if (amount == null || amount <= 0) return;
-              await DBHelper.instance.recoverAdvance(advance['id'] as int, amount);
+              await DBHelper.instance
+                  .recoverAdvance(advance['id'] as int, amount);
               if (!ctx.mounted) return;
               Navigator.pop(ctx);
               _load();
@@ -155,11 +166,14 @@ class _AdvanceTabState extends State<AdvanceTab> {
               padding: const EdgeInsets.all(14),
               child: Column(
                 children: [
-                  const Text('Total Pending Advance', style: TextStyle(fontSize: 12)),
+                  const Text('Total Pending Advance',
+                      style: TextStyle(fontSize: 12)),
                   Text(
                     'Rs. ${_totalPending.toStringAsFixed(0)}',
                     style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold, color: Colors.deepOrange),
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepOrange),
                   ),
                   const SizedBox(height: 10),
                   ElevatedButton.icon(
@@ -188,15 +202,17 @@ class _AdvanceTabState extends State<AdvanceTab> {
                       margin: const EdgeInsets.only(bottom: 8),
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor:
-                              isPending ? Colors.deepOrange.shade100 : Colors.green.shade100,
+                          backgroundColor: isPending
+                              ? Colors.deepOrange.shade100
+                              : Colors.green.shade100,
                           child: Icon(
                             isPending ? Icons.schedule : Icons.check_circle,
                             color: isPending ? Colors.deepOrange : Colors.green,
                             size: 18,
                           ),
                         ),
-                        title: Text('Rs. ${(a['amount'] as num).toStringAsFixed(0)}'),
+                        title: Text(
+                            'Rs. ${(a['amount'] as num).toStringAsFixed(0)}'),
                         subtitle: Text(
                             '${(a['advance_date'] as String).substring(0, 10)}  •  ${a['reason'] ?? ''}\nPending: Rs. ${pending.toStringAsFixed(0)}'),
                         isThreeLine: true,
@@ -206,7 +222,8 @@ class _AdvanceTabState extends State<AdvanceTab> {
                                 child: const Text('Recover'),
                               )
                             : const Text('Cleared',
-                                style: TextStyle(color: Colors.green, fontSize: 12)),
+                                style: TextStyle(
+                                    color: Colors.green, fontSize: 12)),
                       ),
                     );
                   },

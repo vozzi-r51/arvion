@@ -31,7 +31,8 @@ class _JournalEntriesTabState extends State<JournalEntriesTab> {
 
   Future<void> _openNew() async {
     final result = await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => NewJournalEntryScreen(companyId: widget.companyId)),
+      MaterialPageRoute(
+          builder: (_) => NewJournalEntryScreen(companyId: widget.companyId)),
     );
     if (result == true) _load();
   }
@@ -43,7 +44,9 @@ class _JournalEntriesTabState extends State<JournalEntriesTab> {
         title: const Text('Entry Delete Karein?'),
         content: Text(e['description'] as String),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
           TextButton(
               onPressed: () => Navigator.pop(ctx, true),
               child: const Text('Delete', style: TextStyle(color: Colors.red))),
@@ -57,7 +60,8 @@ class _JournalEntriesTabState extends State<JournalEntriesTab> {
   }
 
   Future<void> _showLines(Map<String, dynamic> entry) async {
-    final lines = await DBHelper.instance.getJournalEntryLines(entry['id'] as int);
+    final lines =
+        await DBHelper.instance.getJournalEntryLines(entry['id'] as int);
     if (!mounted) return;
     showDialog(
       context: context,
@@ -71,14 +75,17 @@ class _JournalEntriesTabState extends State<JournalEntriesTab> {
                 .map((l) => ListTile(
                       dense: true,
                       title: Text(l['account_name'] as String),
-                      trailing: Text(
-                          (l['debit'] as num) > 0 ? 'Dr ${l['debit']}' : 'Cr ${l['credit']}'),
+                      trailing: Text((l['debit'] as num) > 0
+                          ? 'Dr ${l['debit']}'
+                          : 'Cr ${l['credit']}'),
                     ))
                 .toList(),
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Band Karein')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Band Karein')),
         ],
       ),
     );
@@ -101,9 +108,11 @@ class _JournalEntriesTabState extends State<JournalEntriesTab> {
                       child: ListTile(
                         leading: const Icon(Icons.menu_book_outlined),
                         title: Text(e['description'] as String),
-                        subtitle: Text((e['entry_date'] as String).substring(0, 10)),
+                        subtitle:
+                            Text((e['entry_date'] as String).substring(0, 10)),
                         trailing: IconButton(
-                          icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                          icon: const Icon(Icons.delete_outline,
+                              size: 18, color: Colors.red),
                           onPressed: () => _confirmDelete(e),
                         ),
                         onTap: () => _showLines(e),

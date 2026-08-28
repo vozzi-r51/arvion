@@ -41,8 +41,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
   Future<void> _load() async {
     setState(() => _loading = true);
     await ErrorHandler.run(context, () async {
-      final rows = await DBHelper.instance
-          .getProducts(widget.companyId, searchQuery: _query, limit: _pageSize, offset: 0);
+      final rows = await DBHelper.instance.getProducts(widget.companyId,
+          searchQuery: _query, limit: _pageSize, offset: 0);
       if (mounted) {
         setState(() {
           _products = rows;
@@ -149,7 +149,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           final selectedProds = _products
                               .where((p) => _selectedIds.contains(p['id']))
                               .toList();
-                          BarcodePdfService.printBarcodeLabels(products: selectedProds);
+                          BarcodePdfService.printBarcodeLabels(
+                              products: selectedProds);
                         },
                   tooltip: 'Print Labels',
                 ),
@@ -179,7 +180,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       IconButton(
                         icon: const Icon(Icons.checklist),
                         tooltip: 'Select Mode',
-                        onPressed: () => setState(() => _isSelectionMode = true),
+                        onPressed: () =>
+                            setState(() => _isSelectionMode = true),
                       ),
                     ],
                   ),
@@ -203,11 +205,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         message: _query.isEmpty
                             ? 'Apni shop mein naya maal add karne ke liye niche wala button dabayein.'
                             : 'Aapki search ke mutabiq koi $productLabel nahi mila.',
-                        actionLabel: _query.isEmpty ? 'Naya $productLabel' : null,
+                        actionLabel:
+                            _query.isEmpty ? 'Naya $productLabel' : null,
                         onAction: _query.isEmpty ? () => _openForm() : null,
                       )
                     : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.l),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.l),
                         itemCount: _products.length,
                         itemBuilder: (ctx, i) {
                           final prod = _products[i];
@@ -225,7 +229,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                               side: BorderSide(
                                 color: isSelected
                                     ? Theme.of(context).colorScheme.primary
-                                    : Theme.of(context).dividerColor.withValues(alpha: 0.1),
+                                    : Theme.of(context)
+                                        .dividerColor
+                                        .withValues(alpha: 0.1),
                                 width: isSelected ? 2 : 1,
                               ),
                             ),
@@ -247,33 +253,46 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                       width: 48,
                                       height: 48,
                                       decoration: BoxDecoration(
-                                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .surfaceContainerHighest,
                                         borderRadius: AppRadius.small,
                                       ),
                                       clipBehavior: Clip.antiAlias,
-                                      child: imagePath != null && File(imagePath).existsSync()
-                                          ? Image.file(File(imagePath), fit: BoxFit.cover)
+                                      child: imagePath != null &&
+                                              File(imagePath).existsSync()
+                                          ? Image.file(File(imagePath),
+                                              fit: BoxFit.cover)
                                           : Icon(Icons.inventory_2_outlined,
-                                              color: lowStock ? Colors.orange : Theme.of(context).colorScheme.primary),
+                                              color: lowStock
+                                                  ? Colors.orange
+                                                  : Theme.of(context)
+                                                      .colorScheme
+                                                      .primary),
                                     ),
                               title: Text(
                                 prod['name'] as String,
-                                style: AppTypography.titleMedium(context).copyWith(fontWeight: FontWeight.bold),
+                                style: AppTypography.titleMedium(context)
+                                    .copyWith(fontWeight: FontWeight.bold),
                               ),
                               subtitle: Text(
                                 'Stock: ${prod['current_stock']}  •  Rs. ${prod['retail_price']}',
-                                style: AppTypography.bodySmall(context).copyWith(
+                                style:
+                                    AppTypography.bodySmall(context).copyWith(
                                   color: lowStock ? Colors.red : null,
                                 ),
                               ),
                               trailing: _isSelectionMode
                                   ? null
                                   : PopupMenuButton<String>(
-                                      icon: const Icon(Icons.more_vert, size: 20),
+                                      icon:
+                                          const Icon(Icons.more_vert, size: 20),
                                       onSelected: (val) {
                                         if (val == 'qr') {
                                           Navigator.of(context).push(
-                                            MaterialPageRoute(builder: (_) => BarcodeQrScreen(product: prod)),
+                                            MaterialPageRoute(
+                                                builder: (_) => BarcodeQrScreen(
+                                                    product: prod)),
                                           );
                                         } else if (val == 'edit') {
                                           _openForm(existing: prod);
@@ -282,9 +301,16 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                         }
                                       },
                                       itemBuilder: (ctx) => [
-                                        const PopupMenuItem(value: 'qr', child: Text('QR / Barcode')),
-                                        const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                                        const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
+                                        const PopupMenuItem(
+                                            value: 'qr',
+                                            child: Text('QR / Barcode')),
+                                        const PopupMenuItem(
+                                            value: 'edit', child: Text('Edit')),
+                                        const PopupMenuItem(
+                                            value: 'delete',
+                                            child: Text('Delete',
+                                                style: TextStyle(
+                                                    color: Colors.red))),
                                       ],
                                     ),
                               onTap: _isSelectionMode

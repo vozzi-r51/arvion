@@ -32,7 +32,8 @@ class _SalesHomeScreenState extends State<SalesHomeScreen> {
   Future<void> _load() async {
     setState(() => _loading = true);
     await ErrorHandler.run(context, () async {
-      final rows = await DBHelper.instance.getSales(widget.companyId, limit: _pageSize, offset: 0);
+      final rows = await DBHelper.instance
+          .getSales(widget.companyId, limit: _pageSize, offset: 0);
       if (mounted) {
         setState(() {
           _sales = rows;
@@ -72,10 +73,12 @@ class _SalesHomeScreenState extends State<SalesHomeScreen> {
             '"${sale['invoice_number']}" cancel ho jayegi. Stock wapis barh jayega aur accounting entries reverse ho jayengi.'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx, false), child: const Text('Nahi')),
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Nahi')),
           TextButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Haan, Void Karein', style: TextStyle(color: Colors.red))),
+              child: const Text('Haan, Void Karein',
+                  style: TextStyle(color: Colors.red))),
         ],
       ),
     );
@@ -121,22 +124,31 @@ class _SalesHomeScreenState extends State<SalesHomeScreen> {
                           leading: CircleAvatar(
                             backgroundColor: isVoided
                                 ? Colors.grey.shade200
-                                : (isDue && due > 0 ? Colors.red.shade100 : Colors.green.shade100),
+                                : (isDue && due > 0
+                                    ? Colors.red.shade100
+                                    : Colors.green.shade100),
                             child: Icon(
                               isVoided
                                   ? Icons.block
-                                  : (isDue ? Icons.schedule : Icons.check_circle),
+                                  : (isDue
+                                      ? Icons.schedule
+                                      : Icons.check_circle),
                               color: isVoided
                                   ? Colors.grey
-                                  : (isDue && due > 0 ? Colors.red : Colors.green),
+                                  : (isDue && due > 0
+                                      ? Colors.red
+                                      : Colors.green),
                               size: 20,
                             ),
                           ),
                           title: Text(sale['invoice_number'] as String,
                               style: TextStyle(
-                                  decoration: isVoided ? TextDecoration.lineThrough : null,
+                                  decoration: isVoided
+                                      ? TextDecoration.lineThrough
+                                      : null,
                                   color: isVoided ? Colors.grey : null)),
-                          subtitle: Text(sale['customer_name'] as String? ?? 'Walk-in Customer'),
+                          subtitle: Text(sale['customer_name'] as String? ??
+                              'Walk-in Customer'),
                           trailing: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.end,
@@ -145,12 +157,15 @@ class _SalesHomeScreenState extends State<SalesHomeScreen> {
                                 'Rs. ${(sale['total_amount'] as num).toStringAsFixed(0)}',
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    decoration: isVoided ? TextDecoration.lineThrough : null,
+                                    decoration: isVoided
+                                        ? TextDecoration.lineThrough
+                                        : null,
                                     color: isVoided ? Colors.grey : null),
                               ),
                               if (!isVoided && Session.isOwner)
                                 IconButton(
-                                  icon: const Icon(Icons.block, size: 18, color: Colors.orange),
+                                  icon: const Icon(Icons.block,
+                                      size: 18, color: Colors.orange),
                                   onPressed: () => _confirmVoid(sale),
                                   padding: EdgeInsets.zero,
                                   constraints: const BoxConstraints(),
@@ -158,7 +173,10 @@ class _SalesHomeScreenState extends State<SalesHomeScreen> {
                                 )
                               else if (isVoided)
                                 const Text('VOIDED',
-                                    style: TextStyle(color: Colors.red, fontSize: 10, fontWeight: FontWeight.bold)),
+                                    style: TextStyle(
+                                        color: Colors.red,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold)),
                             ],
                           ),
                           onTap: () => Navigator.of(context).push(
@@ -175,7 +193,8 @@ class _SalesHomeScreenState extends State<SalesHomeScreen> {
           ? SafeArea(
               child: Padding(
                 padding: const EdgeInsets.all(12),
-                child: OutlinedButton(onPressed: _loadMore, child: const Text('Aur Load Karein')),
+                child: OutlinedButton(
+                    onPressed: _loadMore, child: const Text('Aur Load Karein')),
               ),
             )
           : null,

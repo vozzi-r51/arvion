@@ -40,14 +40,20 @@ class AppPermissions {
 
   static const Map<String, String> descriptions = {
     canViewReports: 'Profit/Loss, Tax, Sales aur Stock Reports ka full view',
-    canEditPrices: 'Sale ya Product form mein unit price/discount modify karne ki permission',
-    canDeleteRecords: 'Sales, Purchases, Customers ya Products permanent delete karne ki ijazat',
-    canApprovePurchaseOrders: 'PO aur Quotation ko confirm aur convert karne ki ijazat',
-    canManageInventory: 'Naye products add karna, stock adjust karna aur BOM/Production',
+    canEditPrices:
+        'Sale ya Product form mein unit price/discount modify karne ki permission',
+    canDeleteRecords:
+        'Sales, Purchases, Customers ya Products permanent delete karne ki ijazat',
+    canApprovePurchaseOrders:
+        'PO aur Quotation ko confirm aur convert karne ki ijazat',
+    canManageInventory:
+        'Naye products add karna, stock adjust karna aur BOM/Production',
     canManageFinance: 'Expenses/Income entries, Cash Book aur Journal entries',
     canManageHr: 'Staff attendance, advance payment aur monthly salary process',
-    canManageCustomers: 'Naye customers/suppliers banana aur ledgers view karna',
-    canManageSettings: 'Company details, PIN, backup/restore aur staff permissions',
+    canManageCustomers:
+        'Naye customers/suppliers banana aur ledgers view karna',
+    canManageSettings:
+        'Company details, PIN, backup/restore aur staff permissions',
   };
 }
 

@@ -50,25 +50,29 @@ class _CommitteeListScreenState extends State<CommitteeListScreen> {
               children: [
                 TextField(
                   controller: nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Committee Naam *'),
+                  decoration:
+                      const InputDecoration(labelText: 'Committee Naam *'),
                 ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: installmentCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration:
-                      const InputDecoration(labelText: 'Monthly Installment (Rs.) *'),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(
+                      labelText: 'Monthly Installment (Rs.) *'),
                 ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: membersCtrl,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Total Members *'),
+                  decoration:
+                      const InputDecoration(labelText: 'Total Members *'),
                 ),
                 const SizedBox(height: 8),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text('Start Date: ${startDate.toIso8601String().substring(0, 10)}'),
+                  title: Text(
+                      'Start Date: ${startDate.toIso8601String().substring(0, 10)}'),
                   trailing: const Icon(Icons.calendar_today, size: 18),
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -77,19 +81,26 @@ class _CommitteeListScreenState extends State<CommitteeListScreen> {
                       firstDate: DateTime(2020),
                       lastDate: DateTime(2100),
                     );
-                    if (picked != null) setDialogState(() => startDate = picked);
+                    if (picked != null)
+                      setDialogState(() => startDate = picked);
                   },
                 ),
               ],
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
-                final installment = double.tryParse(installmentCtrl.text.trim());
+                final installment =
+                    double.tryParse(installmentCtrl.text.trim());
                 final members = int.tryParse(membersCtrl.text.trim());
-                if (nameCtrl.text.trim().isEmpty || installment == null || members == null || members <= 0) {
+                if (nameCtrl.text.trim().isEmpty ||
+                    installment == null ||
+                    members == null ||
+                    members <= 0) {
                   return;
                 }
                 await DBHelper.instance.insertCommittee({
@@ -121,7 +132,9 @@ class _CommitteeListScreenState extends State<CommitteeListScreen> {
         title: const Text('Committee Delete Karein?'),
         content: Text('"${c['name']}" delete ho jayegi.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
           TextButton(
               onPressed: () => Navigator.pop(ctx, true),
               child: const Text('Delete', style: TextStyle(color: Colors.red))),
@@ -154,13 +167,15 @@ class _CommitteeListScreenState extends State<CommitteeListScreen> {
                       child: ListTile(
                         leading: const CircleAvatar(
                           backgroundColor: Colors.deepPurple,
-                          child: Icon(Icons.groups, color: Colors.white, size: 18),
+                          child:
+                              Icon(Icons.groups, color: Colors.white, size: 18),
                         ),
                         title: Text(c['name'] as String),
                         subtitle: Text(
                             '${c['total_members']} members  •  Rs. ${c['monthly_installment']}/month'),
                         trailing: IconButton(
-                          icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                          icon: const Icon(Icons.delete_outline,
+                              size: 18, color: Colors.red),
                           onPressed: () => _confirmDelete(c),
                         ),
                         onTap: () async {

@@ -52,7 +52,8 @@ class AppTriStateBuilder<T> extends StatelessWidget {
               Text(
                 errorMessage!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, color: Colors.red),
               ),
               const SizedBox(height: 16),
               if (onRetry != null)

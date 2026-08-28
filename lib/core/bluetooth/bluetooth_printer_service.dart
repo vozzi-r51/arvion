@@ -16,8 +16,8 @@ class BluetoothPrinterService {
     if (Platform.isAndroid) {
       final bluetoothScan = await Permission.bluetoothScan.request();
       final bluetoothConnect = await Permission.bluetoothConnect.request();
-      
-      // On older Android, we might need Location too for scanning, 
+
+      // On older Android, we might need Location too for scanning,
       // but blue_thermal_printer mostly deals with paired (bonded) devices.
       return bluetoothScan.isGranted && bluetoothConnect.isGranted;
     }
@@ -28,7 +28,7 @@ class BluetoothPrinterService {
     try {
       final hasPermission = await requestPermissions();
       if (!hasPermission) return [];
-      
+
       return await _printer.getBondedDevices();
     } catch (_) {
       return [];

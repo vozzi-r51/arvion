@@ -41,18 +41,27 @@ class PdfReportService {
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 pw.Text(company['name'] ?? 'BizManager',
-                    style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold)),
+                    style: pw.TextStyle(
+                        fontSize: 22, fontWeight: pw.FontWeight.bold)),
                 if (company['address'] != null)
-                  pw.Text(company['address'], style: const pw.TextStyle(fontSize: 9)),
+                  pw.Text(company['address'],
+                      style: const pw.TextStyle(fontSize: 9)),
                 if (company['phone'] != null)
-                  pw.Text('Ph: ${company['phone']}', style: const pw.TextStyle(fontSize: 9)),
+                  pw.Text('Ph: ${company['phone']}',
+                      style: const pw.TextStyle(fontSize: 9)),
               ],
             ),
             pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.end,
               children: [
-                pw.Text(title, style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
-                pw.Text('Report Date: ${DateTime.now().toIso8601String().substring(0, 10)}', style: const pw.TextStyle(fontSize: 9)),
+                pw.Text(title,
+                    style: pw.TextStyle(
+                        fontSize: 16,
+                        fontWeight: pw.FontWeight.bold,
+                        color: PdfColors.blue900)),
+                pw.Text(
+                    'Report Date: ${DateTime.now().toIso8601String().substring(0, 10)}',
+                    style: const pw.TextStyle(fontSize: 9)),
               ],
             ),
           ],
@@ -76,8 +85,11 @@ class PdfReportService {
   static pw.Widget _buildTable(List<String> columns, List<dynamic> rows) {
     return pw.TableHelper.fromTextArray(
       headers: columns,
-      data: rows.map((r) => (r as List).map((c) => c.toString()).toList()).toList(),
-      headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
+      data: rows
+          .map((r) => (r as List).map((c) => c.toString()).toList())
+          .toList(),
+      headerStyle: pw.TextStyle(
+          fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
       headerDecoration: const pw.BoxDecoration(color: PdfColors.blue900),
       cellStyle: const pw.TextStyle(fontSize: 9),
       cellPadding: const pw.EdgeInsets.all(5),
@@ -99,8 +111,14 @@ class PdfReportService {
             child: pw.Row(
               mainAxisSize: pw.MainAxisSize.min,
               children: [
-                pw.Text('${e.key}: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
-                pw.Text(e.value, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.blue900)),
+                pw.Text('${e.key}: ',
+                    style: pw.TextStyle(
+                        fontWeight: pw.FontWeight.bold, fontSize: 11)),
+                pw.Text(e.value,
+                    style: pw.TextStyle(
+                        fontWeight: pw.FontWeight.bold,
+                        fontSize: 11,
+                        color: PdfColors.blue900)),
               ],
             ),
           );

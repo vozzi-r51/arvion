@@ -78,7 +78,8 @@ class SalesRepository extends BaseRepository {
 
   /// Fetch items for a sale.
   Future<List<Map<String, dynamic>>> getSaleItems(int saleId) async {
-    return await db.query('sale_items', where: 'sale_id = ?', whereArgs: [saleId]);
+    return await db
+        .query('sale_items', where: 'sale_id = ?', whereArgs: [saleId]);
   }
 
   /// Void a sale and emit `SaleVoidedEvent`. Stock reversal, accounting
@@ -86,14 +87,15 @@ class SalesRepository extends BaseRepository {
   Future<void> voidSale(int saleId, int companyId) async {
     await db.update('sales', {'is_voided': 1},
         where: 'id = ?', whereArgs: [saleId]);
-    DomainEventBus.instance.emit(SaleVoidedEvent(saleId: saleId, companyId: companyId));
+    DomainEventBus.instance
+        .emit(SaleVoidedEvent(saleId: saleId, companyId: companyId));
   }
 
   /// Today's total sales for dashboards / AI.
   Future<double> getTodaysSalesTotal(int companyId) async {
     final today = DateTime.now().toIso8601String().substring(0, 10);
     final rows = await db.rawQuery(
-      "SELECT COALESCE(SUM(total), 0) AS total FROM sales "
+      "SELECT COALESCE(SUM(total_amount), 0) AS total FROM sales "
       "WHERE company_id = ? AND sale_date LIKE ? AND is_voided = 0",
       [companyId, '$today%'],
     );

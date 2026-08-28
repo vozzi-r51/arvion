@@ -11,14 +11,14 @@ class AnalyticsRepository extends BaseRepository {
     final today = DateTime.now().toIso8601String().substring(0, 10);
 
     final salesRows = await db.rawQuery(
-      "SELECT COALESCE(SUM(total), 0) AS total FROM sales "
+      "SELECT COALESCE(SUM(total_amount), 0) AS total FROM sales "
       "WHERE company_id = ? AND sale_date LIKE ? AND is_voided = 0",
       [companyId, '$today%'],
     );
     final revenue = (salesRows.first['total'] as num).toDouble();
 
     final purchaseRows = await db.rawQuery(
-      "SELECT COALESCE(SUM(total), 0) AS total FROM purchases "
+      "SELECT COALESCE(SUM(total_amount), 0) AS total FROM purchases "
       "WHERE company_id = ? AND purchase_date LIKE ?",
       [companyId, '$today%'],
     );
@@ -44,14 +44,14 @@ class AnalyticsRepository extends BaseRepository {
     final end = endDate.toIso8601String().substring(0, 10);
 
     final salesRows = await db.rawQuery(
-      "SELECT COALESCE(SUM(total), 0) AS total FROM sales "
+      "SELECT COALESCE(SUM(total_amount), 0) AS total FROM sales "
       "WHERE company_id = ? AND sale_date >= ? AND sale_date <= ? AND is_voided = 0",
       [companyId, start, end],
     );
     final revenue = (salesRows.first['total'] as num).toDouble();
 
     final purchaseRows = await db.rawQuery(
-      "SELECT COALESCE(SUM(total), 0) AS total FROM purchases "
+      "SELECT COALESCE(SUM(total_amount), 0) AS total FROM purchases "
       "WHERE company_id = ? AND purchase_date >= ? AND purchase_date <= ?",
       [companyId, start, end],
     );
@@ -68,26 +68,31 @@ class AnalyticsRepository extends BaseRepository {
   }
 
   /// Sales by category (for pie charts / reports).
+  /// Joins via sale_items → products → categories because sales has no
+  /// direct category_id column. Returns an empty map if no sales exist.
   Future<Map<String, double>> getSalesByCategory(
     int companyId, {
     DateTime? startDate,
     DateTime? endDate,
   }) async {
-    String where = 'company_id = ? AND is_voided = 0';
+    String where = 's.company_id = ? AND s.is_voided = 0';
     List<dynamic> args = [companyId];
 
     if (startDate != null) {
-      where += ' AND sale_date >= ?';
+      where += ' AND s.sale_date >= ?';
       args.add(startDate.toIso8601String());
     }
     if (endDate != null) {
-      where += ' AND sale_date <= ?';
+      where += ' AND s.sale_date <= ?';
       args.add(endDate.toIso8601String());
     }
 
     final rows = await db.rawQuery(
-      "SELECT c.name, SUM(s.total) AS total FROM sales s "
-      "JOIN categories c ON s.category_id = c.id "
+      "SELECT c.name AS name, COALESCE(SUM(si.total), 0) AS total "
+      "FROM sales s "
+      "INNER JOIN sale_items si ON si.sale_id = s.id "
+      "INNER JOIN products p ON p.id = si.product_id "
+      "INNER JOIN categories c ON c.id = p.category_id "
       "WHERE $where "
       "GROUP BY c.id, c.name",
       args,
@@ -95,7 +100,9 @@ class AnalyticsRepository extends BaseRepository {
 
     final result = <String, double>{};
     for (final row in rows) {
-      result[row['name'] as String] = (row['total'] as num).toDouble();
+      final name = row['name'] as String?;
+      if (name == null) continue;
+      result[name] = (row['total'] as num).toDouble();
     }
     return result;
   }

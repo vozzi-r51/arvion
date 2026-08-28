@@ -16,7 +16,11 @@ class _StockAdjustmentScreenState extends State<StockAdjustmentScreen> {
 
   static const _types = {
     'increase': ('Stock Barhayein', Icons.add_circle_outline, Colors.green),
-    'decrease': ('Stock Kam Karein', Icons.remove_circle_outline, Colors.orange),
+    'decrease': (
+      'Stock Kam Karein',
+      Icons.remove_circle_outline,
+      Colors.orange
+    ),
     'damage': ('Damage Stock', Icons.broken_image_outlined, Colors.red),
     'lost': ('Lost Stock', Icons.help_outline, Colors.red),
   };
@@ -30,7 +34,8 @@ class _StockAdjustmentScreenState extends State<StockAdjustmentScreen> {
   Future<void> _load() async {
     try {
       setState(() => _loading = true);
-      final rows = await DBHelper.instance.getStockAdjustments(widget.companyId);
+      final rows =
+          await DBHelper.instance.getStockAdjustments(widget.companyId);
       if (!mounted) return;
       setState(() {
         _adjustments = rows;
@@ -64,12 +69,15 @@ class _StockAdjustmentScreenState extends State<StockAdjustmentScreen> {
               children: [
                 OutlinedButton.icon(
                   onPressed: () async {
-                    final picked = await showModalBottomSheet<Map<String, dynamic>>(
+                    final picked =
+                        await showModalBottomSheet<Map<String, dynamic>>(
                       context: context,
                       isScrollControlled: true,
-                      builder: (_) => _ProductPickerSheet(companyId: widget.companyId),
+                      builder: (_) =>
+                          _ProductPickerSheet(companyId: widget.companyId),
                     );
-                    if (picked != null) setDialogState(() => selectedProduct = picked);
+                    if (picked != null)
+                      setDialogState(() => selectedProduct = picked);
                   },
                   icon: const Icon(Icons.inventory_2_outlined),
                   label: Text(selectedProduct == null
@@ -81,20 +89,24 @@ class _StockAdjustmentScreenState extends State<StockAdjustmentScreen> {
                   value: type,
                   decoration: const InputDecoration(labelText: 'Type'),
                   items: _types.entries
-                      .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value.$1)))
+                      .map((e) => DropdownMenuItem(
+                          value: e.key, child: Text(e.value.$1)))
                       .toList(),
-                  onChanged: (v) => setDialogState(() => type = v ?? 'increase'),
+                  onChanged: (v) =>
+                      setDialogState(() => type = v ?? 'increase'),
                 ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: qtyCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   decoration: const InputDecoration(labelText: 'Quantity *'),
                 ),
                 const SizedBox(height: 8),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text('Date: ${date.toIso8601String().substring(0, 10)}'),
+                  title:
+                      Text('Date: ${date.toIso8601String().substring(0, 10)}'),
                   trailing: const Icon(Icons.calendar_today, size: 18),
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -114,7 +126,9 @@ class _StockAdjustmentScreenState extends State<StockAdjustmentScreen> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
                 final qty = double.tryParse(qtyCtrl.text.trim());
@@ -132,8 +146,12 @@ class _StockAdjustmentScreenState extends State<StockAdjustmentScreen> {
                     'created_at': DateTime.now().toIso8601String(),
                   });
                   try {
-                    final oldStock = (selectedProduct!['stock_quantity'] as num?)?.toDouble() ?? 0.0;
-                    final newStock = type == 'add' ? oldStock + qty : oldStock - qty;
+                    final oldStock =
+                        (selectedProduct!['stock_quantity'] as num?)
+                                ?.toDouble() ??
+                            0.0;
+                    final newStock =
+                        type == 'add' ? oldStock + qty : oldStock - qty;
                     await AuditLogger.log(
                       companyId: widget.companyId,
                       module: 'Stock',
@@ -160,7 +178,9 @@ class _StockAdjustmentScreenState extends State<StockAdjustmentScreen> {
                   if (!ctx.mounted) return;
                   setDialogState(() => saving = false);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Stock adjustment save nahi hui: $error')),
+                    SnackBar(
+                        content:
+                            Text('Stock adjustment save nahi hui: $error')),
                   );
                 }
               },
@@ -191,19 +211,23 @@ class _StockAdjustmentScreenState extends State<StockAdjustmentScreen> {
                   itemCount: _adjustments.length,
                   itemBuilder: (ctx, i) {
                     final a = _adjustments[i];
-                    final typeInfo = _types[a['type']] ?? ('Unknown', Icons.help, Colors.grey);
+                    final typeInfo = _types[a['type']] ??
+                        ('Unknown', Icons.help, Colors.grey);
                     return Card(
                       margin: const EdgeInsets.only(bottom: 8),
                       child: ListTile(
                         leading: CircleAvatar(
                           backgroundColor: typeInfo.$3.withOpacity(0.15),
-                          child: Icon(typeInfo.$2, color: typeInfo.$3, size: 18),
+                          child:
+                              Icon(typeInfo.$2, color: typeInfo.$3, size: 18),
                         ),
                         title: Text(a['product_name'] as String),
                         subtitle: Text(
                             '${typeInfo.$1}  •  ${(a['adjustment_date'] as String).substring(0, 10)}  •  ${a['reason'] ?? ''}'),
                         trailing: Text('${a['quantity']}',
-                            style: TextStyle(fontWeight: FontWeight.bold, color: typeInfo.$3)),
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: typeInfo.$3)),
                       ),
                     );
                   },
@@ -236,7 +260,8 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
   }
 
   Future<void> _load() async {
-    final rows = await DBHelper.instance.getProducts(widget.companyId, searchQuery: _query);
+    final rows = await DBHelper.instance
+        .getProducts(widget.companyId, searchQuery: _query);
     setState(() {
       _products = rows;
       _loading = false;
@@ -254,10 +279,12 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Text('Product Select Karein', style: Theme.of(context).textTheme.titleMedium),
+            Text('Product Select Karein',
+                style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 10),
             TextField(
-              decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Search karein'),
+              decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.search), hintText: 'Search karein'),
               onChanged: (v) {
                 _query = v;
                 _load();

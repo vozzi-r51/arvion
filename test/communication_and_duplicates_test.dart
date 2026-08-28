@@ -16,15 +16,23 @@ void main() {
   });
 
   group('1. Phone Normalization & WhatsApp Deep-Link Tests', () {
-    test('Normalizes various Pakistan phone formats into clean WhatsApp international digits', () {
-      expect(PhoneFormatter.toWhatsAppNumber('+92 300 1234567'), equals('923001234567'));
-      expect(PhoneFormatter.toWhatsAppNumber('0300-1234567'), equals('923001234567'));
-      expect(PhoneFormatter.toWhatsAppNumber('+92 (300) 123-4567'), equals('923001234567'));
-      expect(PhoneFormatter.toWhatsAppNumber('92 300 1234567'), equals('923001234567'));
+    test(
+        'Normalizes various Pakistan phone formats into clean WhatsApp international digits',
+        () {
+      expect(PhoneFormatter.toWhatsAppNumber('+92 300 1234567'),
+          equals('923001234567'));
+      expect(PhoneFormatter.toWhatsAppNumber('0300-1234567'),
+          equals('923001234567'));
+      expect(PhoneFormatter.toWhatsAppNumber('+92 (300) 123-4567'),
+          equals('923001234567'));
+      expect(PhoneFormatter.toWhatsAppNumber('92 300 1234567'),
+          equals('923001234567'));
     });
 
-    test('Constructs wa.me URL with properly URL-encoded spaces and Urdu text', () {
-      final uri = PhoneFormatter.buildWhatsAppUri('+92 300 1234567', 'Assalam o Alaikum, Rs. 5,000 pending!');
+    test('Constructs wa.me URL with properly URL-encoded spaces and Urdu text',
+        () {
+      final uri = PhoneFormatter.buildWhatsAppUri(
+          '+92 300 1234567', 'Assalam o Alaikum, Rs. 5,000 pending!');
       final urlStr = uri.toString();
 
       expect(urlStr, contains('https://wa.me/923001234567'));
@@ -34,7 +42,9 @@ void main() {
   });
 
   group('2. Same-Company Duplicate Customer & Supplier Detection Tests', () {
-    test('Normalizes customer names and phone numbers for case-insensitive duplicate matching', () {
+    test(
+        'Normalizes customer names and phone numbers for case-insensitive duplicate matching',
+        () {
       final name1 = DuplicateDetectionService.normalizeName('  Ali Traders  ');
       final name2 = DuplicateDetectionService.normalizeName('ali traders');
 
@@ -52,7 +62,9 @@ void main() {
   });
 
   group('3. Optional SMS Module Isolation & Offline Safety Tests', () {
-    test('SMS module default state is OFF and fails gracefully without throwing errors when internet is unavailable', () async {
+    test(
+        'SMS module default state is OFF and fails gracefully without throwing errors when internet is unavailable',
+        () async {
       SharedPreferences.setMockInitialValues({'sms_enabled': false});
 
       final resultDisabled = await SMSService.sendSMS(
@@ -64,7 +76,8 @@ void main() {
       // Enable SMS with mock unconfigured gateway
       SharedPreferences.setMockInitialValues({
         'sms_enabled': true,
-        'sms_gateway_url': 'https://unreachable.gateway.com/api?key={key}&to={mobile}&msg={message}',
+        'sms_gateway_url':
+            'https://unreachable.gateway.com/api?key={key}&to={mobile}&msg={message}',
         'sms_api_key': 'mock_key_123',
       });
 

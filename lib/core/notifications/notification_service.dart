@@ -14,7 +14,8 @@ class NotificationService {
 
   static Future<void> init() async {
     if (_initialized) return;
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
     const settings = InitializationSettings(android: androidSettings);
     await _plugin.initialize(settings);
     _initialized = true;
@@ -44,8 +45,8 @@ class NotificationService {
       await init();
       final lowStockCount = await DBHelper.instance.getLowStockCount(companyId);
       final receivables = await DBHelper.instance.getReceivables(companyId);
-      final totalReceivable =
-          receivables.fold(0.0, (sum, c) => sum + (c['current_balance'] as num));
+      final totalReceivable = receivables.fold(
+          0.0, (sum, c) => sum + (c['current_balance'] as num));
 
       if (lowStockCount > 0) {
         await _show(

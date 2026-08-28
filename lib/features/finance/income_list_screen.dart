@@ -41,8 +41,8 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
   }
 
   void _showForm({Map<String, dynamic>? existing}) {
-    final amountCtrl =
-        TextEditingController(text: existing != null ? '${existing['amount']}' : '');
+    final amountCtrl = TextEditingController(
+        text: existing != null ? '${existing['amount']}' : '');
     final descCtrl =
         TextEditingController(text: existing?['description'] as String? ?? '');
     final customCategoryCtrl = TextEditingController();
@@ -71,25 +71,30 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                   items: _categories
                       .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                       .toList(),
-                  onChanged: (v) => setDialogState(() => category = v ?? 'Other'),
+                  onChanged: (v) =>
+                      setDialogState(() => category = v ?? 'Other'),
                 ),
                 if (category == 'Other') ...[
                   const SizedBox(height: 8),
                   TextField(
                     controller: customCategoryCtrl,
-                    decoration: const InputDecoration(labelText: 'Category Naam'),
+                    decoration:
+                        const InputDecoration(labelText: 'Category Naam'),
                   ),
                 ],
                 const SizedBox(height: 8),
                 TextField(
                   controller: amountCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Amount (Rs.) *'),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration:
+                      const InputDecoration(labelText: 'Amount (Rs.) *'),
                 ),
                 const SizedBox(height: 8),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text('Date: ${date.toIso8601String().substring(0, 10)}'),
+                  title:
+                      Text('Date: ${date.toIso8601String().substring(0, 10)}'),
                   trailing: const Icon(Icons.calendar_today, size: 18),
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -111,13 +116,16 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
                 final amount = double.tryParse(amountCtrl.text.trim());
                 if (amount == null || amount <= 0) return;
-                final finalCategory =
-                    category == 'Other' ? customCategoryCtrl.text.trim() : category;
+                final finalCategory = category == 'Other'
+                    ? customCategoryCtrl.text.trim()
+                    : category;
                 if (finalCategory.isEmpty) return;
 
                 final data = {
@@ -135,15 +143,18 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                     companyId: widget.companyId,
                     module: 'Income',
                     action: AuditLogger.create,
-                    description: 'Naya income: $finalCategory (Rs. ${amount.toStringAsFixed(0)})',
+                    description:
+                        'Naya income: $finalCategory (Rs. ${amount.toStringAsFixed(0)})',
                   );
                 } else {
-                  await DBHelper.instance.updateIncome(existing['id'] as int, data);
+                  await DBHelper.instance
+                      .updateIncome(existing['id'] as int, data);
                   await AuditLogger.log(
                     companyId: widget.companyId,
                     module: 'Income',
                     action: AuditLogger.update,
-                    description: 'Income update kiya: $finalCategory (Rs. ${amount.toStringAsFixed(0)})',
+                    description:
+                        'Income update kiya: $finalCategory (Rs. ${amount.toStringAsFixed(0)})',
                   );
                 }
                 if (!ctx.mounted) return;
@@ -163,9 +174,12 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Income Delete Karein?'),
-        content: Text('"${inc['category']}" (Rs. ${inc['amount']}) delete ho jayega.'),
+        content: Text(
+            '"${inc['category']}" (Rs. ${inc['amount']}) delete ho jayega.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
           TextButton(
               onPressed: () => Navigator.pop(ctx, true),
               child: const Text('Delete', style: TextStyle(color: Colors.red))),
@@ -196,7 +210,8 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
               ? AppEmptyState(
                   icon: Icons.savings_outlined,
                   title: 'Abhi koi income entry nahi hui',
-                  message: 'Sales ke elawa baki income (jaise commission, rent) yahan add karein.',
+                  message:
+                      'Sales ke elawa baki income (jaise commission, rent) yahan add karein.',
                   actionLabel: 'Nayi Income',
                   onAction: () => _showForm(),
                 )
@@ -210,12 +225,16 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                       margin: const EdgeInsets.only(bottom: AppSpacing.m),
                       shape: RoundedRectangleBorder(
                         borderRadius: AppRadius.medium,
-                        side: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+                        side: BorderSide(
+                            color: Theme.of(context)
+                                .dividerColor
+                                .withValues(alpha: 0.1)),
                       ),
                       child: ListTile(
                         leading: CircleAvatar(
                           backgroundColor: Colors.green.withValues(alpha: 0.12),
-                          child: const Icon(Icons.savings_outlined, color: Colors.green, size: 20),
+                          child: const Icon(Icons.savings_outlined,
+                              color: Colors.green, size: 20),
                         ),
                         title: Text(
                           inc['category'] as String,
@@ -226,8 +245,10 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text('Rs. ${(inc['amount'] as num).toStringAsFixed(0)}',
-                                style: const TextStyle(fontWeight: FontWeight.bold)),
+                            Text(
+                                'Rs. ${(inc['amount'] as num).toStringAsFixed(0)}',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold)),
                             const SizedBox(width: AppSpacing.s),
                             PopupMenuButton<String>(
                               icon: const Icon(Icons.more_vert, size: 18),
@@ -239,8 +260,12 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                                 }
                               },
                               itemBuilder: (ctx) => [
-                                const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                                const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
+                                const PopupMenuItem(
+                                    value: 'edit', child: Text('Edit')),
+                                const PopupMenuItem(
+                                    value: 'delete',
+                                    child: Text('Delete',
+                                        style: TextStyle(color: Colors.red))),
                               ],
                             ),
                           ],

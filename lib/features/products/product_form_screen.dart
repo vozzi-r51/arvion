@@ -88,7 +88,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   Future<void> _loadDropdownsAndExisting() async {
     _company = await DBHelper.instance.getCompanyById(widget.companyId);
     if (_company != null) {
-      final familyStr = _company!['template_family'] as String? ?? 'retailStandard';
+      final familyStr =
+          _company!['template_family'] as String? ?? 'retailStandard';
       final family = TemplateFamily.values.firstWhere(
         (f) => f.toString().split('.').last == familyStr,
         orElse: () => TemplateFamily.retailStandard,
@@ -101,7 +102,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     _uoms = await DBHelper.instance.getUoms(widget.companyId);
     _mode = await UXModeService.getEffectiveMode(widget.companyId);
 
-    _customFieldDefs = await DBHelper.instance.getCustomFieldDefinitions(widget.companyId, 'product');
+    _customFieldDefs = await DBHelper.instance
+        .getCustomFieldDefinitions(widget.companyId, 'product');
     for (final def in _customFieldDefs) {
       _customFieldCtrls[def['id'] as int] = TextEditingController();
     }
@@ -112,10 +114,12 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       _hasVariants = (e['has_variants'] ?? 0) == 1;
 
       if (_hasVariants) {
-        _generatedVariants = await DBHelper.instance.getProductVariants(e['id'] as int);
+        _generatedVariants =
+            await DBHelper.instance.getProductVariants(e['id'] as int);
       }
 
-      final values = await DBHelper.instance.getCustomFieldValues(e['id'] as int);
+      final values =
+          await DBHelper.instance.getCustomFieldValues(e['id'] as int);
       values.forEach((defId, val) {
         _customFieldCtrls[defId]?.text = val;
       });
@@ -163,12 +167,14 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           decoration: const InputDecoration(labelText: 'Attribute Name'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               if (ctrl.text.trim().isNotEmpty) {
                 setState(() {
-                  _variantAttributes.add({'name': ctrl.text.trim(), 'values': <String>[]});
+                  _variantAttributes
+                      .add({'name': ctrl.text.trim(), 'values': <String>[]});
                 });
                 Navigator.pop(ctx);
               }
@@ -191,7 +197,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           decoration: const InputDecoration(labelText: 'Value'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               if (ctrl.text.trim().isNotEmpty) {
@@ -244,9 +251,12 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   }
 
   void _editVariant(Map<String, dynamic> variant, int index) {
-    final stockCtrl = TextEditingController(text: '${variant['current_stock']}');
-    final priceCtrl = TextEditingController(text: '${variant['price_override'] ?? ''}');
-    final skuCtrl = TextEditingController(text: variant['sku'] as String? ?? '');
+    final stockCtrl =
+        TextEditingController(text: '${variant['current_stock']}');
+    final priceCtrl =
+        TextEditingController(text: '${variant['price_override'] ?? ''}');
+    final skuCtrl =
+        TextEditingController(text: variant['sku'] as String? ?? '');
 
     showDialog(
       context: context,
@@ -255,19 +265,31 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: skuCtrl, decoration: const InputDecoration(labelText: 'SKU')),
-            TextField(controller: stockCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Stock')),
-            TextField(controller: priceCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Price Override (optional)')),
+            TextField(
+                controller: skuCtrl,
+                decoration: const InputDecoration(labelText: 'SKU')),
+            TextField(
+                controller: stockCtrl,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Stock')),
+            TextField(
+                controller: priceCtrl,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                    labelText: 'Price Override (optional)')),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               setState(() {
                 _generatedVariants[index]['sku'] = skuCtrl.text.trim();
-                _generatedVariants[index]['current_stock'] = double.tryParse(stockCtrl.text) ?? 0;
-                _generatedVariants[index]['price_override'] = double.tryParse(priceCtrl.text);
+                _generatedVariants[index]['current_stock'] =
+                    double.tryParse(stockCtrl.text) ?? 0;
+                _generatedVariants[index]['price_override'] =
+                    double.tryParse(priceCtrl.text);
               });
               Navigator.pop(ctx);
             },
@@ -289,7 +311,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           decoration: const InputDecoration(labelText: 'Category Naam *'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
               if (ctrl.text.trim().isNotEmpty) {
@@ -299,7 +322,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   'status': 'active',
                   'created_at': DateTime.now().toIso8601String(),
                 });
-                final rows = await DBHelper.instance.getCategories(widget.companyId);
+                final rows =
+                    await DBHelper.instance.getCategories(widget.companyId);
                 setState(() {
                   _categories = rows;
                   _categoryId = id;
@@ -326,7 +350,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           decoration: const InputDecoration(labelText: 'Brand Naam *'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
               if (ctrl.text.trim().isNotEmpty) {
@@ -336,7 +361,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   'status': 'active',
                   'created_at': DateTime.now().toIso8601String(),
                 });
-                final rows = await DBHelper.instance.getBrands(widget.companyId);
+                final rows =
+                    await DBHelper.instance.getBrands(widget.companyId);
                 setState(() {
                   _brands = rows;
                   _brandId = id;
@@ -362,12 +388,19 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Unit Name (e.g. Dozen, Gram)')),
-            TextField(controller: symbolCtrl, decoration: const InputDecoration(labelText: 'Symbol (e.g. dz, g)')),
+            TextField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(
+                    labelText: 'Unit Name (e.g. Dozen, Gram)')),
+            TextField(
+                controller: symbolCtrl,
+                decoration:
+                    const InputDecoration(labelText: 'Symbol (e.g. dz, g)')),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
               if (nameCtrl.text.trim().isNotEmpty) {
@@ -439,7 +472,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       if (taken) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ye barcode kisi aur product par pehle se laga hai')),
+          const SnackBar(
+              content:
+                  Text('Ye barcode kisi aur product par pehle se laga hai')),
         );
         return;
       }
@@ -525,7 +560,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     }
 
     if (_hasVariants) {
-      await DBHelper.instance.saveProductVariants(productId, _generatedVariants);
+      await DBHelper.instance
+          .saveProductVariants(productId, _generatedVariants);
     }
 
     final cfValues = <int, String>{};
@@ -550,9 +586,13 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           children: [
             Row(
               children: [
-                const Text('Select Category', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const Text('Select Category',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 const Spacer(),
-                IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
+                IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(ctx)),
               ],
             ),
             const SizedBox(height: 12),
@@ -563,7 +603,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                       itemCount: _categories.length,
                       itemBuilder: (ctx, i) => ListTile(
                         title: Text(_categories[i]['name'] as String),
-                        onTap: () => Navigator.pop(ctx, _categories[i]['id'] as int),
+                        onTap: () =>
+                            Navigator.pop(ctx, _categories[i]['id'] as int),
                       ),
                     ),
             ),
@@ -596,9 +637,13 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           children: [
             Row(
               children: [
-                const Text('Select Brand', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const Text('Select Brand',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 const Spacer(),
-                IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
+                IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(ctx)),
               ],
             ),
             const SizedBox(height: 12),
@@ -609,7 +654,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                       itemCount: _brands.length,
                       itemBuilder: (ctx, i) => ListTile(
                         title: Text(_brands[i]['name'] as String),
-                        onTap: () => Navigator.pop(ctx, _brands[i]['id'] as int),
+                        onTap: () =>
+                            Navigator.pop(ctx, _brands[i]['id'] as int),
                       ),
                     ),
             ),
@@ -642,9 +688,13 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           children: [
             Row(
               children: [
-                const Text('Select Unit (UOM)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const Text('Select Unit (UOM)',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 const Spacer(),
-                IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
+                IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(ctx)),
               ],
             ),
             const SizedBox(height: 12),
@@ -654,7 +704,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   : ListView.builder(
                       itemCount: _uoms.length,
                       itemBuilder: (ctx, i) => ListTile(
-                        title: Text('${_uoms[i]['name']} (${_uoms[i]['symbol']})'),
+                        title:
+                            Text('${_uoms[i]['name']} (${_uoms[i]['symbol']})'),
                         onTap: () => Navigator.pop(ctx, _uoms[i]['id'] as int),
                       ),
                     ),
@@ -701,15 +752,18 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                     const Expanded(
                       child: Text(
                         '💡 Advanced features? Enable Advanced Mode',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 11, fontWeight: FontWeight.bold),
                       ),
                     ),
                     TextButton(
                       onPressed: () async {
-                        await UXModeService.setMode(widget.companyId, UXMode.advanced);
+                        await UXModeService.setMode(
+                            widget.companyId, UXMode.advanced);
                         setState(() => _mode = UXMode.advanced);
                       },
-                      child: const Text('Enable', style: TextStyle(fontSize: 11)),
+                      child:
+                          const Text('Enable', style: TextStyle(fontSize: 11)),
                     ),
                   ],
                 ),
@@ -728,9 +782,11 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   child: _imagePath != null && File(_imagePath!).existsSync()
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(14),
-                          child: Image.file(File(_imagePath!), fit: BoxFit.cover),
+                          child:
+                              Image.file(File(_imagePath!), fit: BoxFit.cover),
                         )
-                      : const Icon(Icons.add_photo_alternate_outlined, color: Colors.grey, size: 36),
+                      : const Icon(Icons.add_photo_alternate_outlined,
+                          color: Colors.grey, size: 36),
                 ),
               ),
             ),
@@ -739,9 +795,11 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
               value: _itemType,
               decoration: const InputDecoration(labelText: 'Item Type'),
               items: const [
-                DropdownMenuItem(value: 'inventory', child: Text('Inventory (Stock track)')),
+                DropdownMenuItem(
+                    value: 'inventory', child: Text('Inventory (Stock track)')),
                 DropdownMenuItem(value: 'service', child: Text('Service')),
-                DropdownMenuItem(value: 'non_inventory', child: Text('Non-Inventory')),
+                DropdownMenuItem(
+                    value: 'non_inventory', child: Text('Non-Inventory')),
               ],
               onChanged: (v) => setState(() => _itemType = v ?? 'inventory'),
             ),
@@ -761,7 +819,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 Expanded(
                   child: TextField(
                     controller: _codeCtrl,
-                    decoration: const InputDecoration(labelText: 'Product Code'),
+                    decoration:
+                        const InputDecoration(labelText: 'Product Code'),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -793,7 +852,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 Expanded(
                   child: TextField(
                     controller: _packingCtrl,
-                    decoration: const InputDecoration(labelText: 'Packing (e.g. 1x12)'),
+                    decoration:
+                        const InputDecoration(labelText: 'Packing (e.g. 1x12)'),
                   ),
                 ),
               ],
@@ -815,7 +875,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
               contentPadding: EdgeInsets.zero,
               title: const Text('Category'),
               subtitle: Text(_categoryId != null
-                  ? _categories.firstWhere((c) => c['id'] == _categoryId)['name'] as String
+                  ? _categories.firstWhere(
+                      (c) => c['id'] == _categoryId)['name'] as String
                   : 'Select category'),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: _showCategoryPicker,
@@ -825,29 +886,38 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
               contentPadding: EdgeInsets.zero,
               title: const Text('Brand'),
               subtitle: Text(_brandId != null
-                  ? _brands.firstWhere((b) => b['id'] == _brandId)['name'] as String
+                  ? _brands.firstWhere((b) => b['id'] == _brandId)['name']
+                      as String
                   : 'Select brand'),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: _showBrandPicker,
             ),
             const SizedBox(height: 24),
-            Text('Pricing', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+            Text('Pricing',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall
+                    ?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: _purchasePriceCtrl,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(labelText: 'Purchase Price'),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    decoration:
+                        const InputDecoration(labelText: 'Purchase Price'),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: TextField(
                     controller: _retailPriceCtrl,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(labelText: 'Retail Price'),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    decoration:
+                        const InputDecoration(labelText: 'Retail Price'),
                   ),
                 ),
               ],
@@ -855,7 +925,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
             const SizedBox(height: 12),
             TextField(
               controller: _wholesalePriceCtrl,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               decoration: const InputDecoration(labelText: 'Wholesale Price'),
             ),
             const SizedBox(height: 24),
@@ -871,29 +942,41 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Text('Stock Levels', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+            Text('Stock Levels',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall
+                    ?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: _stockCtrl,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(labelText: 'Current Stock'),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    decoration:
+                        const InputDecoration(labelText: 'Current Stock'),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: TextField(
                     controller: _lowStockCtrl,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(labelText: 'Low Stock Level'),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    decoration:
+                        const InputDecoration(labelText: 'Low Stock Level'),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 24),
-            Text('Units', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+            Text('Units',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall
+                    ?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             ListTile(
               contentPadding: EdgeInsets.zero,
@@ -907,12 +990,14 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
             const SizedBox(height: 12),
             TextField(
               controller: _secondaryUnitCtrl,
-              decoration: const InputDecoration(labelText: 'Secondary Unit (optional)'),
+              decoration:
+                  const InputDecoration(labelText: 'Secondary Unit (optional)'),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _conversionCtrl,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               decoration: const InputDecoration(labelText: 'Conversion Factor'),
             ),
             const SizedBox(height: 24),
@@ -939,7 +1024,11 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Text('Variants', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                  Text('Variants',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleSmall
+                          ?.copyWith(fontWeight: FontWeight.bold)),
                   const Spacer(),
                   TextButton.icon(
                     onPressed: _addVariantAttribute,
@@ -949,39 +1038,50 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 ],
               ),
               ..._variantAttributes.map((attr) => Card(
-                color: Colors.grey.shade50,
-                margin: const EdgeInsets.only(top: 8),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                    color: Colors.grey.shade50,
+                    margin: const EdgeInsets.only(top: 8),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(attr['name'], style: const TextStyle(fontWeight: FontWeight.bold)),
-                          const Spacer(),
-                          IconButton(
-                            icon: const Icon(Icons.close, size: 16, color: Colors.red),
-                            onPressed: () => setState(() => _variantAttributes.remove(attr)),
+                          Row(
+                            children: [
+                              Text(attr['name'],
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold)),
+                              const Spacer(),
+                              IconButton(
+                                icon: const Icon(Icons.close,
+                                    size: 16, color: Colors.red),
+                                onPressed: () => setState(
+                                    () => _variantAttributes.remove(attr)),
+                              ),
+                            ],
+                          ),
+                          Wrap(
+                            spacing: 8,
+                            children: (attr['values'] as List<String>)
+                                    .map<Widget>((v) => Chip(
+                                          label: Text(v,
+                                              style: const TextStyle(
+                                                  fontSize: 11)),
+                                          onDeleted: () => setState(() =>
+                                              (attr['values'] as List<String>)
+                                                  .remove(v)),
+                                        ))
+                                    .toList() +
+                                [
+                                  ActionChip(
+                                    label: const Icon(Icons.add, size: 14),
+                                    onPressed: () => _addValueToAttribute(attr),
+                                  )
+                                ],
                           ),
                         ],
                       ),
-                      Wrap(
-                        spacing: 8,
-                        children: (attr['values'] as List<String>).map<Widget>((v) => Chip(
-                          label: Text(v, style: const TextStyle(fontSize: 11)),
-                          onDeleted: () => setState(() => (attr['values'] as List<String>).remove(v)),
-                        )).toList() + [
-                          ActionChip(
-                            label: const Icon(Icons.add, size: 14),
-                            onPressed: () => _addValueToAttribute(attr),
-                          )
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              )),
+                    ),
+                  )),
               if (_variantAttributes.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 16.0),
@@ -989,12 +1089,15 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                     onPressed: _generateVariants,
                     icon: const Icon(Icons.auto_awesome),
                     label: const Text('Generate Variants'),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo, foregroundColor: Colors.white),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.indigo,
+                        foregroundColor: Colors.white),
                   ),
                 ),
               if (_generatedVariants.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                Text('Generated (${_generatedVariants.length})', style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text('Generated (${_generatedVariants.length})',
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 ListView.builder(
                   shrinkWrap: true,
@@ -1008,7 +1111,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                       child: ListTile(
                         dense: true,
                         title: Text(label),
-                        subtitle: Text('SKU: ${v['sku']} | Stock: ${v['current_stock']}'),
+                        subtitle: Text(
+                            'SKU: ${v['sku']} | Stock: ${v['current_stock']}'),
                         trailing: IconButton(
                           icon: const Icon(Icons.edit, size: 18),
                           onPressed: () => _editVariant(v, i),
@@ -1032,14 +1136,17 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Text('Jewelry Details', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: Colors.amber.shade900)),
+            Text('Jewelry Details',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold, color: Colors.amber.shade900)),
             const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: _weightCtrl,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     decoration: const InputDecoration(labelText: 'Weight'),
                   ),
                 ),
@@ -1062,7 +1169,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 Expanded(
                   child: TextField(
                     controller: _purityCtrl,
-                    decoration: const InputDecoration(labelText: 'Purity (e.g. 22K)'),
+                    decoration:
+                        const InputDecoration(labelText: 'Purity (e.g. 22K)'),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -1083,7 +1191,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
               const SizedBox(height: 12),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                title: Text(_expiryDate == null ? 'Expiry Date' : 'Expiry: ${_expiryDate!.toIso8601String().substring(0, 10)}'),
+                title: Text(_expiryDate == null
+                    ? 'Expiry Date'
+                    : 'Expiry: ${_expiryDate!.toIso8601String().substring(0, 10)}'),
                 trailing: const Icon(Icons.calendar_today, size: 18),
                 onTap: () async {
                   final picked = await showDatePicker(
@@ -1109,14 +1219,17 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Text('Serial / IMEI Management', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: Colors.blue.shade900)),
+            Text('Serial / IMEI Management',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold, color: Colors.blue.shade900)),
             const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: _serialInputCtrl,
-                    decoration: const InputDecoration(labelText: 'Enter Serial / IMEI'),
+                    decoration:
+                        const InputDecoration(labelText: 'Enter Serial / IMEI'),
                   ),
                 ),
                 IconButton(
@@ -1136,10 +1249,12 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
               const SizedBox(height: 12),
               Wrap(
                 spacing: 8,
-                children: _serials.map((s) => Chip(
-                  label: Text(s, style: const TextStyle(fontSize: 12)),
-                  onDeleted: () => setState(() => _serials.remove(s)),
-                )).toList(),
+                children: _serials
+                    .map((s) => Chip(
+                          label: Text(s, style: const TextStyle(fontSize: 12)),
+                          onDeleted: () => setState(() => _serials.remove(s)),
+                        ))
+                    .toList(),
               ),
             ],
             const SizedBox(height: 24),
@@ -1155,7 +1270,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Text('Extra Information', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+            Text('Extra Information',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold, color: Colors.blueGrey)),
             const SizedBox(height: 12),
             ..._customFieldDefs.map((def) {
               return Padding(
@@ -1199,7 +1316,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                     ? const SizedBox(
                         height: 20,
                         width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
                       )
                     : const Text('Product Save Karein'),
               ),
@@ -1251,7 +1369,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       if (_mode == UXMode.advanced) const Tab(text: 'Variants'),
       if (_template?.hasCustomFields ?? false) const Tab(text: 'Jewelry'),
       if (_template?.hasSerialNumbers ?? false) const Tab(text: 'Serial'),
-      if (_mode == UXMode.advanced && _customFieldDefs.isNotEmpty) const Tab(text: 'Custom'),
+      if (_mode == UXMode.advanced && _customFieldDefs.isNotEmpty)
+        const Tab(text: 'Custom'),
       const Tab(text: 'Notes'),
     ];
 
@@ -1262,7 +1381,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       if (_mode == UXMode.advanced) _buildVariantsTab(),
       if (_template?.hasCustomFields ?? false) _buildJewelryTab(),
       if (_template?.hasSerialNumbers ?? false) _buildSerialTab(),
-      if (_mode == UXMode.advanced && _customFieldDefs.isNotEmpty) _buildCustomFieldsTab(),
+      if (_mode == UXMode.advanced && _customFieldDefs.isNotEmpty)
+        _buildCustomFieldsTab(),
       _buildDescriptionTab(),
     ];
 

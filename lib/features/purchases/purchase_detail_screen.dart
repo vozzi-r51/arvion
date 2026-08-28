@@ -45,8 +45,10 @@ class _PurchaseDetailScreenState extends State<PurchaseDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Supplier: ${purchase['supplier_name'] ?? 'Not Selected'}'),
-                        Text('Date: ${(purchase['purchase_date'] as String).substring(0, 16).replaceFirst('T', ' ')}'),
+                        Text(
+                            'Supplier: ${purchase['supplier_name'] ?? 'Not Selected'}'),
+                        Text(
+                            'Date: ${(purchase['purchase_date'] as String).substring(0, 16).replaceFirst('T', ' ')}'),
                         Text('Payment: ${purchase['payment_method']}'),
                         if ((purchase['purchase_type'] as String) == 'due')
                           Text(
@@ -65,13 +67,15 @@ class _PurchaseDetailScreenState extends State<PurchaseDetailScreen> {
                         title: Text(item['product_name'] as String),
                         subtitle: Text(
                             '${item['quantity']} x Rs. ${item['unit_cost']}'),
-                        trailing: Text('Rs. ${(item['total'] as num).toStringAsFixed(0)}'),
+                        trailing: Text(
+                            'Rs. ${(item['total'] as num).toStringAsFixed(0)}'),
                       ),
                     )),
                 const Divider(height: 32),
                 _summaryRow('Subtotal', purchase['subtotal'] as num),
                 _summaryRow('Discount', purchase['discount_amount'] as num),
-                _summaryRow('Total', purchase['total_amount'] as num, bold: true),
+                _summaryRow('Total', purchase['total_amount'] as num,
+                    bold: true),
                 _summaryRow('Paid', purchase['paid_amount'] as num),
                 _summaryRow('Due', purchase['due_amount'] as num),
                 const SizedBox(height: 20),
@@ -90,8 +94,10 @@ class _PurchaseDetailScreenState extends State<PurchaseDetailScreen> {
                           if (result == true && mounted) _load();
                         },
                   icon: const Icon(Icons.keyboard_return, color: Colors.red),
-                  label: const Text('Return Items', style: TextStyle(color: Colors.red)),
-                  style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.red)),
+                  label: const Text('Return Items',
+                      style: TextStyle(color: Colors.red)),
+                  style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.red)),
                 ),
               ],
             ),

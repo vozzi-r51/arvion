@@ -45,11 +45,15 @@ class _BalanceSheetTabState extends State<BalanceSheetTab> {
     final income = _rows.where((r) => r['type'] == 'income').toList();
     final expense = _rows.where((r) => r['type'] == 'expense').toList();
 
-    final totalAssets = assets.fold(0.0, (s, r) => s + _balance(r, normalDebit: true));
-    final totalLiabilities = liabilities.fold(0.0, (s, r) => s + _balance(r, normalDebit: false));
-    final totalEquity = equity.fold(0.0, (s, r) => s + _balance(r, normalDebit: false));
-    final netIncome = income.fold(0.0, (s, r) => s + _balance(r, normalDebit: false)) -
-        expense.fold(0.0, (s, r) => s + _balance(r, normalDebit: true));
+    final totalAssets =
+        assets.fold(0.0, (s, r) => s + _balance(r, normalDebit: true));
+    final totalLiabilities =
+        liabilities.fold(0.0, (s, r) => s + _balance(r, normalDebit: false));
+    final totalEquity =
+        equity.fold(0.0, (s, r) => s + _balance(r, normalDebit: false));
+    final netIncome =
+        income.fold(0.0, (s, r) => s + _balance(r, normalDebit: false)) -
+            expense.fold(0.0, (s, r) => s + _balance(r, normalDebit: true));
     final totalEquityWithIncome = totalEquity + netIncome;
 
     return RefreshIndicator(
@@ -67,14 +71,19 @@ class _BalanceSheetTabState extends State<BalanceSheetTab> {
           _totalRow('Net Income (is period ka)', netIncome),
           _totalRow('Total Equity', totalEquityWithIncome, bold: true),
           const Divider(height: 32, thickness: 2),
-          _totalRow('Liabilities + Equity', totalLiabilities + totalEquityWithIncome, bold: true),
+          _totalRow(
+              'Liabilities + Equity', totalLiabilities + totalEquityWithIncome,
+              bold: true),
           const SizedBox(height: 8),
           Text(
-            (totalAssets - (totalLiabilities + totalEquityWithIncome)).abs() < 0.01
+            (totalAssets - (totalLiabilities + totalEquityWithIncome)).abs() <
+                    0.01
                 ? 'Balance Sheet balanced hai ✓'
                 : 'Farq: Rs. ${(totalAssets - (totalLiabilities + totalEquityWithIncome)).toStringAsFixed(0)}',
             style: TextStyle(
-              color: (totalAssets - (totalLiabilities + totalEquityWithIncome)).abs() < 0.01
+              color: (totalAssets - (totalLiabilities + totalEquityWithIncome))
+                          .abs() <
+                      0.01
                   ? Colors.green
                   : Colors.orange,
               fontWeight: FontWeight.bold,
@@ -90,11 +99,14 @@ class _BalanceSheetTabState extends State<BalanceSheetTab> {
     );
   }
 
-  Widget _section(String title, List<Map<String, dynamic>> rows, bool normalDebit, Color color) {
+  Widget _section(String title, List<Map<String, dynamic>> rows,
+      bool normalDebit, Color color) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: color)),
+        Text(title,
+            style: TextStyle(
+                fontWeight: FontWeight.bold, fontSize: 16, color: color)),
         const SizedBox(height: 6),
         ...rows.map((r) => Padding(
               padding: const EdgeInsets.symmetric(vertical: 3),
@@ -102,7 +114,8 @@ class _BalanceSheetTabState extends State<BalanceSheetTab> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(r['name'] as String),
-                  Text(_balance(r, normalDebit: normalDebit).toStringAsFixed(0)),
+                  Text(
+                      _balance(r, normalDebit: normalDebit).toStringAsFixed(0)),
                 ],
               ),
             )),

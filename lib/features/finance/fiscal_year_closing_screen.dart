@@ -9,7 +9,8 @@ class FiscalYearClosingScreen extends StatefulWidget {
   const FiscalYearClosingScreen({super.key, required this.companyId});
 
   @override
-  State<FiscalYearClosingScreen> createState() => _FiscalYearClosingScreenState();
+  State<FiscalYearClosingScreen> createState() =>
+      _FiscalYearClosingScreenState();
 }
 
 class _FiscalYearClosingScreenState extends State<FiscalYearClosingScreen> {
@@ -42,7 +43,9 @@ class _FiscalYearClosingScreenState extends State<FiscalYearClosingScreen> {
           'Fiscal Year $_selectedYear (01 Jan $_selectedYear - 31 Dec $_selectedYear) ke tamam Revenue aur Expense accounts close ho kar Net Profit Retained Earnings mein transfer ho jayega aur Lock Date update ho jayegi.',
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Close Fiscal Year'),
@@ -63,7 +66,8 @@ class _FiscalYearClosingScreenState extends State<FiscalYearClosingScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Fiscal Year $_selectedYear kamyabi se close ho gaya! Net Profit: Rs. ${(res['netProfit'] as double).toStringAsFixed(0)}'),
+          content: Text(
+              'Fiscal Year $_selectedYear kamyabi se close ho gaya! Net Profit: Rs. ${(res['netProfit'] as double).toStringAsFixed(0)}'),
           backgroundColor: Colors.green.shade700,
         ),
       );
@@ -83,7 +87,10 @@ class _FiscalYearClosingScreenState extends State<FiscalYearClosingScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Card(
-                    color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primaryContainer
+                        .withValues(alpha: 0.3),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
@@ -93,7 +100,10 @@ class _FiscalYearClosingScreenState extends State<FiscalYearClosingScreen> {
                             children: [
                               Icon(Icons.lock_clock, color: Colors.indigo),
                               SizedBox(width: 8),
-                              Text('Year-End Closing Process', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              Text('Year-End Closing Process',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16)),
                             ],
                           ),
                           const SizedBox(height: 8),
@@ -107,10 +117,13 @@ class _FiscalYearClosingScreenState extends State<FiscalYearClosingScreen> {
                               DropdownButton<int>(
                                 value: _selectedYear,
                                 items: [2024, 2025, 2026]
-                                    .map((y) => DropdownMenuItem(value: y, child: Text('Fiscal Year $y')))
+                                    .map((y) => DropdownMenuItem(
+                                        value: y,
+                                        child: Text('Fiscal Year $y')))
                                     .toList(),
                                 onChanged: (v) {
-                                  if (v != null) setState(() => _selectedYear = v);
+                                  if (v != null)
+                                    setState(() => _selectedYear = v);
                                 },
                               ),
                               const Spacer(),
@@ -126,14 +139,17 @@ class _FiscalYearClosingScreenState extends State<FiscalYearClosingScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  const Text('Past Fiscal Year Closings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const Text('Past Fiscal Year Closings',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(height: 8),
                   Expanded(
                     child: _closings.isEmpty
                         ? const AppEmptyState(
                             icon: Icons.history,
                             title: 'Pehle Koi Fiscal Year Close Nahi Hua',
-                            message: 'Pichle fiscal saal ko close karne ke liye uper diye gaye button par click karein.',
+                            message:
+                                'Pichle fiscal saal ko close karne ke liye uper diye gaye button par click karein.',
                           )
                         : ListView.builder(
                             itemCount: _closings.length,
@@ -144,12 +160,29 @@ class _FiscalYearClosingScreenState extends State<FiscalYearClosingScreen> {
                                 margin: const EdgeInsets.only(bottom: 8),
                                 child: ListTile(
                                   leading: CircleAvatar(
-                                    backgroundColor: net >= 0 ? Colors.green.shade100 : Colors.red.shade100,
-                                    child: Icon(net >= 0 ? Icons.trending_up : Icons.trending_down, color: net >= 0 ? Colors.green : Colors.red),
+                                    backgroundColor: net >= 0
+                                        ? Colors.green.shade100
+                                        : Colors.red.shade100,
+                                    child: Icon(
+                                        net >= 0
+                                            ? Icons.trending_up
+                                            : Icons.trending_down,
+                                        color: net >= 0
+                                            ? Colors.green
+                                            : Colors.red),
                                   ),
-                                  title: Text('Fiscal Year ${c['fiscal_year']}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                                  subtitle: Text('Closed on ${c['closed_at'].toString().substring(0, 10)} by ${c['closed_by']}'),
-                                  trailing: Text('Net: Rs. ${net.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, color: net >= 0 ? Colors.green : Colors.red)),
+                                  title: Text('Fiscal Year ${c['fiscal_year']}',
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold)),
+                                  subtitle: Text(
+                                      'Closed on ${c['closed_at'].toString().substring(0, 10)} by ${c['closed_by']}'),
+                                  trailing: Text(
+                                      'Net: Rs. ${net.toStringAsFixed(0)}',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: net >= 0
+                                              ? Colors.green
+                                              : Colors.red)),
                                 ),
                               );
                             },

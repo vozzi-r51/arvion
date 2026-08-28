@@ -27,7 +27,8 @@ class _PurchasesHomeScreenState extends State<PurchasesHomeScreen> {
 
   Future<void> _load() async {
     setState(() => _loading = true);
-    final rows = await DBHelper.instance.getPurchases(widget.companyId, limit: _pageSize, offset: 0);
+    final rows = await DBHelper.instance
+        .getPurchases(widget.companyId, limit: _pageSize, offset: 0);
     setState(() {
       _purchases = rows;
       _hasMore = rows.length == _pageSize;
@@ -36,8 +37,8 @@ class _PurchasesHomeScreenState extends State<PurchasesHomeScreen> {
   }
 
   Future<void> _loadMore() async {
-    final rows = await DBHelper.instance
-        .getPurchases(widget.companyId, limit: _pageSize, offset: _purchases.length);
+    final rows = await DBHelper.instance.getPurchases(widget.companyId,
+        limit: _pageSize, offset: _purchases.length);
     setState(() {
       _purchases = [..._purchases, ...rows];
       _hasMore = rows.length == _pageSize;
@@ -63,10 +64,12 @@ class _PurchasesHomeScreenState extends State<PurchasesHomeScreen> {
             '"${purchase['invoice_number']}" cancel ho jayegi. Stock wapis kam ho jayega aur accounting entries reverse ho jayengi.'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx, false), child: const Text('Nahi')),
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Nahi')),
           TextButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Haan, Void Karein', style: TextStyle(color: Colors.red))),
+              child: const Text('Haan, Void Karein',
+                  style: TextStyle(color: Colors.red))),
         ],
       ),
     );
@@ -101,7 +104,8 @@ class _PurchasesHomeScreenState extends State<PurchasesHomeScreen> {
                     itemBuilder: (ctx, i) {
                       final purchase = _purchases[i];
                       final isVoided = purchase['status'] == 'voided';
-                      final isDue = (purchase['purchase_type'] as String) == 'due';
+                      final isDue =
+                          (purchase['purchase_type'] as String) == 'due';
                       final due = (purchase['due_amount'] as num).toDouble();
                       return Card(
                         margin: const EdgeInsets.only(bottom: 8),
@@ -109,22 +113,31 @@ class _PurchasesHomeScreenState extends State<PurchasesHomeScreen> {
                           leading: CircleAvatar(
                             backgroundColor: isVoided
                                 ? Colors.grey.shade200
-                                : (isDue && due > 0 ? Colors.red.shade100 : Colors.green.shade100),
+                                : (isDue && due > 0
+                                    ? Colors.red.shade100
+                                    : Colors.green.shade100),
                             child: Icon(
                               isVoided
                                   ? Icons.block
-                                  : (isDue ? Icons.schedule : Icons.check_circle),
+                                  : (isDue
+                                      ? Icons.schedule
+                                      : Icons.check_circle),
                               color: isVoided
                                   ? Colors.grey
-                                  : (isDue && due > 0 ? Colors.red : Colors.green),
+                                  : (isDue && due > 0
+                                      ? Colors.red
+                                      : Colors.green),
                               size: 20,
                             ),
                           ),
                           title: Text(purchase['invoice_number'] as String,
                               style: TextStyle(
-                                  decoration: isVoided ? TextDecoration.lineThrough : null,
+                                  decoration: isVoided
+                                      ? TextDecoration.lineThrough
+                                      : null,
                                   color: isVoided ? Colors.grey : null)),
-                          subtitle: Text(purchase['supplier_name'] as String? ?? 'Not Selected'),
+                          subtitle: Text(purchase['supplier_name'] as String? ??
+                              'Not Selected'),
                           trailing: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.end,
@@ -133,12 +146,15 @@ class _PurchasesHomeScreenState extends State<PurchasesHomeScreen> {
                                 'Rs. ${(purchase['total_amount'] as num).toStringAsFixed(0)}',
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    decoration: isVoided ? TextDecoration.lineThrough : null,
+                                    decoration: isVoided
+                                        ? TextDecoration.lineThrough
+                                        : null,
                                     color: isVoided ? Colors.grey : null),
                               ),
                               if (!isVoided)
                                 IconButton(
-                                  icon: const Icon(Icons.block, size: 18, color: Colors.orange),
+                                  icon: const Icon(Icons.block,
+                                      size: 18, color: Colors.orange),
                                   onPressed: () => _confirmVoid(purchase),
                                   padding: EdgeInsets.zero,
                                   constraints: const BoxConstraints(),
@@ -146,12 +162,16 @@ class _PurchasesHomeScreenState extends State<PurchasesHomeScreen> {
                                 )
                               else
                                 const Text('VOIDED',
-                                    style: TextStyle(color: Colors.red, fontSize: 10, fontWeight: FontWeight.bold)),
+                                    style: TextStyle(
+                                        color: Colors.red,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold)),
                             ],
                           ),
                           onTap: () => Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_) => PurchaseDetailScreen(purchase: purchase),
+                              builder: (_) =>
+                                  PurchaseDetailScreen(purchase: purchase),
                             ),
                           ),
                         ),
@@ -163,7 +183,8 @@ class _PurchasesHomeScreenState extends State<PurchasesHomeScreen> {
           ? SafeArea(
               child: Padding(
                 padding: const EdgeInsets.all(12),
-                child: OutlinedButton(onPressed: _loadMore, child: const Text('Aur Load Karein')),
+                child: OutlinedButton(
+                    onPressed: _loadMore, child: const Text('Aur Load Karein')),
               ),
             )
           : null,

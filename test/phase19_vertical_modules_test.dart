@@ -3,10 +3,21 @@ import 'package:bizmanager/core/business_types/services/workshop_job_service.dar
 
 void main() {
   group('1. Automotive Workshop Job & Stock Rules Tests', () {
-    test('Deducts stock for spare parts and enforces ZERO stock deduction for labor and services', () {
-      expect(WorkshopJobService.requiresStockDeduction(itemType: 'part', productId: 101), isTrue);
-      expect(WorkshopJobService.requiresStockDeduction(itemType: 'labor', productId: null), isFalse);
-      expect(WorkshopJobService.requiresStockDeduction(itemType: 'service', productId: null), isFalse);
+    test(
+        'Deducts stock for spare parts and enforces ZERO stock deduction for labor and services',
+        () {
+      expect(
+          WorkshopJobService.requiresStockDeduction(
+              itemType: 'part', productId: 101),
+          isTrue);
+      expect(
+          WorkshopJobService.requiresStockDeduction(
+              itemType: 'labor', productId: null),
+          isFalse);
+      expect(
+          WorkshopJobService.requiresStockDeduction(
+              itemType: 'service', productId: null),
+          isFalse);
     });
 
     test('Validates Workshop Job data structure and vehicle association', () {
@@ -17,10 +28,19 @@ void main() {
         'complaint': 'Oil change and brake noise',
         'status': 'in_progress',
         'parts': [
-          {'name': 'Engine Oil', 'quantity': 1, 'price': 4500.0, 'is_part': true},
+          {
+            'name': 'Engine Oil',
+            'quantity': 1,
+            'price': 4500.0,
+            'is_part': true
+          },
         ],
         'labor': [
-          {'description': 'Oil & Filter Replacement Labor', 'amount': 1000.0, 'is_part': false},
+          {
+            'description': 'Oil & Filter Replacement Labor',
+            'amount': 1000.0,
+            'is_part': false
+          },
         ],
       };
 
@@ -33,7 +53,12 @@ void main() {
   group('2. Hotel & Travel Resource Booking Overlap Tests', () {
     test('Prevents double-booking overlapping dates for the same resource', () {
       final existingBookings = [
-        {'resource_id': 101, 'start_date': '2026-09-01', 'end_date': '2026-09-04', 'status': 'confirmed'},
+        {
+          'resource_id': 101,
+          'start_date': '2026-09-01',
+          'end_date': '2026-09-04',
+          'status': 'confirmed'
+        },
       ];
 
       bool checkOverlap(int resId, String newStart, String newEnd) {
@@ -66,7 +91,8 @@ void main() {
       }
 
       expect(() => validateCompletionPercent(50.0), returnsNormally);
-      expect(() => validateCompletionPercent(120.0), throwsA(isA<RangeError>()));
+      expect(
+          () => validateCompletionPercent(120.0), throwsA(isA<RangeError>()));
     });
   });
 }

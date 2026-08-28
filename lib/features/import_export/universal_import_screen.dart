@@ -109,7 +109,8 @@ class _UniversalImportScreenState extends State<UniversalImportScreen> {
 
       _headers = List<String>.from(parseResult['headers']);
       _mappings = List<ColumnMapping>.from(parseResult['mappings']);
-      final List<Map<String, String>> rawRows = List<Map<String, String>>.from(parseResult['rows']);
+      final List<Map<String, String>> rawRows =
+          List<Map<String, String>>.from(parseResult['rows']);
 
       // Build parsed rows & run validation
       List<ParsedRow> rows = [];
@@ -164,7 +165,8 @@ class _UniversalImportScreenState extends State<UniversalImportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Universal Data Import (Zero Switching Cost)')),
+      appBar: AppBar(
+          title: const Text('Universal Data Import (Zero Switching Cost)')),
       body: Stepper(
         currentStep: _currentStep,
         onStepContinue: () {
@@ -202,11 +204,14 @@ class _UniversalImportScreenState extends State<UniversalImportScreen> {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Aap kahan se data la rahe hain?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          const Text('Aap kahan se data la rahe hain?',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 12),
           ...ImportSource.values.map((s) => RadioListTile<ImportSource>(
-                title: Text(s.displayName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text(s.instructions, style: const TextStyle(fontSize: 12)),
+                title: Text(s.displayName,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle:
+                    Text(s.instructions, style: const TextStyle(fontSize: 12)),
                 value: s,
                 groupValue: _selectedSource,
                 onChanged: (val) {
@@ -226,10 +231,12 @@ class _UniversalImportScreenState extends State<UniversalImportScreen> {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Kangi kis qisam ka data import karna chahte hain?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          const Text('Kangi kis qisam ka data import karna chahte hain?',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 12),
           ...ImportEntityType.values.map((e) => RadioListTile<ImportEntityType>(
-                title: Text(e.displayName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                title: Text(e.displayName,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
                 value: e,
                 groupValue: _selectedEntityType,
                 onChanged: (val) {
@@ -249,19 +256,28 @@ class _UniversalImportScreenState extends State<UniversalImportScreen> {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Selected Source: ${_selectedSource.displayName}', style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text('Selected Source: ${_selectedSource.displayName}',
+              style: const TextStyle(fontWeight: FontWeight.bold)),
           Text('Selected Entity: ${_selectedEntityType.displayName}'),
           const SizedBox(height: 16),
           ElevatedButton.icon(
             onPressed: _busy ? null : _pickAndParseFile,
             icon: _busy
-                ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                ? const SizedBox(
+                    height: 18,
+                    width: 18,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white))
                 : const Icon(Icons.upload_file),
-            label: Text(_fileName != null ? 'Change File ($_fileName)' : 'CSV / Excel File Pick Karein'),
+            label: Text(_fileName != null
+                ? 'Change File ($_fileName)'
+                : 'CSV / Excel File Pick Karein'),
           ),
           if (_errorMessage != null) ...[
             const SizedBox(height: 12),
-            Text(_errorMessage!, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+            Text(_errorMessage!,
+                style: const TextStyle(
+                    color: Colors.red, fontWeight: FontWeight.bold)),
           ],
         ],
       ),
@@ -283,21 +299,25 @@ class _UniversalImportScreenState extends State<UniversalImportScreen> {
           // KPI Metric Summary
           Row(
             children: [
-              _buildMetricCard('Total Rows', '${_parsedRows.length}', Colors.blue),
+              _buildMetricCard(
+                  'Total Rows', '${_parsedRows.length}', Colors.blue),
               _buildMetricCard('Valid', '${validRows.length}', Colors.green),
               _buildMetricCard('Invalid', '${invalidRows.length}', Colors.red),
-              _buildMetricCard('Duplicates', '${duplicateRows.length}', Colors.orange),
+              _buildMetricCard(
+                  'Duplicates', '${duplicateRows.length}', Colors.orange),
             ],
           ),
           const SizedBox(height: 16),
 
           // Duplicate Policy Choice
           if (duplicateRows.isNotEmpty) ...[
-            const Text('Duplicate Action', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Duplicate Action',
+                style: TextStyle(fontWeight: FontWeight.bold)),
             DropdownButtonFormField<DuplicatePolicy>(
               value: _duplicatePolicy,
               items: DuplicatePolicy.values
-                  .map((p) => DropdownMenuItem(value: p, child: Text(p.displayName)))
+                  .map((p) =>
+                      DropdownMenuItem(value: p, child: Text(p.displayName)))
                   .toList(),
               onChanged: (v) {
                 if (v != null) setState(() => _duplicatePolicy = v);
@@ -307,16 +327,24 @@ class _UniversalImportScreenState extends State<UniversalImportScreen> {
           ],
 
           // Column Mapping Badges
-          const Text('Smart Column Mappings:', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Smart Column Mappings:',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: _mappings.map((m) {
               return Chip(
-                avatar: Icon(m.confidence == ImportConfidence.high ? Icons.check_circle : Icons.auto_fix_high, size: 16),
-                label: Text('${m.sourceHeader} ➔ ${m.targetField ?? "Unmapped"}'),
-                backgroundColor: m.confidence == ImportConfidence.high ? Colors.green.shade50 : Colors.amber.shade50,
+                avatar: Icon(
+                    m.confidence == ImportConfidence.high
+                        ? Icons.check_circle
+                        : Icons.auto_fix_high,
+                    size: 16),
+                label:
+                    Text('${m.sourceHeader} ➔ ${m.targetField ?? "Unmapped"}'),
+                backgroundColor: m.confidence == ImportConfidence.high
+                    ? Colors.green.shade50
+                    : Colors.amber.shade50,
               );
             }).toList(),
           ),
@@ -324,9 +352,13 @@ class _UniversalImportScreenState extends State<UniversalImportScreen> {
 
           // Invalid Rows Warning List
           if (invalidRows.isNotEmpty) ...[
-            Text('⚠️ ${invalidRows.length} rows invalid hain aur skip hon gi:', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+            Text('⚠️ ${invalidRows.length} rows invalid hain aur skip hon gi:',
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, color: Colors.red)),
             const SizedBox(height: 6),
-            ...invalidRows.take(5).map((r) => Text('Row ${r.rowIndex}: ${r.validationErrors.join(", ")}', style: const TextStyle(fontSize: 12, color: Colors.red))),
+            ...invalidRows.take(5).map((r) => Text(
+                'Row ${r.rowIndex}: ${r.validationErrors.join(", ")}',
+                style: const TextStyle(fontSize: 12, color: Colors.red))),
             const SizedBox(height: 12),
           ],
         ],
@@ -348,7 +380,9 @@ class _UniversalImportScreenState extends State<UniversalImportScreen> {
                   children: [
                     Icon(Icons.check_circle, color: Colors.green, size: 32),
                     SizedBox(width: 8),
-                    Text('Import Complete!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    Text('Import Complete!',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 18)),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -357,16 +391,22 @@ class _UniversalImportScreenState extends State<UniversalImportScreen> {
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
-                        _buildSummaryRow('Imported Records', '${s.importedCount}', Colors.green),
-                        _buildSummaryRow('Skipped Records', '${s.skippedCount}', Colors.grey),
-                        _buildSummaryRow('Duplicates Found', '${s.duplicateRows}', Colors.orange),
-                        _buildSummaryRow('Invalid Records', '${s.invalidRows}', Colors.red),
+                        _buildSummaryRow('Imported Records',
+                            '${s.importedCount}', Colors.green),
+                        _buildSummaryRow('Skipped Records', '${s.skippedCount}',
+                            Colors.grey),
+                        _buildSummaryRow('Duplicates Found',
+                            '${s.duplicateRows}', Colors.orange),
+                        _buildSummaryRow(
+                            'Invalid Records', '${s.invalidRows}', Colors.red),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text('No data was lost. Transaction committed safely.', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+                const Text('No data was lost. Transaction committed safely.',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.green)),
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () => Navigator.pop(context, true),
@@ -385,7 +425,9 @@ class _UniversalImportScreenState extends State<UniversalImportScreen> {
           padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
-              Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: color)),
+              Text(value,
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 18, color: color)),
               Text(title, style: TextStyle(fontSize: 11, color: color)),
             ],
           ),
@@ -401,7 +443,9 @@ class _UniversalImportScreenState extends State<UniversalImportScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-          Text(value, style: TextStyle(fontWeight: FontWeight.bold, color: color, fontSize: 16)),
+          Text(value,
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, color: color, fontSize: 16)),
         ],
       ),
     );

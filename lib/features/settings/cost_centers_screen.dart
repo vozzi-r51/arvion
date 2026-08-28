@@ -36,28 +36,35 @@ class _CostCentersScreenState extends State<CostCentersScreen> {
 
   void _showFormDialog([CostCenter? existing]) {
     final isEditing = existing != null;
-    final nameCtrl = TextEditingController(text: isEditing ? existing.name : '');
-    final codeCtrl = TextEditingController(text: isEditing ? existing.code : 'BR-00${_costCenters.length + 1}');
-    final descCtrl = TextEditingController(text: isEditing ? existing.description : '');
+    final nameCtrl =
+        TextEditingController(text: isEditing ? existing.name : '');
+    final codeCtrl = TextEditingController(
+        text: isEditing ? existing.code : 'BR-00${_costCenters.length + 1}');
+    final descCtrl =
+        TextEditingController(text: isEditing ? existing.description : '');
     String selectedType = isEditing ? existing.type : 'branch';
 
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: Text(isEditing ? 'Cost Center / Branch Edit Karein' : 'Naya Cost Center / Branch Add Karein'),
+          title: Text(isEditing
+              ? 'Cost Center / Branch Edit Karein'
+              : 'Naya Cost Center / Branch Add Karein'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Name (e.g. Karachi Branch) *'),
+                  decoration: const InputDecoration(
+                      labelText: 'Name (e.g. Karachi Branch) *'),
                 ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: codeCtrl,
-                  decoration: const InputDecoration(labelText: 'Code (e.g. BR-001) *'),
+                  decoration:
+                      const InputDecoration(labelText: 'Code (e.g. BR-001) *'),
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
@@ -65,9 +72,12 @@ class _CostCentersScreenState extends State<CostCentersScreen> {
                   decoration: const InputDecoration(labelText: 'Type'),
                   items: const [
                     DropdownMenuItem(value: 'branch', child: Text('Branch')),
-                    DropdownMenuItem(value: 'department', child: Text('Department')),
-                    DropdownMenuItem(value: 'warehouse', child: Text('Warehouse')),
-                    DropdownMenuItem(value: 'store', child: Text('Store Outlet')),
+                    DropdownMenuItem(
+                        value: 'department', child: Text('Department')),
+                    DropdownMenuItem(
+                        value: 'warehouse', child: Text('Warehouse')),
+                    DropdownMenuItem(
+                        value: 'store', child: Text('Store Outlet')),
                   ],
                   onChanged: (val) {
                     if (val != null) setDialogState(() => selectedType = val);
@@ -76,13 +86,16 @@ class _CostCentersScreenState extends State<CostCentersScreen> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: descCtrl,
-                  decoration: const InputDecoration(labelText: 'Description (Optional)'),
+                  decoration: const InputDecoration(
+                      labelText: 'Description (Optional)'),
                 ),
               ],
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             FilledButton(
               onPressed: () async {
                 final name = nameCtrl.text.trim();
@@ -131,7 +144,8 @@ class _CostCentersScreenState extends State<CostCentersScreen> {
               ? AppEmptyState(
                   icon: Icons.store_outlined,
                   title: 'Koi Branch / Cost Center Add Nahi Hua',
-                  message: 'Apni shop ki branches, warehouses ya departments add karein taake har sale/expense branch-wise track ho.',
+                  message:
+                      'Apni shop ki branches, warehouses ya departments add karein taake har sale/expense branch-wise track ho.',
                   actionLabel: 'Branch Add Karein',
                   onAction: () => _showFormDialog(),
                 )
@@ -144,11 +158,18 @@ class _CostCentersScreenState extends State<CostCentersScreen> {
                       margin: const EdgeInsets.only(bottom: AppSpacing.m),
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
-                          child: Icon(Icons.location_city_outlined, color: Theme.of(context).colorScheme.primary),
+                          backgroundColor: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withValues(alpha: 0.12),
+                          child: Icon(Icons.location_city_outlined,
+                              color: Theme.of(context).colorScheme.primary),
                         ),
-                        title: Text(cc.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text('Code: ${cc.code} • Type: ${cc.type.toUpperCase()}'),
+                        title: Text(cc.name,
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text(
+                            'Code: ${cc.code} • Type: ${cc.type.toUpperCase()}'),
                         trailing: IconButton(
                           icon: const Icon(Icons.edit_outlined, size: 20),
                           onPressed: () => _showFormDialog(cc),

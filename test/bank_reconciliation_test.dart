@@ -55,7 +55,11 @@ void main() {
       expect(row.matchedTransaction, isNull);
 
       // Simulate manual match in memory
-      row.matchedTransaction = {'id': 99, 'amount': 250.0, 'description': 'Store Expense'};
+      row.matchedTransaction = {
+        'id': 99,
+        'amount': 250.0,
+        'description': 'Store Expense'
+      };
       row.status = ParsedRowStatus.manualMatch;
 
       expect(row.status, equals(ParsedRowStatus.manualMatch));

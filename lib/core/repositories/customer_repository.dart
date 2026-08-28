@@ -44,7 +44,8 @@ class CustomerRepository extends BaseRepository {
 
   /// Get customer by ID.
   Future<Map<String, dynamic>?> getCustomerById(int id) async {
-    final rows = await db.query('customers', where: 'id = ?', whereArgs: [id], limit: 1);
+    final rows =
+        await db.query('customers', where: 'id = ?', whereArgs: [id], limit: 1);
     return rows.isEmpty ? null : rows.first;
   }
 

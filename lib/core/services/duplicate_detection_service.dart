@@ -20,7 +20,8 @@ class DuplicateDetectionService {
     final normName = normalizeName(name);
     if (normName.isEmpty) return null;
 
-    final normPhone = mobile != null ? PhoneFormatter.toWhatsAppNumber(mobile) : '';
+    final normPhone =
+        mobile != null ? PhoneFormatter.toWhatsAppNumber(mobile) : '';
 
     final db = await DBHelper.instance.database;
     final customers = await db.query(
@@ -34,10 +35,13 @@ class DuplicateDetectionService {
       if (excludeCustomerId != null && id == excludeCustomerId) continue;
 
       final existingName = normalizeName(c['name'] as String? ?? '');
-      final existingMobile = PhoneFormatter.toWhatsAppNumber(c['mobile'] as String? ?? '');
+      final existingMobile =
+          PhoneFormatter.toWhatsAppNumber(c['mobile'] as String? ?? '');
 
       final isNameMatch = existingName.isNotEmpty && existingName == normName;
-      final isPhoneMatch = normPhone.isNotEmpty && existingMobile.isNotEmpty && existingMobile == normPhone;
+      final isPhoneMatch = normPhone.isNotEmpty &&
+          existingMobile.isNotEmpty &&
+          existingMobile == normPhone;
 
       if (isNameMatch || isPhoneMatch) {
         return c;
@@ -58,7 +62,8 @@ class DuplicateDetectionService {
     final normName = normalizeName(companyName);
     if (normName.isEmpty) return null;
 
-    final normPhone = phone != null ? PhoneFormatter.toWhatsAppNumber(phone) : '';
+    final normPhone =
+        phone != null ? PhoneFormatter.toWhatsAppNumber(phone) : '';
 
     final db = await DBHelper.instance.database;
     final suppliers = await db.query(
@@ -72,10 +77,13 @@ class DuplicateDetectionService {
       if (excludeSupplierId != null && id == excludeSupplierId) continue;
 
       final existingName = normalizeName(s['company_name'] as String? ?? '');
-      final existingPhone = PhoneFormatter.toWhatsAppNumber(s['phone'] as String? ?? '');
+      final existingPhone =
+          PhoneFormatter.toWhatsAppNumber(s['phone'] as String? ?? '');
 
       final isNameMatch = existingName.isNotEmpty && existingName == normName;
-      final isPhoneMatch = normPhone.isNotEmpty && existingPhone.isNotEmpty && existingPhone == normPhone;
+      final isPhoneMatch = normPhone.isNotEmpty &&
+          existingPhone.isNotEmpty &&
+          existingPhone == normPhone;
 
       if (isNameMatch || isPhoneMatch) {
         return s;

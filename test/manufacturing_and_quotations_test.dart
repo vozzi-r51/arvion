@@ -14,7 +14,8 @@ void main() {
     });
 
     test('Default Cashier Role should have limited permissions', () {
-      final cashierPerms = DefaultRoles.getPermissionsForRole(DefaultRoles.cashier);
+      final cashierPerms =
+          DefaultRoles.getPermissionsForRole(DefaultRoles.cashier);
       expect(cashierPerms.contains(AppPermissions.canViewReports), isFalse);
       expect(cashierPerms.contains(AppPermissions.canDeleteRecords), isFalse);
       expect(cashierPerms.contains(AppPermissions.canManageFinance), isFalse);
@@ -23,9 +24,11 @@ void main() {
 
   group('FBR Digital POS Invoicing Tests', () {
     test('generateFbrInvoiceNumber creates valid 18-digit ID', () {
-      final fbrInvoiceNum = FbrInvoicingService.generateFbrInvoiceNumber(posId: '100001');
+      final fbrInvoiceNum =
+          FbrInvoicingService.generateFbrInvoiceNumber(posId: '100001');
       expect(fbrInvoiceNum.length, equals(18));
-      expect(FbrInvoicingService.isValidFbrInvoiceNumber(fbrInvoiceNum), isTrue);
+      expect(
+          FbrInvoicingService.isValidFbrInvoiceNumber(fbrInvoiceNum), isTrue);
     });
 
     test('buildFbrQrPayload builds correct pipe-delimited payload', () {

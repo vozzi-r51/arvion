@@ -16,7 +16,8 @@ void main() {
   });
 
   group('1. Secure Storage & Encryption Key Management Tests', () {
-    test('SecureAppStorage retrieves 256-bit encryption key securely', () async {
+    test('SecureAppStorage retrieves 256-bit encryption key securely',
+        () async {
       final key1 = await SecureAppStorage.getDatabaseEncryptionKey();
       expect(key1, isNotEmpty);
       expect(base64Decode(key1).length, equals(32)); // 256 bits
@@ -69,7 +70,9 @@ void main() {
   });
 
   group('3. Granular RBAC Permissions Registry Tests', () {
-    test('AppPermissions contains all system permissions and default role mappings', () {
+    test(
+        'AppPermissions contains all system permissions and default role mappings',
+        () {
       expect(AppPermissions.all, contains(AppPermissions.viewDashboard));
       expect(AppPermissions.all, contains(AppPermissions.createSales));
       expect(AppPermissions.all, contains(AppPermissions.editPrices));

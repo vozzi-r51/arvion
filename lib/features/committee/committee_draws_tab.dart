@@ -30,7 +30,8 @@ class _CommitteeDrawsTabState extends State<CommitteeDrawsTab> {
   Future<void> _load() async {
     setState(() => _loading = true);
     final draws = await DBHelper.instance.getCommitteeDraws(widget.committeeId);
-    final members = await DBHelper.instance.getCommitteeMembers(widget.committeeId);
+    final members =
+        await DBHelper.instance.getCommitteeMembers(widget.committeeId);
     setState(() {
       _draws = draws;
       _members = members;
@@ -43,7 +44,9 @@ class _CommitteeDrawsTabState extends State<CommitteeDrawsTab> {
         _members.where((m) => (m['has_drawn'] as int) == 0).toList();
     if (undrawnMembers.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sab members already draw kar chuke hain (ya koi member nahi hai)')),
+        const SnackBar(
+            content: Text(
+                'Sab members already draw kar chuke hain (ya koi member nahi hai)')),
       );
       return;
     }
@@ -77,13 +80,16 @@ class _CommitteeDrawsTabState extends State<CommitteeDrawsTab> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: amountCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Amount (Rs.) *'),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration:
+                      const InputDecoration(labelText: 'Amount (Rs.) *'),
                 ),
                 const SizedBox(height: 8),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text('Date: ${drawDate.toIso8601String().substring(0, 10)}'),
+                  title: Text(
+                      'Date: ${drawDate.toIso8601String().substring(0, 10)}'),
                   trailing: const Icon(Icons.calendar_today, size: 18),
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -103,7 +109,9 @@ class _CommitteeDrawsTabState extends State<CommitteeDrawsTab> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
                 final amount = double.tryParse(amountCtrl.text.trim());
@@ -151,7 +159,8 @@ class _CommitteeDrawsTabState extends State<CommitteeDrawsTab> {
                   child: ListTile(
                     leading: const CircleAvatar(
                       backgroundColor: Colors.green,
-                      child: Icon(Icons.emoji_events, color: Colors.white, size: 18),
+                      child: Icon(Icons.emoji_events,
+                          color: Colors.white, size: 18),
                     ),
                     title: Text(_memberName(d['member_id'] as int)),
                     subtitle: Text(

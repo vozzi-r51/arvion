@@ -34,7 +34,8 @@ class InvoicePdfService {
         pageFormat: pageFormat,
         build: (context) => paperSize == InvoicePaperSize.a4
             ? _buildA4Content(company, sale, items, logo, stamp, signature)
-            : _buildThermalContent(company, sale, items, logo, stamp, signature),
+            : _buildThermalContent(
+                company, sale, items, logo, stamp, signature),
       ),
     );
 
@@ -115,7 +116,8 @@ class InvoicePdfService {
                   ),
                   pw.Text(
                     '# ${sale['invoice_number']}',
-                    style: const pw.TextStyle(fontSize: 9, color: PdfColors.white),
+                    style:
+                        const pw.TextStyle(fontSize: 9, color: PdfColors.white),
                   ),
                 ],
               ),
@@ -171,7 +173,8 @@ class InvoicePdfService {
               _totalRow('Subtotal', sale['subtotal'] as num, currency),
               _totalRow('Discount', sale['discount_amount'] as num, currency),
               _totalRow('Tax', (sale['tax_amount'] as num?) ?? 0, currency),
-              _totalRow('Total', sale['total_amount'] as num, currency, bold: true),
+              _totalRow('Total', sale['total_amount'] as num, currency,
+                  bold: true),
               _totalRow('Paid', sale['paid_amount'] as num, currency),
               _totalRow('Due', sale['due_amount'] as num, currency),
             ],
@@ -246,15 +249,22 @@ class InvoicePdfService {
         pw.SizedBox(height: 4),
         if ((company['address'] as String?)?.isNotEmpty == true)
           pw.Text(company['address'] as String,
-              style: const pw.TextStyle(fontSize: 7), textAlign: pw.TextAlign.center),
+              style: const pw.TextStyle(fontSize: 7),
+              textAlign: pw.TextAlign.center),
         if ((company['phone'] as String?)?.isNotEmpty == true)
-          pw.Text('Ph: ${company['phone']}', style: const pw.TextStyle(fontSize: 7)),
+          pw.Text('Ph: ${company['phone']}',
+              style: const pw.TextStyle(fontSize: 7)),
         if ((company['email'] as String?)?.isNotEmpty == true)
-          pw.Text('Email: ${company['email']}', style: const pw.TextStyle(fontSize: 7)),
+          pw.Text('Email: ${company['email']}',
+              style: const pw.TextStyle(fontSize: 7)),
         pw.SizedBox(height: 6),
         pw.Text('--------------------------------'),
-        pw.Text('Invoice: ${sale['invoice_number']}', style: const pw.TextStyle(fontSize: 8)),
-        pw.Text((sale['sale_date'] as String).substring(0, 16).replaceFirst('T', ' '),
+        pw.Text('Invoice: ${sale['invoice_number']}',
+            style: const pw.TextStyle(fontSize: 8)),
+        pw.Text(
+            (sale['sale_date'] as String)
+                .substring(0, 16)
+                .replaceFirst('T', ' '),
             style: const pw.TextStyle(fontSize: 7)),
         pw.Text('Customer: ${sale['customer_name'] ?? 'Walk-in Customer'}',
             style: const pw.TextStyle(fontSize: 7)),
@@ -264,14 +274,16 @@ class InvoicePdfService {
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text('${item['product_name']} ${item['packing'] != null ? '(${item['packing']})' : ''}',
+                  pw.Text(
+                      '${item['product_name']} ${item['packing'] != null ? '(${item['packing']})' : ''}',
                       style: const pw.TextStyle(fontSize: 8)),
                   pw.Row(
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
                       pw.Text('${item['quantity']} x ${item['unit_price']}',
                           style: const pw.TextStyle(fontSize: 7)),
-                      pw.Text('Rs. ${(item['total'] as num).toStringAsFixed(0)}',
+                      pw.Text(
+                          'Rs. ${(item['total'] as num).toStringAsFixed(0)}',
                           style: const pw.TextStyle(fontSize: 8)),
                     ],
                   ),
@@ -313,7 +325,8 @@ class InvoicePdfService {
         pw.SizedBox(height: 8),
         if ((company['invoice_footer'] as String?)?.isNotEmpty == true)
           pw.Text(company['invoice_footer'] as String,
-              style: const pw.TextStyle(fontSize: 7), textAlign: pw.TextAlign.center),
+              style: const pw.TextStyle(fontSize: 7),
+              textAlign: pw.TextAlign.center),
       ],
     );
   }
@@ -326,28 +339,50 @@ class InvoicePdfService {
           padding: const pw.EdgeInsets.symmetric(vertical: 6, horizontal: 4),
           child: pw.Row(
             children: [
-              pw.Expanded(flex: 3, child: pw.Text('Item', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-              pw.Expanded(flex: 1, child: pw.Text('Pack', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-              pw.Expanded(flex: 1, child: pw.Text('Qty', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-              pw.Expanded(flex: 2, child: pw.Text('Price', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-              pw.Expanded(flex: 2, child: pw.Text('Total', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
+              pw.Expanded(
+                  flex: 3,
+                  child: pw.Text('Item',
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
+              pw.Expanded(
+                  flex: 1,
+                  child: pw.Text('Pack',
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
+              pw.Expanded(
+                  flex: 1,
+                  child: pw.Text('Qty',
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
+              pw.Expanded(
+                  flex: 2,
+                  child: pw.Text('Price',
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
+              pw.Expanded(
+                  flex: 2,
+                  child: pw.Text('Total',
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
             ],
           ),
         ),
         ...items.map((item) => pw.Container(
-              padding: const pw.EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+              padding:
+                  const pw.EdgeInsets.symmetric(vertical: 6, horizontal: 4),
               decoration: const pw.BoxDecoration(
-                border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey300, width: 0.5)),
+                border: pw.Border(
+                    bottom:
+                        pw.BorderSide(color: PdfColors.grey300, width: 0.5)),
               ),
               child: pw.Row(
                 children: [
-                  pw.Expanded(flex: 3, child: pw.Text(item['product_name'] as String)),
-                  pw.Expanded(flex: 1, child: pw.Text(item['packing']?.toString() ?? '-')),
+                  pw.Expanded(
+                      flex: 3, child: pw.Text(item['product_name'] as String)),
+                  pw.Expanded(
+                      flex: 1,
+                      child: pw.Text(item['packing']?.toString() ?? '-')),
                   pw.Expanded(flex: 1, child: pw.Text('${item['quantity']}')),
                   pw.Expanded(flex: 2, child: pw.Text('${item['unit_price']}')),
                   pw.Expanded(
                       flex: 2,
-                      child: pw.Text('Rs. ${(item['total'] as num).toStringAsFixed(0)}')),
+                      child: pw.Text(
+                          'Rs. ${(item['total'] as num).toStringAsFixed(0)}')),
                 ],
               ),
             )),
@@ -355,7 +390,8 @@ class InvoicePdfService {
     );
   }
 
-  static pw.Widget _totalRow(String label, num value, String currency, {bool bold = false}) {
+  static pw.Widget _totalRow(String label, num value, String currency,
+      {bool bold = false}) {
     final style = bold
         ? pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13)
         : const pw.TextStyle(fontSize: 11);
@@ -374,7 +410,8 @@ class InvoicePdfService {
     );
   }
 
-  static pw.Widget _thermalRow(String label, num value, String currency, {bool bold = false}) {
+  static pw.Widget _thermalRow(String label, num value, String currency,
+      {bool bold = false}) {
     final style = bold
         ? pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)
         : const pw.TextStyle(fontSize: 9);

@@ -26,7 +26,7 @@ class FiscalYearRepository extends BaseRepository {
     required int companyId,
     required int fiscalYear,
     required String startDate, // "2025-01-01"
-    required String endDate,   // "2025-12-31"
+    required String endDate, // "2025-12-31"
     required String closedBy,
   }) async {
     // 1. Calculate Total Revenue & Total Expenses for period
@@ -51,12 +51,15 @@ class FiscalYearRepository extends BaseRepository {
     // 2. Post closing journal entry if AccountingRepository registered
     if (sl.isRegistered<AccountingRepository>()) {
       try {
-        final accounts = await sl<AccountingRepository>().getAccounts(companyId);
+        final accounts =
+            await sl<AccountingRepository>().getAccounts(companyId);
         int? retainedEarningsAccountId;
 
         for (final acc in accounts) {
           final name = (acc['name'] as String).toLowerCase();
-          if (name.contains('retained') || name.contains('earnings') || name.contains('equity')) {
+          if (name.contains('retained') ||
+              name.contains('earnings') ||
+              name.contains('equity')) {
             retainedEarningsAccountId = acc['id'] as int;
             break;
           }
@@ -67,13 +70,24 @@ class FiscalYearRepository extends BaseRepository {
             companyId: companyId,
             date: endDate,
             reference: 'CLOSE-$fiscalYear',
-            description: 'Fiscal Year $fiscalYear Closing Entry - Net Profit Transfer to Retained Earnings',
+            description:
+                'Fiscal Year $fiscalYear Closing Entry - Net Profit Transfer to Retained Earnings',
             lines: netProfit > 0
                 ? [
-                    {'account_id': retainedEarningsAccountId, 'debit': 0.0, 'credit': netProfit, 'memo': 'Net Profit for FY $fiscalYear'},
+                    {
+                      'account_id': retainedEarningsAccountId,
+                      'debit': 0.0,
+                      'credit': netProfit,
+                      'memo': 'Net Profit for FY $fiscalYear'
+                    },
                   ]
                 : [
-                    {'account_id': retainedEarningsAccountId, 'debit': netProfit.abs(), 'credit': 0.0, 'memo': 'Net Loss for FY $fiscalYear'},
+                    {
+                      'account_id': retainedEarningsAccountId,
+                      'debit': netProfit.abs(),
+                      'credit': 0.0,
+                      'memo': 'Net Loss for FY $fiscalYear'
+                    },
                   ],
           );
         }
@@ -103,7 +117,8 @@ class FiscalYearRepository extends BaseRepository {
       companyId: companyId,
       module: 'Accounting',
       action: 'close_fiscal_year',
-      description: 'Fiscal Year $fiscalYear closed (Net Profit: Rs. ${netProfit.toStringAsFixed(0)})',
+      description:
+          'Fiscal Year $fiscalYear closed (Net Profit: Rs. ${netProfit.toStringAsFixed(0)})',
       userName: closedBy,
       afterValue: {
         'fiscal_year': fiscalYear,

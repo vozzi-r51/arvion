@@ -122,7 +122,8 @@ class _BizManagerSplashScreen extends StatefulWidget {
   const _BizManagerSplashScreen();
 
   @override
-  State<_BizManagerSplashScreen> createState() => _BizManagerSplashScreenState();
+  State<_BizManagerSplashScreen> createState() =>
+      _BizManagerSplashScreenState();
 }
 
 class _BizManagerSplashScreenState extends State<_BizManagerSplashScreen>
@@ -168,7 +169,7 @@ class _BizManagerSplashScreenState extends State<_BizManagerSplashScreen>
   @override
   Widget build(BuildContext context) {
     final branding = context.watch<BrandingProvider>();
-    
+
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
       body: AnimatedBuilder(
@@ -194,9 +195,10 @@ class _BizManagerSplashScreenState extends State<_BizManagerSplashScreen>
                       opacity: _textReveal.value,
                       child: Transform.scale(
                         scale: _falconScale.value,
-                        child: branding.logoPath != null 
-                          ? Image.file(File(branding.logoPath!), width: 120, height: 120)
-                          : const BizManagerLogo(size: 120),
+                        child: branding.logoPath != null
+                            ? Image.file(File(branding.logoPath!),
+                                width: 120, height: 120)
+                            : const BizManagerLogo(size: 120),
                       ),
                     ),
                     const SizedBox(height: 40),

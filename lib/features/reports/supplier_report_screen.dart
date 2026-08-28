@@ -40,7 +40,10 @@ class _SupplierReportScreenState extends State<SupplierReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Supplier Report (Payables)'), actions: [IconButton(icon: const Icon(Icons.ios_share), onPressed: _showExportMenu)]),
+      appBar: AppBar(title: const Text('Supplier Report (Payables)'), actions: [
+        IconButton(
+            icon: const Icon(Icons.ios_share), onPressed: _showExportMenu)
+      ]),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : Column(
@@ -58,7 +61,9 @@ class _SupplierReportScreenState extends State<SupplierReportScreen> {
                           Text(
                             '$_currency ${_totalPayable.toStringAsFixed(0)}',
                             style: const TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.bold, color: Colors.purple),
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.purple),
                           ),
                         ],
                       ),
@@ -86,7 +91,8 @@ class _SupplierReportScreenState extends State<SupplierReportScreen> {
                                 trailing: Text(
                                   '$_currency ${(s['current_balance'] as num).toStringAsFixed(0)}',
                                   style: const TextStyle(
-                                      fontWeight: FontWeight.bold, color: Colors.purple),
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.purple),
                                 ),
                               ),
                             );
@@ -97,7 +103,6 @@ class _SupplierReportScreenState extends State<SupplierReportScreen> {
             ),
     );
   }
-
 
   Future<void> _showExportMenu() async {
     final choice = await showModalBottomSheet<String>(
@@ -129,7 +134,9 @@ class _SupplierReportScreenState extends State<SupplierReportScreen> {
     await CsvExportService.exportAndShare(
       fileName: 'Supplier_Payables',
       headers: ['Supplier', 'Phone', 'Balance'],
-      rows: _suppliers.map((s) => [s['company_name'], s['phone'], s['current_balance']]).toList(),
+      rows: _suppliers
+          .map((s) => [s['company_name'], s['phone'], s['current_balance']])
+          .toList(),
     );
   }
 

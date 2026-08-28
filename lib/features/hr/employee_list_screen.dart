@@ -24,8 +24,8 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
 
   Future<void> _load() async {
     setState(() => _loading = true);
-    final rows =
-        await DBHelper.instance.getEmployees(widget.companyId, searchQuery: _query);
+    final rows = await DBHelper.instance
+        .getEmployees(widget.companyId, searchQuery: _query);
     setState(() {
       _employees = rows;
       _loading = false;
@@ -45,8 +45,8 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
   Future<void> _openDetail(Map<String, dynamic> employee) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) =>
-            EmployeeDetailScreen(companyId: widget.companyId, employee: employee),
+        builder: (_) => EmployeeDetailScreen(
+            companyId: widget.companyId, employee: employee),
       ),
     );
     _load();
@@ -59,7 +59,9 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
         title: const Text('Employee Delete Karein?'),
         content: Text('"${e['name']}" delete ho jayega.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
           TextButton(
               onPressed: () => Navigator.pop(ctx, true),
               child: const Text('Delete', style: TextStyle(color: Colors.red))),
@@ -105,7 +107,8 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                             margin: const EdgeInsets.only(bottom: 10),
                             child: ListTile(
                               leading: CircleAvatar(
-                                backgroundColor: Theme.of(context).colorScheme.primary,
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.primary,
                                 child: Text(
                                   (e['name'] as String).isNotEmpty
                                       ? (e['name'] as String)[0].toUpperCase()
@@ -120,7 +123,8 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
-                                    icon: const Icon(Icons.edit_outlined, size: 18),
+                                    icon: const Icon(Icons.edit_outlined,
+                                        size: 18),
                                     onPressed: () => _openForm(existing: e),
                                   ),
                                   IconButton(

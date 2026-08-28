@@ -28,33 +28,43 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
   }
 
   void _showForm({Map<String, dynamic>? existing}) {
-    final nameCtrl = TextEditingController(text: existing?['name'] as String? ?? '');
-    final urduCtrl = TextEditingController(text: existing?['urdu_name'] as String? ?? '');
-    final codeCtrl = TextEditingController(text: existing?['code'] as String? ?? '');
-    final descCtrl = TextEditingController(text: existing?['description'] as String? ?? '');
+    final nameCtrl =
+        TextEditingController(text: existing?['name'] as String? ?? '');
+    final urduCtrl =
+        TextEditingController(text: existing?['urdu_name'] as String? ?? '');
+    final codeCtrl =
+        TextEditingController(text: existing?['code'] as String? ?? '');
+    final descCtrl =
+        TextEditingController(text: existing?['description'] as String? ?? '');
     int? parentId = existing?['parent_id'] as int?;
 
-    final parentCandidates = _categories.where((c) => existing == null || c['id'] != existing['id']).toList();
+    final parentCandidates = _categories
+        .where((c) => existing == null || c['id'] != existing['id'])
+        .toList();
 
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: Text(existing == null ? 'Nayi Category' : 'Category Edit Karein'),
+          title:
+              Text(existing == null ? 'Nayi Category' : 'Category Edit Karein'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Category Naam *'),
+                  decoration:
+                      const InputDecoration(labelText: 'Category Naam *'),
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<int?>(
                   value: parentId,
-                  decoration: const InputDecoration(labelText: 'Parent Category (Optional)'),
+                  decoration: const InputDecoration(
+                      labelText: 'Parent Category (Optional)'),
                   items: [
-                    const DropdownMenuItem<int?>(value: null, child: Text('None (Top Level)')),
+                    const DropdownMenuItem<int?>(
+                        value: null, child: Text('None (Top Level)')),
                     ...parentCandidates.map((c) => DropdownMenuItem<int?>(
                           value: c['id'] as int,
                           child: Text(c['name'] as String),
@@ -70,7 +80,8 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: codeCtrl,
-                  decoration: const InputDecoration(labelText: 'Code (optional)'),
+                  decoration:
+                      const InputDecoration(labelText: 'Code (optional)'),
                 ),
                 const SizedBox(height: 8),
                 TextField(
@@ -82,7 +93,8 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
           ),
           actions: [
             TextButton(
-                onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
                 if (nameCtrl.text.trim().isEmpty) return;
@@ -99,7 +111,8 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
                 if (existing == null) {
                   await DBHelper.instance.insertCategory(data);
                 } else {
-                  await DBHelper.instance.updateCategory(existing['id'] as int, data);
+                  await DBHelper.instance
+                      .updateCategory(existing['id'] as int, data);
                 }
                 if (!ctx.mounted) return;
                 Navigator.pop(ctx);
@@ -149,15 +162,20 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
                   itemCount: topLevel.length,
                   itemBuilder: (ctx, i) {
                     final parent = topLevel[i];
-                    final subCategories = _categories.where((c) => c['parent_id'] == parent['id']).toList();
+                    final subCategories = _categories
+                        .where((c) => c['parent_id'] == parent['id'])
+                        .toList();
 
                     return Card(
                       margin: const EdgeInsets.only(bottom: 8),
                       child: ExpansionTile(
-                        title: Text(parent['name'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: (parent['urdu_name'] as String?)?.isNotEmpty == true
-                            ? Text(parent['urdu_name'] as String)
-                            : null,
+                        title: Text(parent['name'] as String,
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle:
+                            (parent['urdu_name'] as String?)?.isNotEmpty == true
+                                ? Text(parent['urdu_name'] as String)
+                                : null,
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -166,27 +184,33 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
                               onPressed: () => _showForm(existing: parent),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.delete_outline, size: 20, color: Colors.red),
+                              icon: const Icon(Icons.delete_outline,
+                                  size: 20, color: Colors.red),
                               onPressed: () => _confirmDelete(parent),
                             ),
                           ],
                         ),
                         children: subCategories.map((sub) {
                           return ListTile(
-                            contentPadding: const EdgeInsets.only(left: 32, right: 16),
+                            contentPadding:
+                                const EdgeInsets.only(left: 32, right: 16),
                             title: Text(sub['name'] as String),
-                            subtitle: (sub['urdu_name'] as String?)?.isNotEmpty == true
-                                ? Text(sub['urdu_name'] as String)
-                                : null,
+                            subtitle:
+                                (sub['urdu_name'] as String?)?.isNotEmpty ==
+                                        true
+                                    ? Text(sub['urdu_name'] as String)
+                                    : null,
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 IconButton(
-                                  icon: const Icon(Icons.edit_outlined, size: 18),
+                                  icon:
+                                      const Icon(Icons.edit_outlined, size: 18),
                                   onPressed: () => _showForm(existing: sub),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                                  icon: const Icon(Icons.delete_outline,
+                                      size: 18, color: Colors.red),
                                   onPressed: () => _confirmDelete(sub),
                                 ),
                               ],

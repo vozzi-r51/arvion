@@ -107,8 +107,7 @@ class ErrorReporter {
     try {
       final file = _logFile;
       if (file == null) return;
-      final line =
-          '[${record.time.toIso8601String()}] '
+      final line = '[${record.time.toIso8601String()}] '
           '${record.fatal ? 'FATAL ' : ''}'
           '${record.module ?? '-'}'
           '${record.action != null ? '/${record.action}' : ''}'

@@ -21,7 +21,9 @@ class ReportComputeService {
     double totalQty = 0.0;
 
     for (final p in products) {
-      final stock = (p['stock'] as num?)?.toDouble() ?? (p['stock_quantity'] as num?)?.toDouble() ?? 0.0;
+      final stock = (p['stock'] as num?)?.toDouble() ??
+          (p['stock_quantity'] as num?)?.toDouble() ??
+          0.0;
       final salePrice = (p['sale_price'] as num?)?.toDouble() ?? 0.0;
       final costPrice = (p['cost_price'] as num?)?.toDouble() ?? 0.0;
 
@@ -56,7 +58,8 @@ class ReportComputeService {
 
     for (final line in lines) {
       final accountId = line['account_id'] as int;
-      final accountName = (line['account_name'] as String?) ?? 'Account #$accountId';
+      final accountName =
+          (line['account_name'] as String?) ?? 'Account #$accountId';
       final debit = (line['debit'] as num?)?.toDouble() ?? 0.0;
       final credit = (line['credit'] as num?)?.toDouble() ?? 0.0;
 
@@ -72,8 +75,10 @@ class ReportComputeService {
         };
       }
 
-      accountSummary[accountId]!['debit'] = (accountSummary[accountId]!['debit'] as double) + debit;
-      accountSummary[accountId]!['credit'] = (accountSummary[accountId]!['credit'] as double) + credit;
+      accountSummary[accountId]!['debit'] =
+          (accountSummary[accountId]!['debit'] as double) + debit;
+      accountSummary[accountId]!['credit'] =
+          (accountSummary[accountId]!['credit'] as double) + credit;
     }
 
     return {

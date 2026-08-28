@@ -29,20 +29,27 @@ class DuplicateDetector {
         for (final row in rows) {
           if (!row.isValid) continue;
           final name = _normalize(row.mappedData['name']?.toString() ?? '');
-          final sku = (row.mappedData['product_code']?.toString() ?? '').trim().toLowerCase();
-          final barcode = (row.mappedData['barcode']?.toString() ?? '').trim().toLowerCase();
+          final sku = (row.mappedData['product_code']?.toString() ?? '')
+              .trim()
+              .toLowerCase();
+          final barcode = (row.mappedData['barcode']?.toString() ?? '')
+              .trim()
+              .toLowerCase();
 
           if (existingMap.containsKey(name) ||
               (sku.isNotEmpty && existingMap.containsKey('sku:$sku')) ||
               (barcode.isNotEmpty && existingMap.containsKey('bar:$barcode'))) {
             row.isDuplicate = true;
-            row.existingRecord = existingMap[name] ?? existingMap['sku:$sku'] ?? existingMap['bar:$barcode'];
+            row.existingRecord = existingMap[name] ??
+                existingMap['sku:$sku'] ??
+                existingMap['bar:$barcode'];
           }
         }
         break;
 
       case ImportEntityType.customers:
-        final existingCustomers = await DBHelper.instance.getCustomers(companyId);
+        final existingCustomers =
+            await DBHelper.instance.getCustomers(companyId);
         final existingMap = <String, Map<String, dynamic>>{};
 
         for (final c in existingCustomers) {
@@ -57,15 +64,18 @@ class DuplicateDetector {
           final name = _normalize(row.mappedData['name']?.toString() ?? '');
           final mobile = (row.mappedData['mobile']?.toString() ?? '').trim();
 
-          if (existingMap.containsKey(name) || (mobile.isNotEmpty && existingMap.containsKey('mob:$mobile'))) {
+          if (existingMap.containsKey(name) ||
+              (mobile.isNotEmpty && existingMap.containsKey('mob:$mobile'))) {
             row.isDuplicate = true;
-            row.existingRecord = existingMap[name] ?? existingMap['mob:$mobile'];
+            row.existingRecord =
+                existingMap[name] ?? existingMap['mob:$mobile'];
           }
         }
         break;
 
       case ImportEntityType.suppliers:
-        final existingSuppliers = await DBHelper.instance.getSuppliers(companyId);
+        final existingSuppliers =
+            await DBHelper.instance.getSuppliers(companyId);
         final existingMap = <String, Map<String, dynamic>>{};
 
         for (final s in existingSuppliers) {
@@ -77,10 +87,12 @@ class DuplicateDetector {
 
         for (final row in rows) {
           if (!row.isValid) continue;
-          final name = _normalize(row.mappedData['company_name']?.toString() ?? '');
+          final name =
+              _normalize(row.mappedData['company_name']?.toString() ?? '');
           final phone = (row.mappedData['phone']?.toString() ?? '').trim();
 
-          if (existingMap.containsKey(name) || (phone.isNotEmpty && existingMap.containsKey('ph:$phone'))) {
+          if (existingMap.containsKey(name) ||
+              (phone.isNotEmpty && existingMap.containsKey('ph:$phone'))) {
             row.isDuplicate = true;
             row.existingRecord = existingMap[name] ?? existingMap['ph:$phone'];
           }
@@ -96,9 +108,6 @@ class DuplicateDetector {
   }
 
   static String _normalize(String input) {
-    return input
-        .toLowerCase()
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
+    return input.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
   }
 }

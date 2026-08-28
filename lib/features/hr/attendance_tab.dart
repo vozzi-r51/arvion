@@ -4,7 +4,8 @@ import '../../core/database/db_helper.dart';
 class AttendanceTab extends StatefulWidget {
   final int companyId;
   final int employeeId;
-  const AttendanceTab({super.key, required this.companyId, required this.employeeId});
+  const AttendanceTab(
+      {super.key, required this.companyId, required this.employeeId});
 
   @override
   State<AttendanceTab> createState() => _AttendanceTabState();
@@ -25,7 +26,8 @@ class _AttendanceTabState extends State<AttendanceTab> {
 
   Future<void> _load() async {
     setState(() => _loading = true);
-    final records = await DBHelper.instance.getAttendanceForEmployee(widget.employeeId);
+    final records =
+        await DBHelper.instance.getAttendanceForEmployee(widget.employeeId);
     final todayRecord =
         await DBHelper.instance.getAttendanceForDate(widget.employeeId, _today);
     setState(() {
@@ -94,14 +96,18 @@ class _AttendanceTabState extends State<AttendanceTab> {
                   const SizedBox(height: 10),
                   if (_todayRecord != null)
                     Chip(
-                      label: Text(_statusLabel(_todayRecord!['status'] as String)),
+                      label:
+                          Text(_statusLabel(_todayRecord!['status'] as String)),
                       backgroundColor:
-                          _statusColor(_todayRecord!['status'] as String).withOpacity(0.15),
-                      labelStyle:
-                          TextStyle(color: _statusColor(_todayRecord!['status'] as String)),
+                          _statusColor(_todayRecord!['status'] as String)
+                              .withOpacity(0.15),
+                      labelStyle: TextStyle(
+                          color:
+                              _statusColor(_todayRecord!['status'] as String)),
                     )
                   else
-                    const Text('Abhi mark nahi hui', style: TextStyle(color: Colors.grey)),
+                    const Text('Abhi mark nahi hui',
+                        style: TextStyle(color: Colors.grey)),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
@@ -133,14 +139,17 @@ class _AttendanceTabState extends State<AttendanceTab> {
                       margin: const EdgeInsets.only(bottom: 8),
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: _statusColor(status).withOpacity(0.15),
+                          backgroundColor:
+                              _statusColor(status).withOpacity(0.15),
                           child: Icon(Icons.calendar_today,
                               color: _statusColor(status), size: 18),
                         ),
                         title: Text(r['date'] as String),
                         trailing: Text(
                           _statusLabel(status),
-                          style: TextStyle(color: _statusColor(status), fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              color: _statusColor(status),
+                              fontWeight: FontWeight.bold),
                         ),
                       ),
                     );

@@ -41,7 +41,8 @@ class ThemeSettingsScreen extends StatelessWidget {
             itemCount: _themeColors.length,
             itemBuilder: (ctx, i) {
               final color = _themeColors[i];
-              final isSelected = themeProvider.primaryColor.value == color.value;
+              final isSelected =
+                  themeProvider.primaryColor.value == color.value;
 
               return GestureDetector(
                 onTap: () => themeProvider.setPrimaryColor(color),

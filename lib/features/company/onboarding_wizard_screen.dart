@@ -23,7 +23,7 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
   // Data
   final TextEditingController _nameCtrl = TextEditingController();
   final TextEditingController _ownerCtrl = TextEditingController();
-  
+
   BusinessCategory? _selectedCategory;
   String? _selectedSubtype;
   bool _isQuickSetup = true;
@@ -59,9 +59,16 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
     setState(() {
       _modules.clear();
       final allPossible = [
-        'sales', 'purchases', 'inventory', 'expenses',
-        'accounting', 'hr', 'promotions', 'quotations',
-        'committee', 'cheque'
+        'sales',
+        'purchases',
+        'inventory',
+        'expenses',
+        'accounting',
+        'hr',
+        'promotions',
+        'quotations',
+        'committee',
+        'cheque'
       ];
       for (var m in allPossible) {
         _modules[m] = t.enabledModules.contains(m);
@@ -101,7 +108,8 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
         }
         break;
       case 2:
-        if (_selectedSubtype != null || (_selectedCategory?.subtypes.isEmpty ?? true)) {
+        if (_selectedSubtype != null ||
+            (_selectedCategory?.subtypes.isEmpty ?? true)) {
           canGoNext = true;
           // Show animation screen after subtype selection
           _showBusinessSetupAnimation();
@@ -123,12 +131,15 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
 
     if (canGoNext) {
       if (_currentStep < 5) {
-        _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+        _pageController.nextPage(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut);
       } else {
         _finish();
       }
     } else if (error.isNotEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(error)));
     }
   }
 
@@ -180,7 +191,8 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
         'business_category': _selectedCategory?.label ?? 'General Retail',
         'business_subtype': _selectedSubtype,
         'template_family':
-            _selectedCategory?.family.toString().split('.').last ?? 'retailStandard',
+            _selectedCategory?.family.toString().split('.').last ??
+                'retailStandard',
         'currency_symbol': _currency,
         'default_tax_percent': _taxPercent,
         'terminology_profile': _selectedCategory?.id ?? 'general_retail',
@@ -236,19 +248,16 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
       appBar: AppBar(
         title: Text('Step ${_currentStep + 1} of 6'),
         leading: _currentStep > 0
-          ? IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => _pageController.previousPage(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut
-              )
-            )
-          : null,
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => _pageController.previousPage(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut))
+            : null,
         actions: [
           IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () => Navigator.pop(context)
-          )
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.pop(context))
         ],
       ),
       body: PageView(
@@ -274,7 +283,7 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
-                      strokeWidth: 2, color: Colors.white),
+                        strokeWidth: 2, color: Colors.white),
                   )
                 : Text(_currentStep == 5 ? 'Finish & Start Business' : 'Next'),
           ),
@@ -289,30 +298,35 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
       children: [
         const Icon(Icons.rocket_launch, size: 64, color: Colors.blue),
         const SizedBox(height: AppSpacing.l),
-        Text(
-          'Khush Amdeed!', 
-          style: AppTypography.headlineMedium(context).copyWith(fontWeight: FontWeight.bold)
-        ),
+        Text('Khush Amdeed!',
+            style: AppTypography.headlineMedium(context)
+                .copyWith(fontWeight: FontWeight.bold)),
         const Text('Apni company ya shop ki bunyadi maloomat dein.'),
         const SizedBox(height: AppSpacing.xl),
         SegmentedButton<bool>(
           segments: const [
-            ButtonSegment(value: true, label: Text('⚡ Quick (30 sec)'), icon: Icon(Icons.bolt)),
-            ButtonSegment(value: false, label: Text('⚙️ Detailed'), icon: Icon(Icons.tune)),
+            ButtonSegment(
+                value: true,
+                label: Text('⚡ Quick (30 sec)'),
+                icon: Icon(Icons.bolt)),
+            ButtonSegment(
+                value: false,
+                label: Text('⚙️ Detailed'),
+                icon: Icon(Icons.tune)),
           ],
           selected: {_isQuickSetup},
-          onSelectionChanged: (set) => setState(() => _isQuickSetup = set.first),
+          onSelectionChanged: (set) =>
+              setState(() => _isQuickSetup = set.first),
         ),
         const SizedBox(height: AppSpacing.xl),
         TextField(
-          controller: _nameCtrl, 
-          decoration: const InputDecoration(labelText: 'Company / Shop Naam *')
-        ),
+            controller: _nameCtrl,
+            decoration:
+                const InputDecoration(labelText: 'Company / Shop Naam *')),
         const SizedBox(height: AppSpacing.m),
         TextField(
-          controller: _ownerCtrl, 
-          decoration: const InputDecoration(labelText: 'Owner Naam')
-        ),
+            controller: _ownerCtrl,
+            decoration: const InputDecoration(labelText: 'Owner Naam')),
       ],
     );
   }
@@ -322,14 +336,14 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.m),
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.xl, vertical: AppSpacing.m),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Business Category', 
-                style: AppTypography.titleLarge(context).copyWith(fontWeight: FontWeight.bold)
-              ),
+              Text('Business Category',
+                  style: AppTypography.titleLarge(context)
+                      .copyWith(fontWeight: FontWeight.bold)),
               const Text('Apne business ki category chunein.'),
               const SizedBox(height: AppSpacing.m),
               TextField(
@@ -338,7 +352,8 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
                   hintText: 'Search (e.g. Tandoor, Mobile)',
                   prefixIcon: const Icon(Icons.search),
                   border: OutlineInputBorder(borderRadius: AppRadius.medium),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
               ),
             ],
@@ -348,11 +363,10 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
           child: GridView.builder(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, 
-              childAspectRatio: 1.2, 
-              crossAxisSpacing: 12, 
-              mainAxisSpacing: 12
-            ),
+                crossAxisCount: 2,
+                childAspectRatio: 1.2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12),
             itemCount: filtered.length,
             itemBuilder: (ctx, i) {
               final cat = filtered[i];
@@ -368,30 +382,32 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
                 },
                 child: Container(
                   decoration: BoxDecoration(
-                    color: isSelected ? Theme.of(context).colorScheme.primaryContainer : Colors.white,
+                    color: isSelected
+                        ? Theme.of(context).colorScheme.primaryContainer
+                        : Colors.white,
                     borderRadius: AppRadius.medium,
                     border: Border.all(
-                      color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey.shade300, 
-                      width: 2
-                    ),
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.primary
+                            : Colors.grey.shade300,
+                        width: 2),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        cat.icon, 
-                        color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey, 
-                        size: 32
-                      ),
+                      Icon(cat.icon,
+                          color: isSelected
+                              ? Theme.of(context).colorScheme.primary
+                              : Colors.grey,
+                          size: 32),
                       const SizedBox(height: 8),
-                      Text(
-                        cat.label, 
-                        textAlign: TextAlign.center, 
-                        style: TextStyle(
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, 
-                          fontSize: 11
-                        )
-                      ),
+                      Text(cat.label,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              fontSize: 11)),
                     ],
                   ),
                 ),
@@ -431,20 +447,22 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
     final filteredSubtypes = allSubtypes.where((s) {
       if (_searchQuery.isEmpty) return true;
       // If the category itself matches the search, show all subtypes
-      if (_selectedCategory!.label.toLowerCase().contains(_searchQuery.toLowerCase())) return true;
+      if (_selectedCategory!.label
+          .toLowerCase()
+          .contains(_searchQuery.toLowerCase())) return true;
       // Otherwise only show matching subtypes
       return s.toLowerCase().contains(_searchQuery.toLowerCase());
     }).toList();
 
-    final displaySubtypes = filteredSubtypes.isEmpty ? allSubtypes : filteredSubtypes;
+    final displaySubtypes =
+        filteredSubtypes.isEmpty ? allSubtypes : filteredSubtypes;
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.xl),
       children: [
-        Text(
-          'Specific Type', 
-          style: AppTypography.titleLarge(context).copyWith(fontWeight: FontWeight.bold)
-        ),
+        Text('Specific Type',
+            style: AppTypography.titleLarge(context)
+                .copyWith(fontWeight: FontWeight.bold)),
         Text('Aapka ${_selectedCategory!.label} business kis tarah ka hai?'),
         const SizedBox(height: AppSpacing.xl),
         ...displaySubtypes.map((sub) {
@@ -454,11 +472,17 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
             margin: const EdgeInsets.only(bottom: 8),
             shape: RoundedRectangleBorder(
               borderRadius: AppRadius.medium,
-              side: BorderSide(color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey.shade300, width: 2),
+              side: BorderSide(
+                  color: isSelected
+                      ? Theme.of(context).colorScheme.primary
+                      : Colors.grey.shade300,
+                  width: 2),
             ),
             child: ListTile(
               title: Text(sub),
-              trailing: isSelected ? const Icon(Icons.check_circle, color: Colors.blue) : null,
+              trailing: isSelected
+                  ? const Icon(Icons.check_circle, color: Colors.blue)
+                  : null,
               onTap: () => setState(() => _selectedSubtype = sub),
             ),
           );
@@ -466,7 +490,8 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
         if (displaySubtypes.isEmpty)
           const Padding(
             padding: EdgeInsets.all(AppSpacing.xl),
-            child: Text('Koi matching subtype nahi mila.', textAlign: TextAlign.center),
+            child: Text('Koi matching subtype nahi mila.',
+                textAlign: TextAlign.center),
           ),
       ],
     );
@@ -476,10 +501,9 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.xl),
       children: [
-        Text(
-          'Preferences', 
-          style: AppTypography.titleLarge(context).copyWith(fontWeight: FontWeight.bold)
-        ),
+        Text('Preferences',
+            style: AppTypography.titleLarge(context)
+                .copyWith(fontWeight: FontWeight.bold)),
         const SizedBox(height: AppSpacing.xl),
         DropdownButtonFormField<String>(
           value: _currency,
@@ -499,9 +523,7 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
         TextField(
           keyboardType: TextInputType.number,
           decoration: const InputDecoration(
-            labelText: 'Default Tax (%)', 
-            hintText: '0'
-          ),
+              labelText: 'Default Tax (%)', hintText: '0'),
           onChanged: (v) => _taxPercent = double.tryParse(v) ?? 0,
         ),
       ],
@@ -518,11 +540,11 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Features',
-                style: AppTypography.titleLarge(context).copyWith(fontWeight: FontWeight.bold)
-              ),
-              const Text('Jo features aap use karna chahte hain unhein on rakhein.'),
+              Text('Features',
+                  style: AppTypography.titleLarge(context)
+                      .copyWith(fontWeight: FontWeight.bold)),
+              const Text(
+                  'Jo features aap use karna chahte hain unhein on rakhein.'),
               const SizedBox(height: AppSpacing.xl),
             ],
           );
@@ -541,19 +563,20 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.xl),
       children: [
-        Text(
-          'User Experience Mode',
-          style: AppTypography.titleLarge(context).copyWith(fontWeight: FontWeight.bold)
-        ),
+        Text('User Experience Mode',
+            style: AppTypography.titleLarge(context)
+                .copyWith(fontWeight: FontWeight.bold)),
         const SizedBox(height: AppSpacing.m),
-        const Text('Aap kaisa control chahte hain? Simple mode naye users ke liye behtar hai.'),
+        const Text(
+            'Aap kaisa control chahte hain? Simple mode naye users ke liye behtar hai.'),
         const SizedBox(height: AppSpacing.xl),
 
         // Simple Mode Card
         _buildModeCard(
           mode: 'simple',
           title: 'Simple Mode (Recommended)',
-          description: 'Basic fields only, easy to use\n• Product name & price\n• Basic sales & purchases\n• Customer ledger',
+          description:
+              'Basic fields only, easy to use\n• Product name & price\n• Basic sales & purchases\n• Customer ledger',
           icon: Icons.dashboard,
           isSelected: _uiMode == 'simple',
           onTap: () => setState(() => _uiMode = 'simple'),
@@ -565,7 +588,8 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
         _buildModeCard(
           mode: 'advanced',
           title: 'Advanced Mode',
-          description: 'All features visible\n• Variants & custom fields\n• Multi-UOM & multi-tax\n• Manufacturing & accounting',
+          description:
+              'All features visible\n• Variants & custom fields\n• Multi-UOM & multi-tax\n• Manufacturing & accounting',
           icon: Icons.engineering,
           isSelected: _uiMode == 'advanced',
           onTap: () => setState(() => _uiMode = 'advanced'),
@@ -586,10 +610,14 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: isSelected ? Theme.of(context).colorScheme.primaryContainer : Colors.white,
+          color: isSelected
+              ? Theme.of(context).colorScheme.primaryContainer
+              : Colors.white,
           borderRadius: AppRadius.medium,
           border: Border.all(
-            color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey.shade300,
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
+                : Colors.grey.shade300,
             width: 2,
           ),
         ),
@@ -600,7 +628,9 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
             Icon(
               icon,
               size: 40,
-              color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey,
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primary
+                  : Colors.grey,
             ),
             const SizedBox(width: AppSpacing.l),
             Expanded(
@@ -611,7 +641,9 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
                     title,
                     style: AppTypography.titleMedium(context).copyWith(
                       fontWeight: FontWeight.bold,
-                      color: isSelected ? Theme.of(context).colorScheme.primary : Colors.black,
+                      color: isSelected
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.black,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.s),

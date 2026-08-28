@@ -20,7 +20,8 @@ class BankStatementImportScreen extends StatefulWidget {
   });
 
   @override
-  State<BankStatementImportScreen> createState() => _BankStatementImportScreenState();
+  State<BankStatementImportScreen> createState() =>
+      _BankStatementImportScreenState();
 }
 
 class _BankStatementImportScreenState extends State<BankStatementImportScreen> {
@@ -60,7 +61,8 @@ class _BankStatementImportScreenState extends State<BankStatementImportScreen> {
     setState(() {
       _bankAccounts = accounts;
       if (accounts.isNotEmpty) {
-        _selectedBankAccountId = widget.initialBankAccountId ?? (accounts.first['id'] as int);
+        _selectedBankAccountId =
+            widget.initialBankAccountId ?? (accounts.first['id'] as int);
       }
     });
   }
@@ -68,7 +70,9 @@ class _BankStatementImportScreenState extends State<BankStatementImportScreen> {
   Future<void> _pickAndParseStatement() async {
     if (_selectedBankAccountId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pehle Bank Account Select Karein!'), backgroundColor: Colors.red),
+        const SnackBar(
+            content: Text('Pehle Bank Account Select Karein!'),
+            backgroundColor: Colors.red),
       );
       return;
     }
@@ -95,7 +99,8 @@ class _BankStatementImportScreenState extends State<BankStatementImportScreen> {
       _fileName = name;
 
       final parseResult = await BankStatementParser().parseStatementFile(path);
-      List<ParsedBankStatementRow> parsedRows = List<ParsedBankStatementRow>.from(parseResult['rows']);
+      List<ParsedBankStatementRow> parsedRows =
+          List<ParsedBankStatementRow>.from(parseResult['rows']);
 
       // Run Auto-Matching Engine (does NOT modify DB)
       parsedRows = await BankTransactionMatcher.autoMatchTransactions(
@@ -145,7 +150,8 @@ class _BankStatementImportScreenState extends State<BankStatementImportScreen> {
     final db = await DBHelper.instance.database;
     final candidates = await db.query(
       'bank_transactions',
-      where: 'company_id = ? AND bank_account_id = ? AND (is_reconciled = 0 OR is_reconciled IS NULL)',
+      where:
+          'company_id = ? AND bank_account_id = ? AND (is_reconciled = 0 OR is_reconciled IS NULL)',
       whereArgs: [widget.companyId, _selectedBankAccountId],
     );
 
@@ -166,8 +172,10 @@ class _BankStatementImportScreenState extends State<BankStatementImportScreen> {
                     final cand = candidates[i];
                     final amt = (cand['amount'] as num).toDouble();
                     return ListTile(
-                      title: Text(cand['description'] as String? ?? 'Transaction'),
-                      subtitle: Text('Date: ${cand['transaction_date']} • Amount: Rs. ${amt.toStringAsFixed(0)}'),
+                      title:
+                          Text(cand['description'] as String? ?? 'Transaction'),
+                      subtitle: Text(
+                          'Date: ${cand['transaction_date']} • Amount: Rs. ${amt.toStringAsFixed(0)}'),
                       onTap: () {
                         setState(() {
                           row.matchedTransaction = cand;
@@ -181,7 +189,8 @@ class _BankStatementImportScreenState extends State<BankStatementImportScreen> {
                 ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
         ],
       ),
     );
@@ -222,7 +231,8 @@ class _BankStatementImportScreenState extends State<BankStatementImportScreen> {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Target Bank Account Select Karein:', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Target Bank Account Select Karein:',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           DropdownButtonFormField<int>(
             value: _selectedBankAccountId,
@@ -230,7 +240,8 @@ class _BankStatementImportScreenState extends State<BankStatementImportScreen> {
             items: _bankAccounts
                 .map((b) => DropdownMenuItem<int>(
                       value: b['id'] as int,
-                      child: Text('${b['account_name']} (${b['bank_name'] ?? ""})'),
+                      child: Text(
+                          '${b['account_name']} (${b['bank_name'] ?? ""})'),
                     ))
                 .toList(),
             onChanged: (v) => setState(() => _selectedBankAccountId = v),
@@ -239,13 +250,21 @@ class _BankStatementImportScreenState extends State<BankStatementImportScreen> {
           ElevatedButton.icon(
             onPressed: _busy ? null : _pickAndParseStatement,
             icon: _busy
-                ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                ? const SizedBox(
+                    height: 18,
+                    width: 18,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white))
                 : const Icon(Icons.upload_file),
-            label: Text(_fileName != null ? 'Change File ($_fileName)' : 'Bank Statement File Select Karein'),
+            label: Text(_fileName != null
+                ? 'Change File ($_fileName)'
+                : 'Bank Statement File Select Karein'),
           ),
           if (_errorMessage != null) ...[
             const SizedBox(height: 12),
-            Text(_errorMessage!, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+            Text(_errorMessage!,
+                style: const TextStyle(
+                    color: Colors.red, fontWeight: FontWeight.bold)),
           ],
         ],
       ),
@@ -253,10 +272,14 @@ class _BankStatementImportScreenState extends State<BankStatementImportScreen> {
   }
 
   Step _buildPreviewStep() {
-    final autoMatched = _rows.where((r) => r.status == ParsedRowStatus.autoMatched).toList();
-    final manualMatched = _rows.where((r) => r.status == ParsedRowStatus.manualMatch).toList();
-    final newCreated = _rows.where((r) => r.status == ParsedRowStatus.newTransaction).toList();
-    final unmatched = _rows.where((r) => r.status == ParsedRowStatus.unmatched).toList();
+    final autoMatched =
+        _rows.where((r) => r.status == ParsedRowStatus.autoMatched).toList();
+    final manualMatched =
+        _rows.where((r) => r.status == ParsedRowStatus.manualMatch).toList();
+    final newCreated =
+        _rows.where((r) => r.status == ParsedRowStatus.newTransaction).toList();
+    final unmatched =
+        _rows.where((r) => r.status == ParsedRowStatus.unmatched).toList();
 
     return Step(
       title: const Text('2. Reconciliation Preview'),
@@ -267,14 +290,18 @@ class _BankStatementImportScreenState extends State<BankStatementImportScreen> {
         children: [
           Row(
             children: [
-              _buildMetricCard('Auto Matched', '${autoMatched.length}', Colors.green),
-              _buildMetricCard('Manual Review', '${manualMatched.length}', Colors.orange),
-              _buildMetricCard('New to Create', '${newCreated.length}', Colors.blue),
+              _buildMetricCard(
+                  'Auto Matched', '${autoMatched.length}', Colors.green),
+              _buildMetricCard(
+                  'Manual Review', '${manualMatched.length}', Colors.orange),
+              _buildMetricCard(
+                  'New to Create', '${newCreated.length}', Colors.blue),
               _buildMetricCard('Unmatched', '${unmatched.length}', Colors.grey),
             ],
           ),
           const SizedBox(height: 16),
-          const Text('Statement Rows Review:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          const Text('Statement Rows Review:',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 8),
           SizedBox(
             height: 350,
@@ -294,34 +321,54 @@ class _BankStatementImportScreenState extends State<BankStatementImportScreen> {
                     leading: CircleAvatar(
                       backgroundColor: r.status == ParsedRowStatus.autoMatched
                           ? Colors.green.shade50
-                          : (r.status == ParsedRowStatus.manualMatch ? Colors.orange.shade50 : Colors.grey.shade100),
+                          : (r.status == ParsedRowStatus.manualMatch
+                              ? Colors.orange.shade50
+                              : Colors.grey.shade100),
                       child: Icon(
-                        r.status == ParsedRowStatus.autoMatched ? Icons.check_circle : Icons.help_outline,
-                        color: r.status == ParsedRowStatus.autoMatched ? Colors.green : Colors.orange,
+                        r.status == ParsedRowStatus.autoMatched
+                            ? Icons.check_circle
+                            : Icons.help_outline,
+                        color: r.status == ParsedRowStatus.autoMatched
+                            ? Colors.green
+                            : Colors.orange,
                         size: 20,
                       ),
                     ),
-                    title: Text(r.description, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                    subtitle: Text('Date: ${r.dateStr} • Status: ${r.status.displayName}'),
+                    title: Text(r.description,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 13)),
+                    subtitle: Text(
+                        'Date: ${r.dateStr} • Status: ${r.status.displayName}'),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(formattedAmt, style: TextStyle(fontWeight: FontWeight.bold, color: r.amount >= 0 ? Colors.green : Colors.red)),
+                        Text(formattedAmt,
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color:
+                                    r.amount >= 0 ? Colors.green : Colors.red)),
                         const SizedBox(width: 8),
                         PopupMenuButton<String>(
                           onSelected: (val) {
                             if (val == 'find') {
                               _manualFindTransaction(r);
                             } else if (val == 'create') {
-                              setState(() => r.status = ParsedRowStatus.newTransaction);
+                              setState(() =>
+                                  r.status = ParsedRowStatus.newTransaction);
                             } else if (val == 'skip') {
-                              setState(() => r.status = ParsedRowStatus.unmatched);
+                              setState(
+                                  () => r.status = ParsedRowStatus.unmatched);
                             }
                           },
                           itemBuilder: (_) => [
-                            const PopupMenuItem(value: 'find', child: Text('Find Existing Match')),
-                            const PopupMenuItem(value: 'create', child: Text('Create as New Transaction')),
-                            const PopupMenuItem(value: 'skip', child: Text('Skip')),
+                            const PopupMenuItem(
+                                value: 'find',
+                                child: Text('Find Existing Match')),
+                            const PopupMenuItem(
+                                value: 'create',
+                                child: Text('Create as New Transaction')),
+                            const PopupMenuItem(
+                                value: 'skip', child: Text('Skip')),
                           ],
                         ),
                       ],
@@ -350,7 +397,9 @@ class _BankStatementImportScreenState extends State<BankStatementImportScreen> {
                   children: [
                     Icon(Icons.check_circle, color: Colors.green, size: 32),
                     SizedBox(width: 8),
-                    Text('Bank Statement Reconciled!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    Text('Bank Statement Reconciled!',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 18)),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -359,9 +408,12 @@ class _BankStatementImportScreenState extends State<BankStatementImportScreen> {
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
-                        _buildSummaryRow('Auto Matched Reconciled', '${s['autoMatched']}', Colors.green),
-                        _buildSummaryRow('Manually Reconciled', '${s['manualMatched']}', Colors.orange),
-                        _buildSummaryRow('New Transactions Created', '${s['newCreated']}', Colors.blue),
+                        _buildSummaryRow('Auto Matched Reconciled',
+                            '${s['autoMatched']}', Colors.green),
+                        _buildSummaryRow('Manually Reconciled',
+                            '${s['manualMatched']}', Colors.orange),
+                        _buildSummaryRow('New Transactions Created',
+                            '${s['newCreated']}', Colors.blue),
                       ],
                     ),
                   ),
@@ -384,8 +436,12 @@ class _BankStatementImportScreenState extends State<BankStatementImportScreen> {
           padding: const EdgeInsets.all(6.0),
           child: Column(
             children: [
-              Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: color)),
-              Text(title, style: TextStyle(fontSize: 10, color: color), textAlign: TextAlign.center),
+              Text(value,
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 16, color: color)),
+              Text(title,
+                  style: TextStyle(fontSize: 10, color: color),
+                  textAlign: TextAlign.center),
             ],
           ),
         ),
@@ -400,7 +456,9 @@ class _BankStatementImportScreenState extends State<BankStatementImportScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-          Text(value, style: TextStyle(fontWeight: FontWeight.bold, color: color, fontSize: 16)),
+          Text(value,
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, color: color, fontSize: 16)),
         ],
       ),
     );

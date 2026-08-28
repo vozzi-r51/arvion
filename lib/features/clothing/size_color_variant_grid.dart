@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 /// Displays a Size (Rows) x Color (Columns) grid with live stock counts per cell.
 class SizeColorVariantGrid extends StatelessWidget {
   final String productName;
-  final List<Map<String, dynamic>> variants; // [{'id': 1, 'size': 'M', 'color': 'Black', 'stock': 8, 'price': 1500}]
+  final List<Map<String, dynamic>>
+      variants; // [{'id': 1, 'size': 'M', 'color': 'Black', 'stock': 8, 'price': 1500}]
   final Function(Map<String, dynamic> selectedVariant) onVariantSelected;
 
   const SizeColorVariantGrid({
@@ -17,8 +18,16 @@ class SizeColorVariantGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Extract unique sizes and colors
-    final sizes = variants.map((v) => (v['size'] as String? ?? 'Std').trim()).toSet().toList()..sort();
-    final colors = variants.map((v) => (v['color'] as String? ?? 'Std').trim()).toSet().toList()..sort();
+    final sizes = variants
+        .map((v) => (v['size'] as String? ?? 'Std').trim())
+        .toSet()
+        .toList()
+      ..sort();
+    final colors = variants
+        .map((v) => (v['color'] as String? ?? 'Std').trim())
+        .toSet()
+        .toList()
+      ..sort();
 
     if (sizes.isEmpty) sizes.add('Standard');
     if (colors.isEmpty) colors.add('Standard');
@@ -34,7 +43,9 @@ class SizeColorVariantGrid extends StatelessWidget {
               children: [
                 const Icon(Icons.checkroom, color: Colors.indigo),
                 const SizedBox(width: 8),
-                Text('$productName — Size/Color Quick POS Grid', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text('$productName — Size/Color Quick POS Grid',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16)),
               ],
             ),
             const SizedBox(height: 12),
@@ -50,11 +61,16 @@ class SizeColorVariantGrid extends StatelessWidget {
                     children: [
                       const Padding(
                         padding: EdgeInsets.all(8.0),
-                        child: Text('Size \\ Color', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                        child: Text('Size \\ Color',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 11)),
                       ),
                       ...colors.map((c) => Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Text(c, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                            child: Text(c,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 12)),
                           )),
                     ],
                   ),
@@ -64,23 +80,32 @@ class SizeColorVariantGrid extends StatelessWidget {
                       children: [
                         Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Text(sz, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          child: Text(sz,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold)),
                         ),
                         ...colors.map((col) {
                           final match = variants.firstWhere(
-                            (v) => (v['size'] as String? ?? '').trim() == sz && (v['color'] as String? ?? '').trim() == col,
+                            (v) =>
+                                (v['size'] as String? ?? '').trim() == sz &&
+                                (v['color'] as String? ?? '').trim() == col,
                             orElse: () => {'stock': 0, 'price': 0},
                           );
 
                           final stock = (match['stock'] as num?)?.toInt() ?? 0;
-                          final price = (match['price'] as num?)?.toDouble() ?? 0.0;
+                          final price =
+                              (match['price'] as num?)?.toDouble() ?? 0.0;
                           final isAvailable = stock > 0;
 
                           return InkWell(
-                            onTap: isAvailable ? () => onVariantSelected(match) : null,
+                            onTap: isAvailable
+                                ? () => onVariantSelected(match)
+                                : null,
                             child: Container(
                               padding: const EdgeInsets.all(8),
-                              color: isAvailable ? Colors.green.shade50 : Colors.grey.shade200,
+                              color: isAvailable
+                                  ? Colors.green.shade50
+                                  : Colors.grey.shade200,
                               child: Column(
                                 children: [
                                   Text(
@@ -88,11 +113,15 @@ class SizeColorVariantGrid extends StatelessWidget {
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 11,
-                                      color: isAvailable ? Colors.green.shade800 : Colors.red,
+                                      color: isAvailable
+                                          ? Colors.green.shade800
+                                          : Colors.red,
                                     ),
                                   ),
                                   if (price > 0)
-                                    Text('Rs. ${price.toStringAsFixed(0)}', style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                                    Text('Rs. ${price.toStringAsFixed(0)}',
+                                        style: const TextStyle(
+                                            fontSize: 10, color: Colors.grey)),
                                 ],
                               ),
                             ),

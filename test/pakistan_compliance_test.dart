@@ -4,10 +4,13 @@ import 'package:bizmanager/core/services/mobile_wallet_payment_service.dart';
 
 void main() {
   group('1. FBR Digital Invoicing & Fiscal QR Tests', () {
-    test('Generates syntactically valid 18-digit FBR Fiscal Invoice Number', () {
-      final fbrInvoiceNum = FbrInvoicingService.generateFbrInvoiceNumber(posId: '700001');
+    test('Generates syntactically valid 18-digit FBR Fiscal Invoice Number',
+        () {
+      final fbrInvoiceNum =
+          FbrInvoicingService.generateFbrInvoiceNumber(posId: '700001');
       expect(fbrInvoiceNum.length, equals(18));
-      expect(FbrInvoicingService.isValidFbrInvoiceNumber(fbrInvoiceNum), isTrue);
+      expect(
+          FbrInvoicingService.isValidFbrInvoiceNumber(fbrInvoiceNum), isTrue);
     });
 
     test('Constructs official FBR QR Code Payload string', () {

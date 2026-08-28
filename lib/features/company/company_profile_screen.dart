@@ -35,7 +35,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
   String _businessType = 'Mixed';
   String _currency = 'Rs.';
   Color _brandingColor = AppTheme.primaryBlue;
-  
+
   final Map<String, bool> _modules = {
     'Quotations': true,
     'Promotions': true,
@@ -76,11 +76,11 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
       _taxCtrl.text = '${c['default_tax_percent'] ?? 0}';
       _businessType = c['business_type'] as String? ?? 'Mixed';
       _currency = c['currency_symbol'] as String? ?? 'Rs.';
-      
+
       if (c['branding_color'] != null) {
         _brandingColor = Color(c['branding_color'] as int);
       }
-      
+
       final modulesStr = c['enabled_modules'] as String?;
       if (modulesStr != null) {
         try {
@@ -132,10 +132,8 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
 
     setState(() => _saving = true);
 
-    final enabledModules = _modules.entries
-        .where((e) => e.value)
-        .map((e) => e.key)
-        .toList();
+    final enabledModules =
+        _modules.entries.where((e) => e.value).map((e) => e.key).toList();
 
     // Phase 3 fix: previously the `await updateCompany(...)` was outside
     // any try/catch. On failure, `_saving` stayed `true` forever and the
@@ -195,11 +193,13 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Shop Delete Karein?', style: TextStyle(color: Colors.red)),
+        title: const Text('Shop Delete Karein?',
+            style: TextStyle(color: Colors.red)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Kya aap waqai is shop ko mukammal tor par delete karna chahte hain? Tamam sales, products aur reports khatam ho jayengi.'),
+            const Text(
+                'Kya aap waqai is shop ko mukammal tor par delete karna chahte hain? Tamam sales, products aur reports khatam ho jayengi.'),
             const SizedBox(height: 16),
             TextField(
               controller: pinCtrl,
@@ -210,17 +210,21 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () async {
-              final ok = await AuthService.instance.verifyPin(pinCtrl.text.trim());
+              final ok =
+                  await AuthService.instance.verifyPin(pinCtrl.text.trim());
               if (ok) {
                 if (!ctx.mounted) return;
                 Navigator.pop(ctx, true);
               } else {
                 if (!ctx.mounted) return;
-                ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('Ghalat PIN')));
+                ScaffoldMessenger.of(ctx)
+                    .showSnackBar(const SnackBar(content: Text('Ghalat PIN')));
               }
             },
             child: const Text('Hamesha ke liye Delete karein'),
@@ -240,7 +244,9 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Delete nahi ho saki: $e'), backgroundColor: Colors.red),
+            SnackBar(
+                content: Text('Delete nahi ho saki: $e'),
+                backgroundColor: Colors.red),
           );
         }
       }
@@ -275,12 +281,14 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
         if (kind != 'signature') ...[
           const SizedBox(height: 4),
           TextButton(
-            style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
+            style: TextButton.styleFrom(
+                padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
             onPressed: () async {
               final path = await showDialog<String>(
                 context: context,
                 builder: (ctx) => GeneratorDialog(
-                  initialText: _nameCtrl.text.isEmpty ? "My Shop" : _nameCtrl.text,
+                  initialText:
+                      _nameCtrl.text.isEmpty ? "My Shop" : _nameCtrl.text,
                   isStamp: kind == 'stamp',
                 ),
               );
@@ -291,7 +299,10 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                 });
               }
             },
-            child: Text('Generate', style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.primary)),
+            child: Text('Generate',
+                style: TextStyle(
+                    fontSize: 10,
+                    color: Theme.of(context).colorScheme.primary)),
           ),
         ],
       ],
@@ -361,7 +372,8 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                       child: TextField(
                         controller: _whatsappCtrl,
                         keyboardType: TextInputType.phone,
-                        decoration: const InputDecoration(labelText: 'WhatsApp'),
+                        decoration:
+                            const InputDecoration(labelText: 'WhatsApp'),
                       ),
                     ),
                   ],
@@ -379,15 +391,18 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                       flex: 2,
                       child: TextField(
                         controller: _ntnCtrl,
-                        decoration: const InputDecoration(labelText: 'NTN / GST'),
+                        decoration:
+                            const InputDecoration(labelText: 'NTN / GST'),
                       ),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: TextField(
                         controller: _taxCtrl,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        decoration: const InputDecoration(labelText: 'Default Tax %'),
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        decoration:
+                            const InputDecoration(labelText: 'Default Tax %'),
                       ),
                     ),
                   ],
@@ -412,8 +427,12 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         value: _businessType,
-                        decoration: const InputDecoration(labelText: 'Business Type'),
-                        items: ['Retail', 'Wholesale', 'Mixed'].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                        decoration:
+                            const InputDecoration(labelText: 'Business Type'),
+                        items: ['Retail', 'Wholesale', 'Mixed']
+                            .map((t) =>
+                                DropdownMenuItem(value: t, child: Text(t)))
+                            .toList(),
                         onChanged: (v) => setState(() => _businessType = v!),
                       ),
                     ),
@@ -421,15 +440,20 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         value: _currency,
-                        decoration: const InputDecoration(labelText: 'Currency'),
-                        items: ['Rs.', '\$', '€', '£', 'AED'].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                        decoration:
+                            const InputDecoration(labelText: 'Currency'),
+                        items: ['Rs.', '\$', '€', '£', 'AED']
+                            .map((t) =>
+                                DropdownMenuItem(value: t, child: Text(t)))
+                            .toList(),
                         onChanged: (v) => setState(() => _currency = v!),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 20),
-                const Text('App Branding Color', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text('App Branding Color',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 SizedBox(
                   height: 44,
@@ -447,7 +471,8 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text('Enabled Modules', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text('Enabled Modules',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Container(
                   decoration: BoxDecoration(
@@ -455,13 +480,17 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
-                    children: _modules.keys.map((key) => CheckboxListTile(
-                      title: Text(key, style: const TextStyle(fontSize: 14)),
-                      value: _modules[key],
-                      onChanged: (v) => setState(() => _modules[key] = v!),
-                      dense: true,
-                      visualDensity: VisualDensity.compact,
-                    )).toList(),
+                    children: _modules.keys
+                        .map((key) => CheckboxListTile(
+                              title: Text(key,
+                                  style: const TextStyle(fontSize: 14)),
+                              value: _modules[key],
+                              onChanged: (v) =>
+                                  setState(() => _modules[key] = v!),
+                              dense: true,
+                              visualDensity: VisualDensity.compact,
+                            ))
+                        .toList(),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -479,7 +508,9 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
                   onPressed: _loading ? null : _deleteCompany,
-                  style: OutlinedButton.styleFrom(foregroundColor: Colors.red, side: const BorderSide(color: Colors.red)),
+                  style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red)),
                   icon: const Icon(Icons.delete_forever),
                   label: const Text('Delete This Shop'),
                 ),
@@ -500,9 +531,13 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
           color: color,
           shape: BoxShape.circle,
           border: isSelected ? Border.all(color: Colors.white, width: 3) : null,
-          boxShadow: isSelected ? [const BoxShadow(color: Colors.black26, blurRadius: 4)] : null,
+          boxShadow: isSelected
+              ? [const BoxShadow(color: Colors.black26, blurRadius: 4)]
+              : null,
         ),
-        child: isSelected ? const Icon(Icons.check, color: Colors.white, size: 20) : null,
+        child: isSelected
+            ? const Icon(Icons.check, color: Colors.white, size: 20)
+            : null,
       ),
     );
   }

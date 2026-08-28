@@ -36,7 +36,8 @@ class ReportsHomeScreen extends StatelessWidget {
         body: const AppEmptyState(
           icon: Icons.lock_outline,
           title: 'Permission Denied',
-          message: 'Aapke account role ko Reports dekhne ki permission nahi hai. Owner se rabta karein.',
+          message:
+              'Aapke account role ko Reports dekhne ki permission nahi hai. Owner se rabta karein.',
         ),
       );
     }
@@ -93,7 +94,8 @@ class ReportsHomeScreen extends StatelessWidget {
                       const SizedBox(height: 10),
                       Text(
                         tile.title,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 14),
                       ),
                     ],
                   ),

@@ -22,7 +22,8 @@ class ProductsHomeScreen extends StatelessWidget {
               icon: const Icon(Icons.upload_file_outlined),
               tooltip: 'Bulk Import',
               onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => ProductImportScreen(companyId: companyId)),
+                MaterialPageRoute(
+                    builder: (_) => ProductImportScreen(companyId: companyId)),
               ),
             ),
           ],

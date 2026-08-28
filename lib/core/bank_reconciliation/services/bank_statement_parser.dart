@@ -7,34 +7,59 @@ class BankStatementParser {
   BankStatementParser();
 
   static const List<String> _dateAliases = [
-    'date', 'transaction date', 'txn date', 'posting date', 'value date'
+    'date',
+    'transaction date',
+    'txn date',
+    'posting date',
+    'value date'
   ];
 
   static const List<String> _descAliases = [
-    'description', 'narration', 'details', 'transaction details', 'particulars', 'memo'
+    'description',
+    'narration',
+    'details',
+    'transaction details',
+    'particulars',
+    'memo'
   ];
 
   static const List<String> _debitAliases = [
-    'debit', 'debit amount', 'withdrawal', 'withdrawals', 'dr'
+    'debit',
+    'debit amount',
+    'withdrawal',
+    'withdrawals',
+    'dr'
   ];
 
   static const List<String> _creditAliases = [
-    'credit', 'credit amount', 'deposit', 'deposits', 'cr'
+    'credit',
+    'credit amount',
+    'deposit',
+    'deposits',
+    'cr'
   ];
 
   static const List<String> _balanceAliases = [
-    'balance', 'running balance', 'closing balance', 'available balance'
+    'balance',
+    'running balance',
+    'closing balance',
+    'available balance'
   ];
 
   static const List<String> _refAliases = [
-    'reference', 'ref no', 'cheque no', 'txn id', 'chq no'
+    'reference',
+    'ref no',
+    'cheque no',
+    'txn id',
+    'chq no'
   ];
 
   /// Parses bank statement CSV/Excel file into normalized `ParsedBankStatementRow`s.
   Future<Map<String, dynamic>> parseStatementFile(String filePath) async {
     final parsed = await GenericCsvExcelParser().parseFile(filePath);
     final List<String> headers = List<String>.from(parsed['headers']);
-    final List<Map<String, String>> rawRows = List<Map<String, String>>.from(parsed['rows']);
+    final List<Map<String, String>> rawRows =
+        List<Map<String, String>>.from(parsed['rows']);
 
     // Detect column indexes/names
     String? dateHeader = _findMatchingHeader(headers, _dateAliases);
@@ -50,14 +75,18 @@ class BankStatementParser {
       final raw = rawRows[i];
       final dateStr = (dateHeader != null ? raw[dateHeader] : '')?.trim() ?? '';
       final descStr = (descHeader != null ? raw[descHeader] : '')?.trim() ?? '';
-      final debitStr = (debitHeader != null ? raw[debitHeader] : '')?.trim() ?? '';
-      final creditStr = (creditHeader != null ? raw[creditHeader] : '')?.trim() ?? '';
-      final balanceStr = (balanceHeader != null ? raw[balanceHeader] : '')?.trim() ?? '';
+      final debitStr =
+          (debitHeader != null ? raw[debitHeader] : '')?.trim() ?? '';
+      final creditStr =
+          (creditHeader != null ? raw[creditHeader] : '')?.trim() ?? '';
+      final balanceStr =
+          (balanceHeader != null ? raw[balanceHeader] : '')?.trim() ?? '';
       final refStr = (refHeader != null ? raw[refHeader] : '')?.trim() ?? '';
 
       final debitVal = _parseAmount(debitStr);
       final creditVal = _parseAmount(creditStr);
-      final balanceVal = balanceStr.isNotEmpty ? _parseAmount(balanceStr) : null;
+      final balanceVal =
+          balanceStr.isNotEmpty ? _parseAmount(balanceStr) : null;
 
       double signedAmount = 0.0;
       if (creditVal > 0) {
@@ -80,7 +109,8 @@ class BankStatementParser {
         rowIndex: i + 1,
         dateStr: dateStr,
         parsedDate: parsedDate,
-        description: descStr.isNotEmpty ? descStr : 'Bank Transaction #${i + 1}',
+        description:
+            descStr.isNotEmpty ? descStr : 'Bank Transaction #${i + 1}',
         debit: debitVal,
         credit: creditVal,
         amount: signedAmount,
@@ -117,11 +147,13 @@ class BankStatementParser {
     };
   }
 
-  static String? _findMatchingHeader(List<String> headers, List<String> aliases) {
+  static String? _findMatchingHeader(
+      List<String> headers, List<String> aliases) {
     for (final h in headers) {
       final norm = h.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '').trim();
       for (final alias in aliases) {
-        final normAlias = alias.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '').trim();
+        final normAlias =
+            alias.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '').trim();
         if (norm == normAlias) return h;
       }
     }

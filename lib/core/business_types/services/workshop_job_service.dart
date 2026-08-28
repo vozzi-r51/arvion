@@ -58,7 +58,8 @@ class WorkshopJobService {
   /// Evaluates stock deduction rules for workshop line items:
   /// - Parts (product_id != null) -> Deduct physical stock.
   /// - Labor / Service items -> ZERO stock deduction!
-  static bool requiresStockDeduction({required String itemType, int? productId}) {
+  static bool requiresStockDeduction(
+      {required String itemType, int? productId}) {
     if (itemType == 'part' && productId != null) return true;
     return false; // Labor and Service items do NOT deduct inventory
   }

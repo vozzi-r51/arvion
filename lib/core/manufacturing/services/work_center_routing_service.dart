@@ -99,7 +99,8 @@ class WorkCenterRoutingService {
       'production_routing_progress',
       {
         'status': status,
-        'completed_at': status == 'completed' ? DateTime.now().toIso8601String() : null,
+        'completed_at':
+            status == 'completed' ? DateTime.now().toIso8601String() : null,
         'completed_by': completedBy,
       },
       where: 'production_order_id = ? AND routing_step_id = ?',

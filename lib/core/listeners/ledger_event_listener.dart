@@ -94,4 +94,3 @@ class LedgerEventListener {
     _disposers.clear();
   }
 }
-

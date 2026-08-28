@@ -24,7 +24,7 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
   String? _error;
   bool _checking = false;
   bool _biometricAvailable = false;
-  
+
   int _failedAttempts = 0;
   int _lockoutSeconds = 0;
   Timer? _lockoutTimer;
@@ -43,7 +43,7 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
     final prefs = await SharedPreferences.getInstance();
     _failedAttempts = prefs.getInt(_prefFailedAttempts) ?? 0;
     final lockoutUntil = prefs.getInt(_prefLockoutUntil) ?? 0;
-    
+
     final now = DateTime.now().millisecondsSinceEpoch;
     if (lockoutUntil > now) {
       _startLockoutTimer(lockoutUntil - now);
@@ -171,7 +171,7 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
             MaterialPageRoute(builder: (_) => const MainShell()));
         return;
       }
-      
+
       await _recordFailure();
       setState(() {
         _checking = false;
@@ -199,8 +199,7 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
   Future<void> _forgotPin() async {
     if (_lockoutSeconds > 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Intezar karein: $_lockoutSeconds seconds'))
-      );
+          SnackBar(content: Text('Intezar karein: $_lockoutSeconds seconds')));
       return;
     }
     final info = await AuthService.instance.getSecurityInfo();
@@ -302,7 +301,8 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: AppSpacing.l),
-                    const Center(child: BizManagerLogo(size: 80, showBackground: false)),
+                    const Center(
+                        child: BizManagerLogo(size: 80, showBackground: false)),
                     const SizedBox(height: AppSpacing.m),
                     const Text('BizManager',
                         textAlign: TextAlign.center,
@@ -319,22 +319,25 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
                     Card(
                       elevation: AppElevation.medium,
                       margin: EdgeInsets.zero,
-                      shape: RoundedRectangleBorder(borderRadius: AppRadius.large),
+                      shape:
+                          RoundedRectangleBorder(borderRadius: AppRadius.large),
                       child: Padding(
                         padding: const EdgeInsets.all(AppSpacing.xl),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Text('Sign in',
-                                style: AppTypography.titleLarge(context).copyWith(fontWeight: FontWeight.w800)),
+                                style: AppTypography.titleLarge(context)
+                                    .copyWith(fontWeight: FontWeight.w800)),
                             const SizedBox(height: AppSpacing.xs),
                             Text(
-                              isLocked 
-                                ? 'Security lockout active. Please wait.'
-                                : 'Enter your secure PIN to continue',
+                              isLocked
+                                  ? 'Security lockout active. Please wait.'
+                                  : 'Enter your secure PIN to continue',
                               style: TextStyle(
-                                color: isLocked ? theme.colorScheme.error : theme.colorScheme.onSurfaceVariant
-                              ),
+                                  color: isLocked
+                                      ? theme.colorScheme.error
+                                      : theme.colorScheme.onSurfaceVariant),
                             ),
                             const SizedBox(height: AppSpacing.xl),
                             TextField(
@@ -344,45 +347,59 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
                               obscureText: true,
                               maxLength: 6,
                               textAlign: TextAlign.center,
-                              style: AppTypography.headlineMedium(context).copyWith(
+                              style: AppTypography.headlineMedium(context)
+                                  .copyWith(
                                 letterSpacing: 8,
                                 color: isLocked ? theme.disabledColor : null,
                               ),
                               decoration: InputDecoration(
-                                labelText: isLocked ? 'LOCKED' : 'PIN', 
+                                labelText: isLocked ? 'LOCKED' : 'PIN',
                                 counterText: '',
-                                prefixIcon: isLocked ? Icon(Icons.timer, color: theme.colorScheme.error) : null,
+                                prefixIcon: isLocked
+                                    ? Icon(Icons.timer,
+                                        color: theme.colorScheme.error)
+                                    : null,
                               ),
                               onSubmitted: (_) => _verifyPin(),
                             ),
                             if (isLocked)
                               Padding(
-                                padding: const EdgeInsets.only(top: AppSpacing.m),
+                                padding:
+                                    const EdgeInsets.only(top: AppSpacing.m),
                                 child: Text(
                                   'Intezar karein: $_lockoutSeconds seconds',
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(color: theme.colorScheme.error, fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                      color: theme.colorScheme.error,
+                                      fontWeight: FontWeight.bold),
                                 ),
                               )
                             else if (_error != null)
                               Padding(
-                                padding: const EdgeInsets.only(top: AppSpacing.m),
+                                padding:
+                                    const EdgeInsets.only(top: AppSpacing.m),
                                 child: Text(_error!,
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(color: theme.colorScheme.error)),
+                                    style: TextStyle(
+                                        color: theme.colorScheme.error)),
                               ),
                             const SizedBox(height: AppSpacing.xl),
                             SizedBox(
                               height: 64, // 64x64 minimum touch target height
                               child: FilledButton(
-                                onPressed: (_checking || isLocked) ? null : _verifyPin,
+                                onPressed:
+                                    (_checking || isLocked) ? null : _verifyPin,
                                 child: _checking
                                     ? const SizedBox(
                                         height: 20,
                                         width: 20,
                                         child: CircularProgressIndicator(
-                                            strokeWidth: 2, color: Colors.white))
-                                    : Text(isLocked ? 'Locked' : 'Sign In', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                            strokeWidth: 2,
+                                            color: Colors.white))
+                                    : Text(isLocked ? 'Locked' : 'Sign In',
+                                        style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold)),
                               ),
                             ),
                             const SizedBox(height: AppSpacing.s),

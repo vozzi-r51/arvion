@@ -4,7 +4,8 @@ import '../../core/database/db_helper.dart';
 class CommissionTab extends StatefulWidget {
   final int companyId;
   final int employeeId;
-  const CommissionTab({super.key, required this.companyId, required this.employeeId});
+  const CommissionTab(
+      {super.key, required this.companyId, required this.employeeId});
 
   @override
   State<CommissionTab> createState() => _CommissionTabState();
@@ -48,13 +49,16 @@ class _CommissionTabState extends State<CommissionTab> {
               children: [
                 TextField(
                   controller: amountCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Amount (Rs.) *'),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration:
+                      const InputDecoration(labelText: 'Amount (Rs.) *'),
                 ),
                 const SizedBox(height: 8),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text('Date: ${date.toIso8601String().substring(0, 10)}'),
+                  title:
+                      Text('Date: ${date.toIso8601String().substring(0, 10)}'),
                   trailing: const Icon(Icons.calendar_today, size: 18),
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -68,13 +72,16 @@ class _CommissionTabState extends State<CommissionTab> {
                 ),
                 TextField(
                   controller: notesCtrl,
-                  decoration: const InputDecoration(labelText: 'Notes (jaise: sale reference)'),
+                  decoration: const InputDecoration(
+                      labelText: 'Notes (jaise: sale reference)'),
                 ),
               ],
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
                 final amount = double.tryParse(amountCtrl.text.trim());
@@ -113,11 +120,14 @@ class _CommissionTabState extends State<CommissionTab> {
               padding: const EdgeInsets.all(14),
               child: Column(
                 children: [
-                  const Text('Total Commission', style: TextStyle(fontSize: 12)),
+                  const Text('Total Commission',
+                      style: TextStyle(fontSize: 12)),
                   Text(
                     'Rs. ${_total.toStringAsFixed(0)}',
                     style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold, color: Colors.purple),
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.purple),
                   ),
                   const SizedBox(height: 10),
                   ElevatedButton.icon(
@@ -144,9 +154,11 @@ class _CommissionTabState extends State<CommissionTab> {
                       child: ListTile(
                         leading: const CircleAvatar(
                           backgroundColor: Colors.purple,
-                          child: Icon(Icons.percent, color: Colors.white, size: 18),
+                          child: Icon(Icons.percent,
+                              color: Colors.white, size: 18),
                         ),
-                        title: Text('Rs. ${(c['amount'] as num).toStringAsFixed(0)}'),
+                        title: Text(
+                            'Rs. ${(c['amount'] as num).toStringAsFixed(0)}'),
                         subtitle: Text(
                             '${(c['commission_date'] as String).substring(0, 10)}  •  ${c['notes'] ?? ''}'),
                       ),

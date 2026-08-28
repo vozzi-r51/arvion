@@ -38,14 +38,17 @@ class _PriceListsScreenState extends State<PriceListsScreen> {
         title: const Text('New Price List'),
         content: TextField(
           controller: nameCtrl,
-          decoration: const InputDecoration(labelText: 'Price List Name (e.g. Ramadan Sale, VIP)'),
+          decoration: const InputDecoration(
+              labelText: 'Price List Name (e.g. Ramadan Sale, VIP)'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
               if (nameCtrl.text.trim().isNotEmpty) {
-                await DBHelper.instance.insertPriceList(widget.companyId, nameCtrl.text.trim());
+                await DBHelper.instance
+                    .insertPriceList(widget.companyId, nameCtrl.text.trim());
                 if (!ctx.mounted) return;
                 Navigator.pop(ctx);
                 _load();
@@ -62,8 +65,10 @@ class _PriceListsScreenState extends State<PriceListsScreen> {
     final Map<int, TextEditingController> ctrls = {};
     for (var p in _products) {
       final pid = p['id'] as int;
-      final existingPrice = await DBHelper.instance.getProductPriceForList(priceList['id'] as int, pid);
-      ctrls[pid] = TextEditingController(text: existingPrice != null ? existingPrice.toString() : '');
+      final existingPrice = await DBHelper.instance
+          .getProductPriceForList(priceList['id'] as int, pid);
+      ctrls[pid] = TextEditingController(
+          text: existingPrice != null ? existingPrice.toString() : '');
     }
 
     if (!mounted) return;
@@ -77,7 +82,9 @@ class _PriceListsScreenState extends State<PriceListsScreen> {
           height: MediaQuery.of(context).size.height * 0.75,
           child: Column(
             children: [
-              Text('Override Prices: ${priceList['name']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text('Override Prices: ${priceList['name']}',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 12),
               Expanded(
                 child: ListView.builder(
@@ -92,8 +99,10 @@ class _PriceListsScreenState extends State<PriceListsScreen> {
                         width: 100,
                         child: TextField(
                           controller: ctrls[pid],
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          decoration: const InputDecoration(hintText: 'Custom Price', isDense: true),
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          decoration: const InputDecoration(
+                              hintText: 'Custom Price', isDense: true),
                         ),
                       ),
                     );
@@ -107,10 +116,12 @@ class _PriceListsScreenState extends State<PriceListsScreen> {
                     final val = double.tryParse(ctrl.text.trim());
                     if (val != null) priceMap[pid] = val;
                   });
-                  await DBHelper.instance.saveProductPrices(priceList['id'] as int, priceMap);
+                  await DBHelper.instance
+                      .saveProductPrices(priceList['id'] as int, priceMap);
                   if (!ctx.mounted) return;
                   Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Custom prices saved.')));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Custom prices saved.')));
                 },
                 child: const Text('Save Prices'),
               ),

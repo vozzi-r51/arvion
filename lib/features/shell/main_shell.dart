@@ -71,17 +71,18 @@ class _MainShellState extends State<MainShell> {
         try {
           _enabledModules = List<String>.from(jsonDecode(modulesStr));
         } catch (e) {
-          ErrorReporter.instance.swallow(e,
-              module: 'Company', action: 'decode_enabled_modules');
+          ErrorReporter.instance
+              .swallow(e, module: 'Company', action: 'decode_enabled_modules');
         }
       }
-      
+
       final colorInt = company['branding_color'] as int?;
       if (colorInt != null && mounted) {
         context.read<ThemeProvider>().setPrimaryColor(Color(colorInt));
       }
 
-      final templateId = company['business_type'] as String? ?? 'general_retail';
+      final templateId =
+          company['business_type'] as String? ?? 'general_retail';
       if (mounted) {
         context.read<TerminologyProvider>().updateTemplate(templateId);
         context.read<BrandingProvider>().loadBranding();
@@ -108,10 +109,15 @@ class _MainShellState extends State<MainShell> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Recurring Items Due'),
-        content: Text('${due.length} recurring items (Rent, Bills etc.) ki date aa gayi hai. Kya inhein aaj record kar liya jaye?'),
+        content: Text(
+            '${due.length} recurring items (Rent, Bills etc.) ki date aa gayi hai. Kya inhein aaj record kar liya jaye?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Nahi, Baad Mein')),
-          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Haan, Record Karein')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Nahi, Baad Mein')),
+          ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Haan, Record Karein')),
         ],
       ),
     );
@@ -165,25 +171,42 @@ class _MainShellState extends State<MainShell> {
     // Define all possible navigation items
     final List<_NavItemData> navItems = [
       _NavItemData('Dashboard', Icons.dashboard, Icons.dashboard_outlined),
-      _NavItemData(term.get('sale'), Icons.point_of_sale, Icons.point_of_sale_outlined, moduleName: 'sales'),
-      _NavItemData('Quotations', Icons.request_quote, Icons.request_quote_outlined, moduleName: 'quotations'),
-      _NavItemData('Purchases', Icons.shopping_cart, Icons.shopping_cart_outlined, moduleName: 'purchases'),
+      _NavItemData(
+          term.get('sale'), Icons.point_of_sale, Icons.point_of_sale_outlined,
+          moduleName: 'sales'),
+      _NavItemData(
+          'Quotations', Icons.request_quote, Icons.request_quote_outlined,
+          moduleName: 'quotations'),
+      _NavItemData(
+          'Purchases', Icons.shopping_cart, Icons.shopping_cart_outlined,
+          moduleName: 'purchases'),
       _NavItemData('Customers', Icons.people, Icons.people_outline),
-      _NavItemData('Vendors / Suppliers', Icons.business, Icons.business_outlined),
-      _NavItemData('Service Jobs', Icons.build, Icons.build_outlined, moduleName: 'services'),
-      _NavItemData('Manufacturing', Icons.precision_manufacturing, Icons.precision_manufacturing_outlined, isOwnerOnly: true, moduleName: 'manufacturing'),
-      _NavItemData('Inventory', Icons.inventory_2, Icons.inventory_2_outlined, isOwnerOnly: true, moduleName: 'inventory'),
-      _NavItemData('Expenses', Icons.payments, Icons.payments_outlined, isOwnerOnly: true, moduleName: 'expenses'),
-      _NavItemData('Accounting', Icons.account_balance, Icons.account_balance_outlined, isOwnerOnly: true, moduleName: 'accounting'),
-      _NavItemData('Reports', Icons.bar_chart, Icons.bar_chart_outlined, isOwnerOnly: true),
-      _NavItemData('AI Assistant', Icons.auto_awesome, Icons.auto_awesome_outlined),
+      _NavItemData(
+          'Vendors / Suppliers', Icons.business, Icons.business_outlined),
+      _NavItemData('Service Jobs', Icons.build, Icons.build_outlined,
+          moduleName: 'services'),
+      _NavItemData('Manufacturing', Icons.precision_manufacturing,
+          Icons.precision_manufacturing_outlined,
+          isOwnerOnly: true, moduleName: 'manufacturing'),
+      _NavItemData('Inventory', Icons.inventory_2, Icons.inventory_2_outlined,
+          isOwnerOnly: true, moduleName: 'inventory'),
+      _NavItemData('Expenses', Icons.payments, Icons.payments_outlined,
+          isOwnerOnly: true, moduleName: 'expenses'),
+      _NavItemData(
+          'Accounting', Icons.account_balance, Icons.account_balance_outlined,
+          isOwnerOnly: true, moduleName: 'accounting'),
+      _NavItemData('Reports', Icons.bar_chart, Icons.bar_chart_outlined,
+          isOwnerOnly: true),
+      _NavItemData(
+          'AI Assistant', Icons.auto_awesome, Icons.auto_awesome_outlined),
       _NavItemData('Settings', Icons.settings, Icons.settings_outlined),
     ];
 
     // Filter items based on permissions AND enabled modules
     final visibleNavItems = navItems.where((item) {
       if (item.isOwnerOnly && !isOwner) return false;
-      if (item.moduleName != null && !_enabledModules.contains(item.moduleName)) return false;
+      if (item.moduleName != null && !_enabledModules.contains(item.moduleName))
+        return false;
       return true;
     }).toList();
 
@@ -245,8 +268,10 @@ class _MainShellState extends State<MainShell> {
           return companyId == null
               ? const _CompanyMissingScreen()
               : AIScreen(companyId: companyId);
-        case 'Settings': return const SettingsScreen();
-        default: return const Center(child: Text('Screen not found'));
+        case 'Settings':
+          return const SettingsScreen();
+        default:
+          return const Center(child: Text('Screen not found'));
       }
     }).toList();
 
@@ -259,9 +284,11 @@ class _MainShellState extends State<MainShell> {
 
         return Scaffold(
           key: _scaffoldKey,
-          drawer: isDesktop ? null : Drawer(
-            child: _buildSidebar(visibleNavItems, isDesktop: false),
-          ),
+          drawer: isDesktop
+              ? null
+              : Drawer(
+                  child: _buildSidebar(visibleNavItems, isDesktop: false),
+                ),
           body: Row(
             children: [
               if (isDesktop) _buildSidebar(visibleNavItems, isDesktop: true),
@@ -285,9 +312,8 @@ class _MainShellState extends State<MainShell> {
 
     return Container(
       width: isDesktop ? 260 : null,
-      color: isDesktop 
-          ? (isDark ? const Color(0xFF0B1220) : Colors.white)
-          : null,
+      color:
+          isDesktop ? (isDark ? const Color(0xFF0B1220) : Colors.white) : null,
       child: Column(
         children: [
           _buildSidebarHeader(isDesktop),
@@ -300,20 +326,28 @@ class _MainShellState extends State<MainShell> {
                 final isSelected = _index == index;
 
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
                   child: ListTile(
                     selected: isSelected,
-                    selectedTileColor: theme.colorScheme.primary.withOpacity(0.1),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    selectedTileColor:
+                        theme.colorScheme.primary.withOpacity(0.1),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     leading: Icon(
                       isSelected ? item.selectedIcon : item.icon,
-                      color: isSelected ? theme.colorScheme.primary : (isDark ? Colors.white70 : Colors.black54),
+                      color: isSelected
+                          ? theme.colorScheme.primary
+                          : (isDark ? Colors.white70 : Colors.black54),
                     ),
                     title: Text(
                       item.title,
                       style: TextStyle(
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        color: isSelected ? theme.colorScheme.primary : (isDark ? Colors.white : Colors.black87),
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
+                        color: isSelected
+                            ? theme.colorScheme.primary
+                            : (isDark ? Colors.white : Colors.black87),
                         fontSize: 14,
                       ),
                     ),
@@ -334,7 +368,7 @@ class _MainShellState extends State<MainShell> {
 
   Widget _buildSidebarHeader(bool isDesktop) {
     final branding = context.watch<BrandingProvider>();
-    
+
     return Container(
       padding: EdgeInsets.only(
         top: isDesktop ? 40 : 20,
@@ -346,7 +380,7 @@ class _MainShellState extends State<MainShell> {
       child: Row(
         children: [
           if (branding.logoPath != null)
-             Image.file(File(branding.logoPath!), width: 32, height: 32)
+            Image.file(File(branding.logoPath!), width: 32, height: 32)
           else
             const BizManagerLogo(size: 32),
           const SizedBox(width: 12),
@@ -386,7 +420,8 @@ class _NavItemData {
   final bool isOwnerOnly;
   final String? moduleName;
 
-  _NavItemData(this.title, this.selectedIcon, this.icon, {this.isOwnerOnly = false, this.moduleName});
+  _NavItemData(this.title, this.selectedIcon, this.icon,
+      {this.isOwnerOnly = false, this.moduleName});
 }
 
 /// Phase 3 fix: shown when the user lands in the shell without an

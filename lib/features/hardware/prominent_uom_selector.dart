@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 class ProminentUomSelector extends StatelessWidget {
   final String productName;
   final String selectedUom;
-  final List<String> availableUoms; // ['Piece', 'Meter', 'Box', 'Dozen', 'Feet']
+  final List<String>
+      availableUoms; // ['Piece', 'Meter', 'Box', 'Dozen', 'Feet']
   final double quantity;
   final double unitPrice;
   final Function(String newUom) onUomChanged;
@@ -31,27 +32,40 @@ class ProminentUomSelector extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(productName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            Text(productName,
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
             const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
                   flex: 2,
                   child: TextField(
-                    decoration: const InputDecoration(labelText: 'Quantity', border: OutlineInputBorder()),
+                    decoration: const InputDecoration(
+                        labelText: 'Quantity', border: OutlineInputBorder()),
                     keyboardType: TextInputType.number,
-                    controller: TextEditingController(text: quantity.toStringAsFixed(0)),
-                    onChanged: (v) => onQuantityChanged(double.tryParse(v) ?? 1.0),
+                    controller: TextEditingController(
+                        text: quantity.toStringAsFixed(0)),
+                    onChanged: (v) =>
+                        onQuantityChanged(double.tryParse(v) ?? 1.0),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   flex: 3,
                   child: DropdownButtonFormField<String>(
-                    value: availableUoms.contains(selectedUom) ? selectedUom : availableUoms.first,
-                    decoration: const InputDecoration(labelText: 'Unit of Measure (UOM)', border: OutlineInputBorder()),
+                    value: availableUoms.contains(selectedUom)
+                        ? selectedUom
+                        : availableUoms.first,
+                    decoration: const InputDecoration(
+                        labelText: 'Unit of Measure (UOM)',
+                        border: OutlineInputBorder()),
                     items: availableUoms
-                        .map((u) => DropdownMenuItem(value: u, child: Text(u, style: const TextStyle(fontWeight: FontWeight.bold))))
+                        .map((u) => DropdownMenuItem(
+                            value: u,
+                            child: Text(u,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold))))
                         .toList(),
                     onChanged: (v) {
                       if (v != null) onUomChanged(v);
@@ -63,7 +77,10 @@ class ProminentUomSelector extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               'Price: Rs. ${unitPrice.toStringAsFixed(0)} / $selectedUom • Total: Rs. ${(quantity * unitPrice).toStringAsFixed(0)}',
-              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo, fontSize: 13),
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.indigo,
+                  fontSize: 13),
             ),
           ],
         ),

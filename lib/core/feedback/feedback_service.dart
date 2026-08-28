@@ -43,6 +43,8 @@ class FeedbackService {
   Future<List<Map<String, dynamic>>> getPendingFeedbackList() async {
     final prefs = await SharedPreferences.getInstance();
     final rawList = prefs.getStringList(_prefPendingFeedbackKey) ?? [];
-    return rawList.map((str) => jsonDecode(str) as Map<String, dynamic>).toList();
+    return rawList
+        .map((str) => jsonDecode(str) as Map<String, dynamic>)
+        .toList();
   }
 }

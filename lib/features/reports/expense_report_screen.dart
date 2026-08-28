@@ -43,7 +43,10 @@ class _ExpenseReportScreenState extends State<ExpenseReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Expense Report'), actions: [IconButton(icon: const Icon(Icons.ios_share), onPressed: _showExportMenu)]),
+      appBar: AppBar(title: const Text('Expense Report'), actions: [
+        IconButton(
+            icon: const Icon(Icons.ios_share), onPressed: _showExportMenu)
+      ]),
       body: Column(
         children: [
           DateRangeBar(
@@ -66,11 +69,14 @@ class _ExpenseReportScreenState extends State<ExpenseReportScreen> {
                 padding: const EdgeInsets.all(14),
                 child: Column(
                   children: [
-                    const Text('Total Expenses', style: TextStyle(fontSize: 13)),
+                    const Text('Total Expenses',
+                        style: TextStyle(fontSize: 13)),
                     Text(
                       'Rs. ${_total.toStringAsFixed(0)}',
                       style: const TextStyle(
-                          fontSize: 24, fontWeight: FontWeight.bold, color: Colors.orange),
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.orange),
                     ),
                   ],
                 ),
@@ -81,22 +87,26 @@ class _ExpenseReportScreenState extends State<ExpenseReportScreen> {
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
                 : _breakdown.isEmpty
-                    ? const Center(child: Text('Is range mein koi expense nahi hai'))
+                    ? const Center(
+                        child: Text('Is range mein koi expense nahi hai'))
                     : ListView.builder(
                         padding: const EdgeInsets.all(12),
                         itemCount: _breakdown.length,
                         itemBuilder: (ctx, i) {
                           final e = _breakdown[i];
                           final amount = (e['total'] as num).toDouble();
-                          final percent = _total > 0 ? (amount / _total * 100) : 0;
+                          final percent =
+                              _total > 0 ? (amount / _total * 100) : 0;
                           return Card(
                             margin: const EdgeInsets.only(bottom: 8),
                             child: ListTile(
                               title: Text(e['category'] as String),
-                              subtitle: Text('${percent.toStringAsFixed(0)}% of total'),
+                              subtitle: Text(
+                                  '${percent.toStringAsFixed(0)}% of total'),
                               trailing: Text(
                                 'Rs. ${amount.toStringAsFixed(0)}',
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
                               ),
                             ),
                           );
@@ -107,7 +117,6 @@ class _ExpenseReportScreenState extends State<ExpenseReportScreen> {
       ),
     );
   }
-
 
   Future<void> _showExportMenu() async {
     final choice = await showModalBottomSheet<String>(

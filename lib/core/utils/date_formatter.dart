@@ -26,7 +26,8 @@ class DateFormatter {
         final parts = dateStr.split('/');
         if (parts.length == 3) {
           // Assume ISO order by default
-          date = DateTime(int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
+          date = DateTime(
+              int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
         } else {
           date = DateTime.now();
         }
@@ -153,7 +154,9 @@ class DateFormatter {
   /// Check if a date is today.
   static bool isToday(DateTime date) {
     final now = DateTime.now();
-    return date.year == now.year && date.month == now.month && date.day == now.day;
+    return date.year == now.year &&
+        date.month == now.month &&
+        date.day == now.day;
   }
 
   /// Get the start of the month for a given date.

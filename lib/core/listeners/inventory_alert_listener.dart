@@ -25,7 +25,8 @@ class InventoryAlertListener {
 
             final product = productRows.first;
             final currentStock = (product['stock'] as num).toDouble();
-            final lowStockAlert = (product['low_stock_alert'] as num?)?.toDouble() ?? 10.0;
+            final lowStockAlert =
+                (product['low_stock_alert'] as num?)?.toDouble() ?? 10.0;
 
             if (currentStock <= lowStockAlert) {
               // TODO: Send notification
@@ -38,7 +39,8 @@ class InventoryAlertListener {
               // );
               // For now, just log it
               // ignore: avoid_print
-              print('⚠️  LOW STOCK ALERT: Product #${e.productId} now at $currentStock (threshold: $lowStockAlert)');
+              print(
+                  '⚠️  LOW STOCK ALERT: Product #${e.productId} now at $currentStock (threshold: $lowStockAlert)');
             }
           } catch (err) {
             // ignore: avoid_print
@@ -66,4 +68,3 @@ class InventoryAlertListener {
     _disposers.clear();
   }
 }
-

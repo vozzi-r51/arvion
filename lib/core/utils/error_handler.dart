@@ -4,8 +4,11 @@ class ErrorHandler {
   ErrorHandler._();
 
   static void showError(BuildContext context, dynamic error, {String? title}) {
-    final message = error.toString().replaceFirst('Exception: ', '').replaceFirst('StateError: ', '');
-    
+    final message = error
+        .toString()
+        .replaceFirst('Exception: ', '')
+        .replaceFirst('StateError: ', '');
+
     if (!context.mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(

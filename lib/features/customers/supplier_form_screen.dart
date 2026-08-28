@@ -46,8 +46,8 @@ class _SupplierFormScreenState extends State<SupplierFormScreen> {
 
   Future<void> _save() async {
     if (_companyNameCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Company naam zaroori hai')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Company naam zaroori hai')));
       return;
     }
 
@@ -64,12 +64,17 @@ class _SupplierFormScreenState extends State<SupplierFormScreen> {
         context: context,
         builder: (ctx) => AlertDialog(
           title: const Text('Duplicate Supplier?'),
-          content: Text('Is naam ya mobile se aik supplier pehle hi mojood hai:\n\n'
-              '${duplicate['company_name']} - ${duplicate['phone']}\n\n'
-              'Kya aap phir bhi naya supplier banana chahte hain?'),
+          content:
+              Text('Is naam ya mobile se aik supplier pehle hi mojood hai:\n\n'
+                  '${duplicate['company_name']} - ${duplicate['phone']}\n\n'
+                  'Kya aap phir bhi naya supplier banana chahte hain?'),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Nahi, Cancel')),
-            TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Haan, Save Karein')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Nahi, Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Haan, Save Karein')),
           ],
         ),
       );
@@ -94,7 +99,8 @@ class _SupplierFormScreenState extends State<SupplierFormScreen> {
     };
 
     if (_isEditing) {
-      await DBHelper.instance.updateSupplier(widget.existing!['id'] as int, data);
+      await DBHelper.instance
+          .updateSupplier(widget.existing!['id'] as int, data);
       await AuditLogger.log(
         companyId: widget.companyId,
         module: 'Supplier',
@@ -194,10 +200,13 @@ class _SupplierFormScreenState extends State<SupplierFormScreen> {
                   child: TextField(
                     controller: _openingBalanceCtrl,
                     enabled: !_isEditing,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     decoration: InputDecoration(
                       labelText: 'Opening Balance',
-                      helperText: _isEditing ? 'Sirf naye supplier mein set hoti hai' : null,
+                      helperText: _isEditing
+                          ? 'Sirf naye supplier mein set hoti hai'
+                          : null,
                     ),
                   ),
                 ),
@@ -205,7 +214,8 @@ class _SupplierFormScreenState extends State<SupplierFormScreen> {
                 Expanded(
                   child: TextField(
                     controller: _paymentTermsCtrl,
-                    decoration: const InputDecoration(labelText: 'Payment Terms'),
+                    decoration:
+                        const InputDecoration(labelText: 'Payment Terms'),
                   ),
                 ),
               ],
@@ -217,7 +227,8 @@ class _SupplierFormScreenState extends State<SupplierFormScreen> {
                   ? const SizedBox(
                       height: 20,
                       width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
                     )
                   : const Text('Supplier Save Karein'),
             ),

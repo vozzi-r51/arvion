@@ -40,7 +40,12 @@ class _CustomerReportScreenState extends State<CustomerReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Customer Report (Receivables)'), actions: [IconButton(icon: const Icon(Icons.ios_share), onPressed: _showExportMenu)]),
+      appBar: AppBar(
+          title: const Text('Customer Report (Receivables)'),
+          actions: [
+            IconButton(
+                icon: const Icon(Icons.ios_share), onPressed: _showExportMenu)
+          ]),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : Column(
@@ -58,7 +63,9 @@ class _CustomerReportScreenState extends State<CustomerReportScreen> {
                           Text(
                             '$_currency ${_totalReceivable.toStringAsFixed(0)}',
                             style: const TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.bold, color: Colors.red),
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.red),
                           ),
                         ],
                       ),
@@ -77,7 +84,8 @@ class _CustomerReportScreenState extends State<CustomerReportScreen> {
                               margin: const EdgeInsets.only(bottom: 8),
                               child: ListTile(
                                 leading: CircleAvatar(
-                                  backgroundColor: Theme.of(context).colorScheme.primary,
+                                  backgroundColor:
+                                      Theme.of(context).colorScheme.primary,
                                   child: Text(
                                     (c['name'] as String).isNotEmpty
                                         ? (c['name'] as String)[0].toUpperCase()
@@ -90,7 +98,8 @@ class _CustomerReportScreenState extends State<CustomerReportScreen> {
                                 trailing: Text(
                                   '$_currency ${(c['current_balance'] as num).toStringAsFixed(0)}',
                                   style: const TextStyle(
-                                      fontWeight: FontWeight.bold, color: Colors.red),
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.red),
                                 ),
                               ),
                             );
@@ -101,7 +110,6 @@ class _CustomerReportScreenState extends State<CustomerReportScreen> {
             ),
     );
   }
-
 
   Future<void> _showExportMenu() async {
     final choice = await showModalBottomSheet<String>(
@@ -133,7 +141,9 @@ class _CustomerReportScreenState extends State<CustomerReportScreen> {
     await CsvExportService.exportAndShare(
       fileName: 'Customer_Receivables',
       headers: ['Customer', 'Mobile', 'Balance'],
-      rows: _customers.map((c) => [c['name'], c['mobile'], c['current_balance']]).toList(),
+      rows: _customers
+          .map((c) => [c['name'], c['mobile'], c['current_balance']])
+          .toList(),
     );
   }
 

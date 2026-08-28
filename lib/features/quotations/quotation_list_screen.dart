@@ -53,13 +53,16 @@ class _QuotationListScreenState extends State<QuotationListScreen> {
                     return Card(
                       child: ListTile(
                         title: Text(q['quote_number']),
-                        subtitle: Text('${q['customer_name'] ?? 'Walk-in'} • ${q['status'].toUpperCase()}'),
-                        trailing: Text('Rs. ${(q['total_amount'] as num).toStringAsFixed(0)}'),
+                        subtitle: Text(
+                            '${q['customer_name'] ?? 'Walk-in'} • ${q['status'].toUpperCase()}'),
+                        trailing: Text(
+                            'Rs. ${(q['total_amount'] as num).toStringAsFixed(0)}'),
                         onTap: () async {
                           final result = await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => QuotationDetailScreen(quotation: q),
+                              builder: (_) =>
+                                  QuotationDetailScreen(quotation: q),
                             ),
                           );
                           if (result == true) _load();

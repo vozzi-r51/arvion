@@ -42,7 +42,7 @@ abstract class AIBusinessTool {
 
   bool get requiresOwner => true;
   Future<String> execute(Map<String, dynamic> params);
-  
+
   bool get isUrdu => locale.startsWith('ur');
 }
 
@@ -66,8 +66,8 @@ class SalesTool extends AIBusinessTool {
     );
 
     return isUrdu
-      ? "Aaj ki total sales $formatted hain."
-      : "Today's total sales are $formatted.";
+        ? "Aaj ki total sales $formatted hain."
+        : "Today's total sales are $formatted.";
   }
 }
 
@@ -80,13 +80,13 @@ class StockTool extends AIBusinessTool {
   Future<String> execute(Map<String, dynamic> params) async {
     final count = await sl<InventoryRepository>().getLowStockCount(companyId);
     if (count == 0) {
-      return isUrdu 
-        ? "Sab products ka stock theek hai. Koi bhi low stock par nahi hai."
-        : "All products are in stock. Nothing is low.";
+      return isUrdu
+          ? "Sab products ka stock theek hai. Koi bhi low stock par nahi hai."
+          : "All products are in stock. Nothing is low.";
     }
     return isUrdu
-      ? "Aapke $count products low stock par hain. Inhein reorder karne ki zaroorat ho sakti hai."
-      : "You have $count products low in stock. You might need to reorder them.";
+        ? "Aapke $count products low stock par hain. Inhein reorder karne ki zaroorat ho sakti hai."
+        : "You have $count products low in stock. You might need to reorder them.";
   }
 }
 
@@ -98,11 +98,12 @@ class ReceivablesTool extends AIBusinessTool {
     final receivables = await DBHelper.instance.getReceivables(companyId);
     if (receivables.isEmpty) {
       return isUrdu
-        ? "Mashallah, kisi customer se koi udhaar nahi lena."
-        : "No receivables. All clear!";
+          ? "Mashallah, kisi customer se koi udhaar nahi lena."
+          : "No receivables. All clear!";
     }
     final top = receivables.first;
-    final total = receivables.fold(0.0, (sum, r) => sum + (r['current_balance'] as num));
+    final total =
+        receivables.fold(0.0, (sum, r) => sum + (r['current_balance'] as num));
 
     final totalFormatted = CurrencyFormatter.format(
       total,
@@ -119,8 +120,8 @@ class ReceivablesTool extends AIBusinessTool {
     );
 
     return isUrdu
-      ? "Total receivables $totalFormatted hain. Sabse zyada udhaar ${top['name']} ka hai ($topFormatted)."
-      : "Total receivables are $totalFormatted. Highest is from ${top['name']} ($topFormatted).";
+        ? "Total receivables $totalFormatted hain. Sabse zyada udhaar ${top['name']} ka hai ($topFormatted)."
+        : "Total receivables are $totalFormatted. Highest is from ${top['name']} ($topFormatted).";
   }
 }
 
@@ -129,7 +130,8 @@ class ExpensesTool extends AIBusinessTool {
   @override
   Future<String> execute(Map<String, dynamic> params) async {
     final company = await DBHelper.instance.getCompanyById(companyId);
-    final total = await sl<ExpenseRepository>().getTodaysExpensesTotal(companyId);
+    final total =
+        await sl<ExpenseRepository>().getTodaysExpensesTotal(companyId);
 
     final formatted = CurrencyFormatter.format(
       total,
@@ -139,8 +141,8 @@ class ExpensesTool extends AIBusinessTool {
     );
 
     return isUrdu
-      ? "Aaj ke total kharchay $formatted hain."
-      : "Today's total expenses are $formatted.";
+        ? "Aaj ke total kharchay $formatted hain."
+        : "Today's total expenses are $formatted.";
   }
 }
 
@@ -159,8 +161,8 @@ class ProfitTool extends AIBusinessTool {
     );
 
     return isUrdu
-      ? "Aaj ka estimated munafa $formatted hai."
-      : "Today's estimated profit is $formatted.";
+        ? "Aaj ka estimated munafa $formatted hai."
+        : "Today's estimated profit is $formatted.";
   }
 }
 
@@ -169,7 +171,8 @@ class PurchasesTool extends AIBusinessTool {
   @override
   Future<String> execute(Map<String, dynamic> params) async {
     final company = await DBHelper.instance.getCompanyById(companyId);
-    final total = await sl<PurchaseRepository>().getTodaysPurchaseTotal(companyId);
+    final total =
+        await sl<PurchaseRepository>().getTodaysPurchaseTotal(companyId);
 
     final formatted = CurrencyFormatter.format(
       total,
@@ -179,8 +182,8 @@ class PurchasesTool extends AIBusinessTool {
     );
 
     return isUrdu
-      ? "Aaj ki total purchase $formatted hai."
-      : "Today's total purchase is $formatted.";
+        ? "Aaj ki total purchase $formatted hai."
+        : "Today's total purchase is $formatted.";
   }
 }
 
@@ -190,8 +193,8 @@ class SupplierCountTool extends AIBusinessTool {
   Future<String> execute(Map<String, dynamic> params) async {
     final count = await sl<SupplierRepository>().getSupplierCount(companyId);
     return isUrdu
-      ? "Aapke total $count suppliers hain."
-      : "You have a total of $count suppliers.";
+        ? "Aapke total $count suppliers hain."
+        : "You have a total of $count suppliers.";
   }
 }
 
@@ -203,8 +206,8 @@ class ProductCountTool extends AIBusinessTool {
   Future<String> execute(Map<String, dynamic> params) async {
     final count = await sl<InventoryRepository>().getProductCount(companyId);
     return isUrdu
-      ? "Aapki shop mein total $count products listed hain."
-      : "You have a total of $count products listed.";
+        ? "Aapki shop mein total $count products listed hain."
+        : "You have a total of $count products listed.";
   }
 }
 
@@ -218,8 +221,8 @@ class CreateExpenseTool extends AIBusinessTool {
 
     if (amount <= 0) {
       return isUrdu
-        ? "Maaf kijiye, expense amount zero se zyada hona chahiye."
-        : "Sorry, expense amount must be greater than zero.";
+          ? "Maaf kijiye, expense amount zero se zyada hona chahiye."
+          : "Sorry, expense amount must be greater than zero.";
     }
 
     final company = await DBHelper.instance.getCompanyById(companyId);
@@ -241,8 +244,8 @@ class CreateExpenseTool extends AIBusinessTool {
     );
 
     return isUrdu
-      ? "Theek hai, $formatted ka $category kharcha record kar liya gaya hai."
-      : "Okay, recorded an expense of $formatted for $category.";
+        ? "Theek hai, $formatted ka $category kharcha record kar liya gaya hai."
+        : "Okay, recorded an expense of $formatted for $category.";
   }
 }
 
@@ -253,17 +256,19 @@ class AIEngine {
   final Map<AIIntent, AIBusinessTool> _registry;
   bool _tfliteReady = false;
 
-  AIEngine(this.companyId, {this.locale = 'ur'}) : _registry = {
-    AIIntent.getSales: SalesTool(companyId, locale: locale),
-    AIIntent.getLowStock: StockTool(companyId, locale: locale),
-    AIIntent.getReceivables: ReceivablesTool(companyId, locale: locale),
-    AIIntent.getExpenses: ExpensesTool(companyId, locale: locale),
-    AIIntent.getProfit: ProfitTool(companyId, locale: locale),
-    AIIntent.getPurchases: PurchasesTool(companyId, locale: locale),
-    AIIntent.getSupplierCount: SupplierCountTool(companyId, locale: locale),
-    AIIntent.getProductCount: ProductCountTool(companyId, locale: locale),
-    AIIntent.createExpense: CreateExpenseTool(companyId, locale: locale),
-  };
+  AIEngine(this.companyId, {this.locale = 'ur'})
+      : _registry = {
+          AIIntent.getSales: SalesTool(companyId, locale: locale),
+          AIIntent.getLowStock: StockTool(companyId, locale: locale),
+          AIIntent.getReceivables: ReceivablesTool(companyId, locale: locale),
+          AIIntent.getExpenses: ExpensesTool(companyId, locale: locale),
+          AIIntent.getProfit: ProfitTool(companyId, locale: locale),
+          AIIntent.getPurchases: PurchasesTool(companyId, locale: locale),
+          AIIntent.getSupplierCount:
+              SupplierCountTool(companyId, locale: locale),
+          AIIntent.getProductCount: ProductCountTool(companyId, locale: locale),
+          AIIntent.createExpense: CreateExpenseTool(companyId, locale: locale),
+        };
 
   bool get isUrdu => locale.startsWith('ur');
 
@@ -277,8 +282,8 @@ class AIEngine {
 
     if (intent == AIIntent.unknown) {
       return AIResponse(isUrdu
-        ? "Maaf kijiye, main ye samajh nahi saka. Aap sales, stock, udhaar ya kharchon ke baray mein pooch sakte hain."
-        : "Sorry, I couldn't understand that. You can ask about sales, stock, receivables, or expenses.");
+          ? "Maaf kijiye, main ye samajh nahi saka. Aap sales, stock, udhaar ya kharchon ke baray mein pooch sakte hain."
+          : "Sorry, I couldn't understand that. You can ask about sales, stock, receivables, or expenses.");
     }
 
     final tool = _registry[intent];
@@ -287,8 +292,8 @@ class AIEngine {
     // RBAC Check
     if (tool.requiresOwner && !Session.isOwner) {
       return AIResponse(isUrdu
-        ? "Maaf kijiye, aapko ye maloomat dekhne ki ijazat nahi hai."
-        : "Sorry, you don't have permission to see this information.");
+          ? "Maaf kijiye, aapko ye maloomat dekhne ki ijazat nahi hai."
+          : "Sorry, you don't have permission to see this information.");
     }
 
     // Check if it's a write action that needs confirmation
@@ -296,13 +301,13 @@ class AIEngine {
       final amount = _extractAmount(query);
       if (amount == null) {
         return AIResponse(isUrdu
-          ? "Kharchay ka amount kya hai? (E.g. '500 ka kharcha dalo')"
-          : "What is the expense amount? (E.g. 'Add expense of 500')");
+            ? "Kharchay ka amount kya hai? (E.g. '500 ka kharcha dalo')"
+            : "What is the expense amount? (E.g. 'Add expense of 500')");
       }
       return AIResponse(
         isUrdu
-          ? "Kya main Rs. ${amount.toStringAsFixed(0)} ka kharcha record kar loon?"
-          : "Should I record an expense of Rs. ${amount.toStringAsFixed(0)}?",
+            ? "Kya main Rs. ${amount.toStringAsFixed(0)} ka kharcha record kar loon?"
+            : "Should I record an expense of Rs. ${amount.toStringAsFixed(0)}?",
         pendingIntent: intent,
         params: {'amount': amount, 'category': 'Operating Expenses'},
       );
@@ -312,7 +317,8 @@ class AIEngine {
     return AIResponse(resultText);
   }
 
-  Future<String> executeConfirmedAction(AIIntent intent, Map<String, dynamic> params) async {
+  Future<String> executeConfirmedAction(
+      AIIntent intent, Map<String, dynamic> params) async {
     final tool = _registry[intent];
     if (tool == null) return "Error: Tool not found.";
     return await tool.execute(params);
@@ -333,7 +339,8 @@ class AIEngine {
     // Try TFLite classifier first (if available)
     if (_tfliteReady) {
       try {
-        final (intent, confidence) = await TFLiteIntentClassifier.classifyQuery(query);
+        final (intent, confidence) =
+            await TFLiteIntentClassifier.classifyQuery(query);
         if (intent != AIIntentType.unknown) {
           // Convert AIIntentType to AIIntent
           return _aiIntentTypeToIntent(intent);
@@ -347,31 +354,98 @@ class AIEngine {
     // Fallback: keyword matching (original logic)
     final q = query.toLowerCase();
 
-    if (_matches(q, ['today', 'aj', 'aaj', 'sales', 'sale', 'فروخت', 'سیلز', 'آج', 'bikri', 'revenue', 'figure'])) {
+    if (_matches(q, [
+      'today',
+      'aj',
+      'aaj',
+      'sales',
+      'sale',
+      'فروخت',
+      'سیلز',
+      'آج',
+      'bikri',
+      'revenue',
+      'figure'
+    ])) {
       return AIIntent.getSales;
     }
-    if (_matches(q, ['low stock', 'stock kam', 'inventory kam', 'out of stock', 'سٹاک', 'انوینٹری', 'low item', 'shortage', 'reorder', 'alert'])) {
+    if (_matches(q, [
+      'low stock',
+      'stock kam',
+      'inventory kam',
+      'out of stock',
+      'سٹاک',
+      'انوینٹری',
+      'low item',
+      'shortage',
+      'reorder',
+      'alert'
+    ])) {
       return AIIntent.getLowStock;
     }
-    if (_matches(q, ['owe', 'receivable', 'udhaar', 'paisa lena', 'customer balance', 'ادھار', 'وصولی', 'outstanding', 'due', 'debt'])) {
+    if (_matches(q, [
+      'owe',
+      'receivable',
+      'udhaar',
+      'paisa lena',
+      'customer balance',
+      'ادھار',
+      'وصولی',
+      'outstanding',
+      'due',
+      'debt'
+    ])) {
       return AIIntent.getReceivables;
     }
-    if (_matches(q, ['expense', 'kharcha', 'kharchay', 'اخراجات', 'خرچہ', 'operating', 'kharcha'])) {
+    if (_matches(q, [
+      'expense',
+      'kharcha',
+      'kharchay',
+      'اخراجات',
+      'خرچہ',
+      'operating',
+      'kharcha'
+    ])) {
       return AIIntent.getExpenses;
     }
-    if (_matches(q, ['profit', 'munafa', 'kamai', 'منافع', 'کمائی', 'earnings', 'net', 'gross'])) {
+    if (_matches(q, [
+      'profit',
+      'munafa',
+      'kamai',
+      'منافع',
+      'کمائی',
+      'earnings',
+      'net',
+      'gross'
+    ])) {
       return AIIntent.getProfit;
     }
-    if (_matches(q, ['purchase', 'kharidari', 'maal kharida', 'خریداری', 'buying', 'maal', 'inventory'])) {
+    if (_matches(q, [
+      'purchase',
+      'kharidari',
+      'maal kharida',
+      'خریداری',
+      'buying',
+      'maal',
+      'inventory'
+    ])) {
       return AIIntent.getPurchases;
     }
     if (_matches(q, ['supplier', 'vendor', 'سپلائر', 'vendors'])) {
       return AIIntent.getSupplierCount;
     }
-    if (_matches(q, ['total product', 'kitne product', 'total items', 'آئٹم', 'items', 'product list'])) {
+    if (_matches(q, [
+      'total product',
+      'kitne product',
+      'total items',
+      'آئٹم',
+      'items',
+      'product list'
+    ])) {
       return AIIntent.getProductCount;
     }
-    if (_matches(q, ['add expense', 'record kharcha', 'expense dalo', 'record', 'entry'])) {
+    if (_matches(q,
+        ['add expense', 'record kharcha', 'expense dalo', 'record', 'entry'])) {
       return AIIntent.createExpense;
     }
 

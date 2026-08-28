@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../templates/business_templates.dart';
 
 class TerminologyProvider extends ChangeNotifier {
-  BusinessTemplate _currentTemplate = BusinessTemplates.getById('general_retail');
+  BusinessTemplate _currentTemplate =
+      BusinessTemplates.getById('general_retail');
 
   BusinessTemplate get template => _currentTemplate;
 

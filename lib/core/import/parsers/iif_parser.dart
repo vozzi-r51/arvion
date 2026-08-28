@@ -16,7 +16,8 @@ class IifParser {
 
     List<String> headers = [];
     final List<Map<String, String>> rows = [];
-    final String targetHeaderPrefix = entityType == ImportEntityType.products ? '!INVITEM' : '!CUST';
+    final String targetHeaderPrefix =
+        entityType == ImportEntityType.products ? '!INVITEM' : '!CUST';
 
     for (final line in lines) {
       if (line.trim().isEmpty) continue;
@@ -27,7 +28,8 @@ class IifParser {
       if (tokens.first.toUpperCase() == targetHeaderPrefix) {
         // Header definition line
         headers = tokens.sublist(1);
-      } else if (headers.isNotEmpty && tokens.first.startsWith('INVITEM') || tokens.first.startsWith('CUST')) {
+      } else if (headers.isNotEmpty && tokens.first.startsWith('INVITEM') ||
+          tokens.first.startsWith('CUST')) {
         // Data line
         final values = tokens.sublist(1);
         final Map<String, String> rowMap = {};

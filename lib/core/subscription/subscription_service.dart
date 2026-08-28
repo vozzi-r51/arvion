@@ -41,7 +41,8 @@ class SubscriptionService {
       final saved = prefs.getString('${_prefPlanKey}_$companyId');
       if (saved == 'free') return SubscriptionPlan.free;
       if (saved == 'enterprise') return SubscriptionPlan.enterprise;
-      return SubscriptionPlan.pro; // Default to Pro so offline users enjoy full access
+      return SubscriptionPlan
+          .pro; // Default to Pro so offline users enjoy full access
     } catch (_) {
       return SubscriptionPlan.pro;
     }

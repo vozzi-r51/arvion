@@ -21,7 +21,8 @@ class BankReconciliationExecutor {
 
     await db.transaction((txn) async {
       for (final row in rows) {
-        if (row.status == ParsedRowStatus.autoMatched && row.matchedTransaction != null) {
+        if (row.status == ParsedRowStatus.autoMatched &&
+            row.matchedTransaction != null) {
           final candId = row.matchedTransaction!['id'] as int;
           await txn.update(
             'bank_transactions',
@@ -30,7 +31,8 @@ class BankReconciliationExecutor {
             whereArgs: [candId, companyId],
           );
           autoReconciledCount++;
-        } else if (row.status == ParsedRowStatus.manualMatch && row.matchedTransaction != null) {
+        } else if (row.status == ParsedRowStatus.manualMatch &&
+            row.matchedTransaction != null) {
           final candId = row.matchedTransaction!['id'] as int;
           await txn.update(
             'bank_transactions',
@@ -47,7 +49,9 @@ class BankReconciliationExecutor {
             'type': isDeposit ? 'deposit' : 'withdrawal',
             'amount': row.amount.abs(),
             'description': row.description,
-            'transaction_date': row.parsedDate?.toIso8601String().substring(0, 10) ?? row.dateStr,
+            'transaction_date':
+                row.parsedDate?.toIso8601String().substring(0, 10) ??
+                    row.dateStr,
             'is_reconciled': 1,
             'created_at': DateTime.now().toIso8601String(),
           });
@@ -59,7 +63,8 @@ class BankReconciliationExecutor {
         companyId: companyId,
         module: 'BankReconciliation',
         action: 'reconcile_statement',
-        description: 'Bank statement reconciled: $autoReconciledCount auto-matched, $manualReconciledCount manual, $newCreatedCount new created',
+        description:
+            'Bank statement reconciled: $autoReconciledCount auto-matched, $manualReconciledCount manual, $newCreatedCount new created',
         afterValue: {
           'auto_matched': autoReconciledCount,
           'manual_matched': manualReconciledCount,

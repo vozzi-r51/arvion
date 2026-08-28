@@ -20,7 +20,9 @@ class BarcodePdfService {
               crossAxisCount: 3,
               childAspectRatio: 0.6,
               children: products.map((p) {
-                final barcode = p['barcode'] as String? ?? p['product_code'] as String? ?? 'N/A';
+                final barcode = p['barcode'] as String? ??
+                    p['product_code'] as String? ??
+                    'N/A';
                 final name = p['name'] as String? ?? 'Unknown';
                 final price = p['retail_price']?.toString() ?? '0';
 
@@ -32,7 +34,10 @@ class BarcodePdfService {
                   child: pw.Column(
                     mainAxisAlignment: pw.MainAxisAlignment.center,
                     children: [
-                      pw.Text(name, style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold), textAlign: pw.TextAlign.center),
+                      pw.Text(name,
+                          style: pw.TextStyle(
+                              fontSize: 8, fontWeight: pw.FontWeight.bold),
+                          textAlign: pw.TextAlign.center),
                       pw.SizedBox(height: 5),
                       pw.BarcodeWidget(
                         barcode: pw.Barcode.code128(),
@@ -43,7 +48,8 @@ class BarcodePdfService {
                         textStyle: const pw.TextStyle(fontSize: 8),
                       ),
                       pw.SizedBox(height: 5),
-                      pw.Text('Rs. $price', style: const pw.TextStyle(fontSize: 10)),
+                      pw.Text('Rs. $price',
+                          style: const pw.TextStyle(fontSize: 10)),
                     ],
                   ),
                 );

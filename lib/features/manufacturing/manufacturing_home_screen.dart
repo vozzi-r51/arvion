@@ -15,8 +15,12 @@ class ManufacturingHomeScreen extends StatelessWidget {
           title: const Text('Manufacturing Module'),
           bottom: const TabBar(
             tabs: [
-              Tab(icon: Icon(Icons.precision_manufacturing), text: 'Production Orders'),
-              Tab(icon: Icon(Icons.format_list_bulleted), text: 'Bill of Materials (BOM)'),
+              Tab(
+                  icon: Icon(Icons.precision_manufacturing),
+                  text: 'Production Orders'),
+              Tab(
+                  icon: Icon(Icons.format_list_bulleted),
+                  text: 'Bill of Materials (BOM)'),
             ],
           ),
         ),

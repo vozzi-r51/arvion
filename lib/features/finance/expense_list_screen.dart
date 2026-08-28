@@ -45,14 +45,15 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
   }
 
   void _showForm({Map<String, dynamic>? existing}) {
-    final amountCtrl =
-        TextEditingController(text: existing != null ? '${existing['amount']}' : '');
+    final amountCtrl = TextEditingController(
+        text: existing != null ? '${existing['amount']}' : '');
     final descCtrl =
         TextEditingController(text: existing?['description'] as String? ?? '');
     final customCategoryCtrl = TextEditingController();
     String category = existing?['category'] as String? ?? _categories.first;
     DateTime date = existing != null
-        ? DateTime.tryParse(existing['expense_date'] as String) ?? DateTime.now()
+        ? DateTime.tryParse(existing['expense_date'] as String) ??
+            DateTime.now()
         : DateTime.now();
     String paymentMethod = existing?['payment_method'] as String? ?? 'Cash';
 
@@ -65,7 +66,8 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(existing == null ? 'Naya Expense' : 'Expense Edit Karein'),
+          title:
+              Text(existing == null ? 'Naya Expense' : 'Expense Edit Karein'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -76,25 +78,30 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                   items: _categories
                       .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                       .toList(),
-                  onChanged: (v) => setDialogState(() => category = v ?? 'Other'),
+                  onChanged: (v) =>
+                      setDialogState(() => category = v ?? 'Other'),
                 ),
                 if (category == 'Other') ...[
                   const SizedBox(height: 8),
                   TextField(
                     controller: customCategoryCtrl,
-                    decoration: const InputDecoration(labelText: 'Category Naam'),
+                    decoration:
+                        const InputDecoration(labelText: 'Category Naam'),
                   ),
                 ],
                 const SizedBox(height: 8),
                 TextField(
                   controller: amountCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Amount (Rs.) *'),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration:
+                      const InputDecoration(labelText: 'Amount (Rs.) *'),
                 ),
                 const SizedBox(height: 8),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text('Date: ${date.toIso8601String().substring(0, 10)}'),
+                  title:
+                      Text('Date: ${date.toIso8601String().substring(0, 10)}'),
                   trailing: const Icon(Icons.calendar_today, size: 18),
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -108,11 +115,13 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                 ),
                 DropdownButtonFormField<String>(
                   value: paymentMethod,
-                  decoration: const InputDecoration(labelText: 'Payment Method'),
+                  decoration:
+                      const InputDecoration(labelText: 'Payment Method'),
                   items: ['Cash', 'Bank', 'Cheque']
                       .map((m) => DropdownMenuItem(value: m, child: Text(m)))
                       .toList(),
-                  onChanged: (v) => setDialogState(() => paymentMethod = v ?? 'Cash'),
+                  onChanged: (v) =>
+                      setDialogState(() => paymentMethod = v ?? 'Cash'),
                 ),
                 const SizedBox(height: 8),
                 TextField(
@@ -124,13 +133,16 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
                 final amount = double.tryParse(amountCtrl.text.trim());
                 if (amount == null || amount <= 0) return;
-                final finalCategory =
-                    category == 'Other' ? customCategoryCtrl.text.trim() : category;
+                final finalCategory = category == 'Other'
+                    ? customCategoryCtrl.text.trim()
+                    : category;
                 if (finalCategory.isEmpty) return;
 
                 final data = {
@@ -149,16 +161,23 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                     companyId: widget.companyId,
                     module: 'Expense',
                     action: AuditLogger.create,
-                    description: 'Naya expense: $finalCategory (Rs. ${amount.toStringAsFixed(0)})',
-                    afterValue: {'category': finalCategory, 'amount': amount, 'payment_method': paymentMethod},
+                    description:
+                        'Naya expense: $finalCategory (Rs. ${amount.toStringAsFixed(0)})',
+                    afterValue: {
+                      'category': finalCategory,
+                      'amount': amount,
+                      'payment_method': paymentMethod
+                    },
                   );
                 } else {
-                  await DBHelper.instance.updateExpense(existing['id'] as int, data);
+                  await DBHelper.instance
+                      .updateExpense(existing['id'] as int, data);
                   await AuditLogger.log(
                     companyId: widget.companyId,
                     module: 'Expense',
                     action: AuditLogger.update,
-                    description: 'Expense update kiya: $finalCategory (Rs. ${amount.toStringAsFixed(0)})',
+                    description:
+                        'Expense update kiya: $finalCategory (Rs. ${amount.toStringAsFixed(0)})',
                   );
                 }
                 if (!ctx.mounted) return;
@@ -178,9 +197,12 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Expense Delete Karein?'),
-        content: Text('"${e['category']}" (Rs. ${e['amount']}) delete ho jayega.'),
+        content:
+            Text('"${e['category']}" (Rs. ${e['amount']}) delete ho jayega.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
           TextButton(
               onPressed: () => Navigator.pop(ctx, true),
               child: const Text('Delete', style: TextStyle(color: Colors.red))),
@@ -215,7 +237,8 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
               ? AppEmptyState(
                   icon: Icons.receipt_long_outlined,
                   title: 'Abhi koi expense nahi bana',
-                  message: 'Apni shop ke daily kharche yahan add karein taake P&L sahi nazar aaye.',
+                  message:
+                      'Apni shop ke daily kharche yahan add karein taake P&L sahi nazar aaye.',
                   actionLabel: 'Naya Expense',
                   onAction: () => _showForm(),
                 )
@@ -229,12 +252,17 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                       margin: const EdgeInsets.only(bottom: AppSpacing.m),
                       shape: RoundedRectangleBorder(
                         borderRadius: AppRadius.medium,
-                        side: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+                        side: BorderSide(
+                            color: Theme.of(context)
+                                .dividerColor
+                                .withValues(alpha: 0.1)),
                       ),
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: Colors.orange.withValues(alpha: 0.12),
-                          child: const Icon(Icons.receipt_long, color: Colors.orange, size: 20),
+                          backgroundColor:
+                              Colors.orange.withValues(alpha: 0.12),
+                          child: const Icon(Icons.receipt_long,
+                              color: Colors.orange, size: 20),
                         ),
                         title: Text(
                           e['category'] as String,
@@ -245,8 +273,10 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text('Rs. ${(e['amount'] as num).toStringAsFixed(0)}',
-                                style: const TextStyle(fontWeight: FontWeight.bold)),
+                            Text(
+                                'Rs. ${(e['amount'] as num).toStringAsFixed(0)}',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold)),
                             const SizedBox(width: AppSpacing.s),
                             PopupMenuButton<String>(
                               icon: const Icon(Icons.more_vert, size: 18),
@@ -258,8 +288,12 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                                 }
                               },
                               itemBuilder: (ctx) => [
-                                const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                                const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
+                                const PopupMenuItem(
+                                    value: 'edit', child: Text('Edit')),
+                                const PopupMenuItem(
+                                    value: 'delete',
+                                    child: Text('Delete',
+                                        style: TextStyle(color: Colors.red))),
                               ],
                             ),
                           ],

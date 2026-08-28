@@ -54,7 +54,8 @@ class _SensitiveScreenGuardState extends State<SensitiveScreenGuard> {
 
     ScaffoldMessenger.of(appNavigatorKey.currentContext!).showSnackBar(
       SnackBar(
-        content: Text('${widget.screenName} par $_timeoutSeconds sec ki inactivity ki wajah se app lock ho gayi.'),
+        content: Text(
+            '${widget.screenName} par $_timeoutSeconds sec ki inactivity ki wajah se app lock ho gayi.'),
         duration: const Duration(seconds: 4),
         backgroundColor: Colors.red.shade700,
       ),

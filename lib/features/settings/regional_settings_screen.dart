@@ -52,7 +52,8 @@ class _RegionalSettingsScreenState extends State<RegionalSettingsScreen> {
         _decimalSeparator = company['decimal_separator'] as String? ?? '.';
         _dateFormat = company['date_format'] as String? ?? 'dd/MM/yyyy';
         _invoicePrefix = company['invoice_prefix'] as String? ?? 'INV';
-        _invoiceFormat = company['invoice_number_format'] as String? ?? '{PREFIX}-{NUMBER}';
+        _invoiceFormat =
+            company['invoice_number_format'] as String? ?? '{PREFIX}-{NUMBER}';
         _loading = false;
       });
     } else {
@@ -63,7 +64,10 @@ class _RegionalSettingsScreenState extends State<RegionalSettingsScreen> {
   Future<void> _save() async {
     if (_thousandSeparator == _decimalSeparator) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Thousand separator and Decimal separator cannot be the same!'), backgroundColor: Colors.red),
+        const SnackBar(
+            content: Text(
+                'Thousand separator and Decimal separator cannot be the same!'),
+            backgroundColor: Colors.red),
       );
       return;
     }
@@ -83,7 +87,9 @@ class _RegionalSettingsScreenState extends State<RegionalSettingsScreen> {
     setState(() => _saving = false);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Company Regional & Formatting settings saved successfully.')),
+      const SnackBar(
+          content: Text(
+              'Company Regional & Formatting settings saved successfully.')),
     );
     Navigator.pop(context, true);
   }
@@ -105,7 +111,8 @@ class _RegionalSettingsScreenState extends State<RegionalSettingsScreen> {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Company Regional & Formatting Settings')),
+      appBar:
+          AppBar(title: const Text('Company Regional & Formatting Settings')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -113,7 +120,10 @@ class _RegionalSettingsScreenState extends State<RegionalSettingsScreen> {
               children: [
                 // Live Preview Card
                 Card(
-                  color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primaryContainer
+                      .withValues(alpha: 0.3),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -121,9 +131,12 @@ class _RegionalSettingsScreenState extends State<RegionalSettingsScreen> {
                       children: [
                         const Row(
                           children: [
-                            Icon(Icons.remove_red_eye_outlined, color: Colors.indigo),
+                            Icon(Icons.remove_red_eye_outlined,
+                                color: Colors.indigo),
                             SizedBox(width: 8),
-                            Text('Live Display Preview', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                            Text('Live Display Preview',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 16)),
                           ],
                         ),
                         const SizedBox(height: 12),
@@ -131,7 +144,11 @@ class _RegionalSettingsScreenState extends State<RegionalSettingsScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Text('Amount Preview:'),
-                            Text(amountPreview, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.indigo)),
+                            Text(amountPreview,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: Colors.indigo)),
                           ],
                         ),
                         const SizedBox(height: 6),
@@ -139,7 +156,9 @@ class _RegionalSettingsScreenState extends State<RegionalSettingsScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Text('Date Preview:'),
-                            Text(datePreview, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                            Text(datePreview,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 15)),
                           ],
                         ),
                       ],
@@ -148,20 +167,31 @@ class _RegionalSettingsScreenState extends State<RegionalSettingsScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                Text('Currency & ISO Settings', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                Text('Currency & ISO Settings',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleSmall
+                        ?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     Expanded(
                       child: DropdownButtonFormField<String>(
-                        value: _currencyPresets.any((p) => p['code'] == _currencyCode) ? _currencyCode : 'PKR',
-                        decoration: const InputDecoration(labelText: 'ISO Currency Code'),
+                        value: _currencyPresets
+                                .any((p) => p['code'] == _currencyCode)
+                            ? _currencyCode
+                            : 'PKR',
+                        decoration: const InputDecoration(
+                            labelText: 'ISO Currency Code'),
                         items: _currencyPresets
-                            .map((p) => DropdownMenuItem(value: p['code'], child: Text('${p['code']!} (${p['symbol']!})')))
+                            .map((p) => DropdownMenuItem(
+                                value: p['code'],
+                                child: Text('${p['code']!} (${p['symbol']!})')))
                             .toList(),
                         onChanged: (v) {
                           if (v != null) {
-                            final match = _currencyPresets.firstWhere((p) => p['code'] == v);
+                            final match = _currencyPresets
+                                .firstWhere((p) => p['code'] == v);
                             setState(() {
                               _currencyCode = v;
                               _currencySymbol = match['symbol']!;
@@ -174,8 +204,11 @@ class _RegionalSettingsScreenState extends State<RegionalSettingsScreen> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: TextField(
-                        decoration: const InputDecoration(labelText: 'Currency Symbol'),
-                        controller: TextEditingController(text: _currencySymbol)..selection = TextSelection.collapsed(offset: _currencySymbol.length),
+                        decoration:
+                            const InputDecoration(labelText: 'Currency Symbol'),
+                        controller: TextEditingController(text: _currencySymbol)
+                          ..selection = TextSelection.collapsed(
+                              offset: _currencySymbol.length),
                         onChanged: (v) => setState(() => _currencySymbol = v),
                       ),
                     ),
@@ -183,32 +216,45 @@ class _RegionalSettingsScreenState extends State<RegionalSettingsScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                Text('Number & Decimal Precision', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                Text('Number & Decimal Precision',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleSmall
+                        ?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     Expanded(
                       child: DropdownButtonFormField<int>(
                         value: _decimalPlaces,
-                        decoration: const InputDecoration(labelText: 'Decimal Places'),
+                        decoration:
+                            const InputDecoration(labelText: 'Decimal Places'),
                         items: const [
-                          DropdownMenuItem(value: 0, child: Text('0 (JPY / Round)')),
-                          DropdownMenuItem(value: 2, child: Text('2 (Standard e.g. 1.00)')),
+                          DropdownMenuItem(
+                              value: 0, child: Text('0 (JPY / Round)')),
+                          DropdownMenuItem(
+                              value: 2, child: Text('2 (Standard e.g. 1.00)')),
                         ],
-                        onChanged: (v) => setState(() => _decimalPlaces = v ?? 2),
+                        onChanged: (v) =>
+                            setState(() => _decimalPlaces = v ?? 2),
                       ),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         value: _thousandSeparator,
-                        decoration: const InputDecoration(labelText: 'Thousands Separator'),
+                        decoration: const InputDecoration(
+                            labelText: 'Thousands Separator'),
                         items: const [
-                          DropdownMenuItem(value: ',', child: Text('Comma ( , )')),
-                          DropdownMenuItem(value: '.', child: Text('Period ( . )')),
-                          DropdownMenuItem(value: ' ', child: Text('Space (   )')),
+                          DropdownMenuItem(
+                              value: ',', child: Text('Comma ( , )')),
+                          DropdownMenuItem(
+                              value: '.', child: Text('Period ( . )')),
+                          DropdownMenuItem(
+                              value: ' ', child: Text('Space (   )')),
                         ],
-                        onChanged: (v) => setState(() => _thousandSeparator = v ?? ','),
+                        onChanged: (v) =>
+                            setState(() => _thousandSeparator = v ?? ','),
                       ),
                     ),
                   ],
@@ -220,26 +266,36 @@ class _RegionalSettingsScreenState extends State<RegionalSettingsScreen> {
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         value: _decimalSeparator,
-                        decoration: const InputDecoration(labelText: 'Decimal Separator'),
+                        decoration: const InputDecoration(
+                            labelText: 'Decimal Separator'),
                         items: const [
-                          DropdownMenuItem(value: '.', child: Text('Period ( . )')),
-                          DropdownMenuItem(value: ',', child: Text('Comma ( , )')),
+                          DropdownMenuItem(
+                              value: '.', child: Text('Period ( . )')),
+                          DropdownMenuItem(
+                              value: ',', child: Text('Comma ( , )')),
                         ],
-                        onChanged: (v) => setState(() => _decimalSeparator = v ?? '.'),
+                        onChanged: (v) =>
+                            setState(() => _decimalSeparator = v ?? '.'),
                       ),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         value: _dateFormat,
-                        decoration: const InputDecoration(labelText: 'Date Format'),
+                        decoration:
+                            const InputDecoration(labelText: 'Date Format'),
                         items: const [
-                          DropdownMenuItem(value: 'dd/MM/yyyy', child: Text('DD/MM/YYYY')),
-                          DropdownMenuItem(value: 'MM/dd/yyyy', child: Text('MM/DD/YYYY')),
-                          DropdownMenuItem(value: 'yyyy-MM-dd', child: Text('YYYY-MM-DD')),
-                          DropdownMenuItem(value: 'dd.MM.yyyy', child: Text('DD.MM.YYYY')),
+                          DropdownMenuItem(
+                              value: 'dd/MM/yyyy', child: Text('DD/MM/YYYY')),
+                          DropdownMenuItem(
+                              value: 'MM/dd/yyyy', child: Text('MM/DD/YYYY')),
+                          DropdownMenuItem(
+                              value: 'yyyy-MM-dd', child: Text('YYYY-MM-DD')),
+                          DropdownMenuItem(
+                              value: 'dd.MM.yyyy', child: Text('DD.MM.YYYY')),
                         ],
-                        onChanged: (v) => setState(() => _dateFormat = v ?? 'dd/MM/yyyy'),
+                        onChanged: (v) =>
+                            setState(() => _dateFormat = v ?? 'dd/MM/yyyy'),
                       ),
                     ),
                   ],

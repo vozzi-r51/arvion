@@ -11,18 +11,22 @@ class EcommerceChannelService {
   static Future<String> generateWhatsAppCatalogCsv(int companyId) async {
     final products = await DBHelper.instance.getProducts(companyId);
     final StringBuffer buffer = StringBuffer();
-    buffer.writeln('id,title,description,availability,condition,price,link,image_link,brand');
+    buffer.writeln(
+        'id,title,description,availability,condition,price,link,image_link,brand');
 
     for (final p in products) {
       final stock = (p['stock_quantity'] as num?)?.toDouble() ?? 0.0;
       final id = 'SKU-${p['id']}';
-      final title = '"${(p['name'] ?? 'Product #${p['id']}').toString().replaceAll('"', '""')}"';
-      final desc = '"${(p['description'] ?? 'Quality product from BizManager Store').toString().replaceAll('"', '""')}"';
+      final title =
+          '"${(p['name'] ?? 'Product #${p['id']}').toString().replaceAll('"', '""')}"';
+      final desc =
+          '"${(p['description'] ?? 'Quality product from BizManager Store').toString().replaceAll('"', '""')}"';
       final avail = stock > 0 ? 'in stock' : 'out of stock';
       final price = '${(p['sale_price'] as num?)?.toDouble() ?? 0.0} PKR';
       final img = p['image_path'] ?? '';
 
-      buffer.writeln('$id,$title,$desc,$avail,new,$price,,$img,BizManager Store');
+      buffer
+          .writeln('$id,$title,$desc,$avail,new,$price,,$img,BizManager Store');
     }
 
     return buffer.toString();
@@ -59,7 +63,8 @@ class EcommerceChannelService {
   }
 
   /// Fetch pending orders received from Daraz / WhatsApp.
-  static Future<List<Map<String, dynamic>>> listChannelOrders(int companyId) async {
+  static Future<List<Map<String, dynamic>>> listChannelOrders(
+      int companyId) async {
     final db = await DBHelper.instance.database;
     return await db.query(
       'channel_orders',

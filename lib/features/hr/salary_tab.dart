@@ -33,7 +33,8 @@ class _SalaryTabState extends State<SalaryTab> {
 
   void _showPaySalaryDialog() {
     final defaultSalary = (widget.employee['monthly_salary'] as num).toDouble();
-    final amountCtrl = TextEditingController(text: defaultSalary.toStringAsFixed(0));
+    final amountCtrl =
+        TextEditingController(text: defaultSalary.toStringAsFixed(0));
     final notesCtrl = TextEditingController();
     DateTime paymentDate = DateTime.now();
     final now = DateTime.now();
@@ -57,13 +58,16 @@ class _SalaryTabState extends State<SalaryTab> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: amountCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Amount (Rs.) *'),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration:
+                      const InputDecoration(labelText: 'Amount (Rs.) *'),
                 ),
                 const SizedBox(height: 8),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text('Date: ${paymentDate.toIso8601String().substring(0, 10)}'),
+                  title: Text(
+                      'Date: ${paymentDate.toIso8601String().substring(0, 10)}'),
                   trailing: const Icon(Icons.calendar_today, size: 18),
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -72,7 +76,8 @@ class _SalaryTabState extends State<SalaryTab> {
                       firstDate: DateTime(2020),
                       lastDate: DateTime(2100),
                     );
-                    if (picked != null) setDialogState(() => paymentDate = picked);
+                    if (picked != null)
+                      setDialogState(() => paymentDate = picked);
                   },
                 ),
                 TextField(
@@ -83,7 +88,9 @@ class _SalaryTabState extends State<SalaryTab> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
                 final amount = double.tryParse(amountCtrl.text.trim());
@@ -127,7 +134,9 @@ class _SalaryTabState extends State<SalaryTab> {
                   Text(
                     'Rs. ${(widget.employee['monthly_salary'] as num).toStringAsFixed(0)}',
                     style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold, color: Colors.teal),
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.teal),
                   ),
                   const SizedBox(height: 10),
                   ElevatedButton.icon(
@@ -154,7 +163,8 @@ class _SalaryTabState extends State<SalaryTab> {
                       child: ListTile(
                         leading: const CircleAvatar(
                           backgroundColor: Colors.teal,
-                          child: Icon(Icons.payments, color: Colors.white, size: 18),
+                          child: Icon(Icons.payments,
+                              color: Colors.white, size: 18),
                         ),
                         title: Text('Month: ${p['month']}'),
                         subtitle: Text(

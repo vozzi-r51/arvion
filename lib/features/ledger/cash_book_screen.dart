@@ -75,8 +75,10 @@ class _CashBookScreenState extends State<CashBookScreen> {
                 ),
                 TextField(
                   controller: amountCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Amount (Rs.) *'),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration:
+                      const InputDecoration(labelText: 'Amount (Rs.) *'),
                 ),
                 const SizedBox(height: 8),
                 TextField(
@@ -86,7 +88,8 @@ class _CashBookScreenState extends State<CashBookScreen> {
                 const SizedBox(height: 8),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text('Date: ${date.toIso8601String().substring(0, 10)}'),
+                  title:
+                      Text('Date: ${date.toIso8601String().substring(0, 10)}'),
                   trailing: const Icon(Icons.calendar_today, size: 18),
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -106,7 +109,9 @@ class _CashBookScreenState extends State<CashBookScreen> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
                 final amount = double.tryParse(amountCtrl.text.trim());
@@ -138,7 +143,9 @@ class _CashBookScreenState extends State<CashBookScreen> {
       builder: (ctx) => AlertDialog(
         title: const Text('Entry Delete Karein?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
           TextButton(
               onPressed: () => Navigator.pop(ctx, true),
               child: const Text('Delete', style: TextStyle(color: Colors.red))),
@@ -172,8 +179,12 @@ class _CashBookScreenState extends State<CashBookScreen> {
                       ),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: _totalCard('Net', _cashIn - _cashOut,
-                            (_cashIn - _cashOut) >= 0 ? Colors.blue : Colors.red),
+                        child: _totalCard(
+                            'Net',
+                            _cashIn - _cashOut,
+                            (_cashIn - _cashOut) >= 0
+                                ? Colors.blue
+                                : Colors.red),
                       ),
                     ],
                   ),
@@ -191,12 +202,16 @@ class _CashBookScreenState extends State<CashBookScreen> {
                               margin: const EdgeInsets.only(bottom: 8),
                               child: ListTile(
                                 leading: Icon(
-                                  isIn ? Icons.arrow_downward : Icons.arrow_upward,
+                                  isIn
+                                      ? Icons.arrow_downward
+                                      : Icons.arrow_upward,
                                   color: isIn ? Colors.green : Colors.red,
                                 ),
-                                title: Text((t['category'] as String?)?.isNotEmpty == true
-                                    ? t['category'] as String
-                                    : (isIn ? 'Cash In' : 'Cash Out')),
+                                title: Text(
+                                    (t['category'] as String?)?.isNotEmpty ==
+                                            true
+                                        ? t['category'] as String
+                                        : (isIn ? 'Cash In' : 'Cash Out')),
                                 subtitle: Text(
                                     '${(t['transaction_date'] as String).substring(0, 10)}  •  ${t['description'] ?? ''}'),
                                 trailing: Row(
@@ -210,7 +225,8 @@ class _CashBookScreenState extends State<CashBookScreen> {
                                       ),
                                     ),
                                     IconButton(
-                                      icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                                      icon: const Icon(Icons.delete_outline,
+                                          size: 18, color: Colors.red),
                                       onPressed: () => _confirmDelete(t),
                                     ),
                                   ],
@@ -239,7 +255,8 @@ class _CashBookScreenState extends State<CashBookScreen> {
             const SizedBox(height: 4),
             Text(
               value.toStringAsFixed(0),
-              style: TextStyle(fontWeight: FontWeight.bold, color: color, fontSize: 15),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, color: color, fontSize: 15),
             ),
           ],
         ),

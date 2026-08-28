@@ -9,8 +9,7 @@ class CompanySelectionScreen extends StatefulWidget {
   const CompanySelectionScreen({super.key});
 
   @override
-  State<CompanySelectionScreen> createState() =>
-      _CompanySelectionScreenState();
+  State<CompanySelectionScreen> createState() => _CompanySelectionScreenState();
 }
 
 class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
@@ -46,9 +45,9 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
   }
 
   void _showAddCompanyDialog() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const OnboardingWizardScreen())
-    ).then((_) => _loadCompanies());
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => const OnboardingWizardScreen()))
+        .then((_) => _loadCompanies());
   }
 
   Future<void> _confirmDeleteCompany(Map<String, dynamic> company) async {
@@ -64,20 +63,23 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
             children: [
               Text(
                   '"${company['name']}" aur is company ka SAARA data (Products, Sales, Customers, sab kuch) '
-                      'HAMESHA KE LIYE delete ho jayega. Ye action wapis NAHI ho sakta.'),
+                  'HAMESHA KE LIYE delete ho jayega. Ye action wapis NAHI ho sakta.'),
               const SizedBox(height: 12),
               Text('Confirm karne ke liye company ka naam type karein:',
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
               const SizedBox(height: 6),
               TextField(
                 controller: nameCtrl,
-                decoration: InputDecoration(hintText: company['name'] as String),
+                decoration:
+                    InputDecoration(hintText: company['name'] as String),
                 onChanged: (_) => setDialogState(() {}),
               ),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel')),
             TextButton(
               onPressed: nameCtrl.text.trim() == company['name']
                   ? () => Navigator.pop(ctx, true)
@@ -103,83 +105,93 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _companies.isEmpty
-          ? Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.business, size: 64, color: Colors.grey),
-              const SizedBox(height: 16),
-              const Text(
-                'Abhi koi company nahi bani.\nApni pehli company banayein.',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const OnboardingWizardScreen())
-                ).then((_) => _loadCompanies()),
-                icon: const Icon(Icons.add),
-                label: const Text('Company Banayein'),
-              ),
-            ],
-          ),
-        ),
-      )
-          : ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _companies.length,
-        itemBuilder: (ctx, i) {
-          final c = _companies[i];
-          return Card(
-            margin: const EdgeInsets.only(bottom: 12),
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor:
-                Theme.of(context).colorScheme.primary,
-                child: Text(
-                  (c['name'] as String).isNotEmpty
-                      ? (c['name'] as String)[0].toUpperCase()
-                      : '?',
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ),
-              title: Text(c['name'] as String),
-              subtitle: Text(c['owner_name'] as String? ?? ''),
-              trailing: PopupMenuButton<String>(
-                onSelected: (value) {
-                  if (value == 'edit') {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => CompanyProfileScreen(companyId: c['id'] as int),
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.business,
+                            size: 64, color: Colors.grey),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Abhi koi company nahi bani.\nApni pehli company banayein.',
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton.icon(
+                          onPressed: () => Navigator.of(context)
+                              .push(MaterialPageRoute(
+                                  builder: (_) =>
+                                      const OnboardingWizardScreen()))
+                              .then((_) => _loadCompanies()),
+                          icon: const Icon(Icons.add),
+                          label: const Text('Company Banayein'),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _companies.length,
+                  itemBuilder: (ctx, i) {
+                    final c = _companies[i];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          child: Text(
+                            (c['name'] as String).isNotEmpty
+                                ? (c['name'] as String)[0].toUpperCase()
+                                : '?',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        title: Text(c['name'] as String),
+                        subtitle: Text(c['owner_name'] as String? ?? ''),
+                        trailing: PopupMenuButton<String>(
+                          onSelected: (value) {
+                            if (value == 'edit') {
+                              Navigator.of(context)
+                                  .push(
+                                    MaterialPageRoute(
+                                      builder: (_) => CompanyProfileScreen(
+                                          companyId: c['id'] as int),
+                                    ),
+                                  )
+                                  .then((_) => _loadCompanies());
+                            } else if (value == 'delete') {
+                              _confirmDeleteCompany(c);
+                            }
+                          },
+                          itemBuilder: (ctx) => [
+                            const PopupMenuItem(
+                                value: 'edit',
+                                child: Text('Profile Edit Karein')),
+                            const PopupMenuItem(
+                                value: 'delete',
+                                child: Text('Delete Karein',
+                                    style: TextStyle(color: Colors.red))),
+                          ],
+                          child: (c['is_active'] as int) == 1
+                              ? const Icon(Icons.check_circle,
+                                  color: Colors.green)
+                              : const Icon(Icons.more_vert),
+                        ),
+                        onTap: () => _selectCompany(c['id'] as int),
                       ),
-                    ).then((_) => _loadCompanies());
-                  } else if (value == 'delete') {
-                    _confirmDeleteCompany(c);
-                  }
-                },
-                itemBuilder: (ctx) => [
-                  const PopupMenuItem(value: 'edit', child: Text('Profile Edit Karein')),
-                  const PopupMenuItem(
-                      value: 'delete',
-                      child: Text('Delete Karein', style: TextStyle(color: Colors.red))),
-                ],
-                child: (c['is_active'] as int) == 1
-                    ? const Icon(Icons.check_circle, color: Colors.green)
-                    : const Icon(Icons.more_vert),
-              ),
-              onTap: () => _selectCompany(c['id'] as int),
-            ),
-          );
-        },
-      ),
+                    );
+                  },
+                ),
       floatingActionButton: _companies.isEmpty
           ? null
           : FloatingActionButton(
-        onPressed: _showAddCompanyDialog,
-        child: const Icon(Icons.add),
-      ),
+              onPressed: _showAddCompanyDialog,
+              child: const Icon(Icons.add),
+            ),
     );
   }
 }

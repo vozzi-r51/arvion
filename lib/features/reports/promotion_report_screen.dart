@@ -61,7 +61,8 @@ class _PromotionReportScreenState extends State<PromotionReportScreen> {
               ? const AppEmptyState(
                   icon: Icons.local_offer_outlined,
                   title: 'Koi Promotion Data Nahi',
-                  message: 'Promotions create karein aur sales par apply karein taake usage performance dikhe.',
+                  message:
+                      'Promotions create karein aur sales par apply karein taake usage performance dikhe.',
                 )
               : ListView.builder(
                   padding: const EdgeInsets.all(AppSpacing.l),
@@ -87,23 +88,36 @@ class _PromotionReportScreenState extends State<PromotionReportScreen> {
                           children: [
                             CircleAvatar(
                               backgroundColor: Colors.purple.shade50,
-                              child: Icon(Icons.local_offer, color: Colors.purple.shade800),
+                              child: Icon(Icons.local_offer,
+                                  color: Colors.purple.shade800),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                  Text('Type: ${type.toUpperCase()} • Usage: $uses times', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                  Text(name,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16)),
+                                  Text(
+                                      'Type: ${type.toUpperCase()} • Usage: $uses times',
+                                      style: const TextStyle(
+                                          fontSize: 12, color: Colors.grey)),
                                 ],
                               ),
                             ),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                const Text('Total Discount Given', style: TextStyle(fontSize: 11, color: Colors.grey)),
-                                Text(formattedDiscount, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 14)),
+                                const Text('Total Discount Given',
+                                    style: TextStyle(
+                                        fontSize: 11, color: Colors.grey)),
+                                Text(formattedDiscount,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.green,
+                                        fontSize: 14)),
                               ],
                             ),
                           ],

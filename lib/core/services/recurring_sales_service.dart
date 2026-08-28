@@ -9,13 +9,15 @@ class RecurringSalesService {
   RecurringSalesService._();
 
   /// Detects active recurring sale templates that are due today or past due.
-  static Future<List<Map<String, dynamic>>> getDueRecurringSaleTemplates(int companyId) async {
+  static Future<List<Map<String, dynamic>>> getDueRecurringSaleTemplates(
+      int companyId) async {
     final db = await DBHelper.instance.database;
     final todayStr = DateTime.now().toIso8601String().substring(0, 10);
 
     final rows = await db.query(
       'recurring_templates',
-      where: 'company_id = ? AND type = "sale" AND active = 1 AND next_due_date <= ?',
+      where:
+          'company_id = ? AND type = "sale" AND active = 1 AND next_due_date <= ?',
       whereArgs: [companyId, todayStr],
       orderBy: 'next_due_date ASC',
     );
@@ -25,7 +27,8 @@ class RecurringSalesService {
 
   /// Confirms and generates a Sale transaction from a due recurring template.
   /// Calls DBHelper.instance.insertSaleWithItems() so stock, accounting, and customer ledger update atomically.
-  static Future<int> generateSaleFromTemplate(Map<String, dynamic> template) async {
+  static Future<int> generateSaleFromTemplate(
+      Map<String, dynamic> template) async {
     final companyId = template['company_id'] as int;
     final customerId = template['customer_id'] as int?;
     final lineItemsJson = template['line_items'] as String?;
@@ -35,7 +38,8 @@ class RecurringSalesService {
     }
 
     if (lineItemsJson == null || lineItemsJson.isEmpty) {
-      throw FormatException('Recurring invoice requires at least one line item.');
+      throw FormatException(
+          'Recurring invoice requires at least one line item.');
     }
 
     final List<dynamic> decodedItems = jsonDecode(lineItemsJson);
@@ -63,7 +67,8 @@ class RecurringSalesService {
       );
 
       if (prodRows.isEmpty) {
-        throw FormatException('Product #$productId is no longer available in inventory.');
+        throw FormatException(
+            'Product #$productId is no longer available in inventory.');
       }
 
       calculatedSubtotal += qty * price;
@@ -78,8 +83,10 @@ class RecurringSalesService {
     }
 
     final taxPercent = (template['tax_percent'] as num?)?.toDouble() ?? 0.0;
-    final discountAmount = (template['discount_amount'] as num?)?.toDouble() ?? 0.0;
-    final taxAmount = (calculatedSubtotal - discountAmount) * (taxPercent / 100.0);
+    final discountAmount =
+        (template['discount_amount'] as num?)?.toDouble() ?? 0.0;
+    final taxAmount =
+        (calculatedSubtotal - discountAmount) * (taxPercent / 100.0);
     final netTotal = calculatedSubtotal - discountAmount + taxAmount;
 
     final todayStr = DateTime.now().toIso8601String().substring(0, 10);
@@ -121,7 +128,8 @@ class RecurringSalesService {
       companyId: companyId,
       module: 'RecurringSales',
       action: 'generate_invoice',
-      description: 'Generated recurring invoice Sale #$saleId from template "${template['category']}". Next due: $nextDue',
+      description:
+          'Generated recurring invoice Sale #$saleId from template "${template['category']}". Next due: $nextDue',
       afterValue: {'sale_id': saleId, 'next_due_date': nextDue},
     );
 
@@ -129,7 +137,8 @@ class RecurringSalesService {
   }
 
   /// Calculates next due date based on frequency.
-  static String calculateNextDueDate(String currentDueDateStr, String frequency) {
+  static String calculateNextDueDate(
+      String currentDueDateStr, String frequency) {
     DateTime dt;
     try {
       dt = DateTime.parse(currentDueDateStr);
@@ -166,7 +175,8 @@ class RecurringSalesService {
   }
 
   /// Duplicates a recurring template configuration without duplicating runtime state.
-  static Map<String, dynamic> prepareDuplicateTemplate(Map<String, dynamic> template) {
+  static Map<String, dynamic> prepareDuplicateTemplate(
+      Map<String, dynamic> template) {
     return {
       'company_id': template['company_id'],
       'type': template['type'],

@@ -47,7 +47,8 @@ class CurrencyFormatter {
       return formatted;
     } catch (e) {
       // Fallback: basic formatting
-      return _basicFormat(amount, decimalPlaces, thousandSeparator, decimalSeparator, symbol ?? currencyCode);
+      return _basicFormat(amount, decimalPlaces, thousandSeparator,
+          decimalSeparator, symbol ?? currencyCode);
     }
   }
 
@@ -56,7 +57,8 @@ class CurrencyFormatter {
   static double parse(String formatted) {
     // Remove common currency symbols
     String cleaned = formatted
-        .replaceAll(RegExp(r'[^\d.,\-]'), '') // Keep only digits, separators, minus
+        .replaceAll(
+            RegExp(r'[^\d.,\-]'), '') // Keep only digits, separators, minus
         .trim();
 
     // Detect separator usage: if comma before period, comma is thousand separator
@@ -82,7 +84,8 @@ class CurrencyFormatter {
     String thousandSeparator = ',',
     String decimalSeparator = '.',
   }) {
-    return _basicFormat(amount, decimalPlaces, thousandSeparator, decimalSeparator, '');
+    return _basicFormat(
+        amount, decimalPlaces, thousandSeparator, decimalSeparator, '');
   }
 
   /// Helper: basic formatting without intl dependency

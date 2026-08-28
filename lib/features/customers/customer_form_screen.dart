@@ -50,8 +50,8 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
 
   Future<void> _save() async {
     if (_nameCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Customer naam zaroori hai')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Customer naam zaroori hai')));
       return;
     }
 
@@ -68,12 +68,17 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
         context: context,
         builder: (ctx) => AlertDialog(
           title: const Text('Duplicate Customer?'),
-          content: Text('Is naam ya mobile se aik customer pehle hi mojood hai:\n\n'
-              '${duplicate['name']} - ${duplicate['mobile']}\n\n'
-              'Kya aap phir bhi naya customer banana chahte hain?'),
+          content:
+              Text('Is naam ya mobile se aik customer pehle hi mojood hai:\n\n'
+                  '${duplicate['name']} - ${duplicate['mobile']}\n\n'
+                  'Kya aap phir bhi naya customer banana chahte hain?'),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Nahi, Cancel')),
-            TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Haan, Save Karein')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Nahi, Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Haan, Save Karein')),
           ],
         ),
       );
@@ -100,7 +105,8 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
 
     try {
       if (_isEditing) {
-        await DBHelper.instance.updateCustomer(widget.existing!['id'] as int, data);
+        await DBHelper.instance
+            .updateCustomer(widget.existing!['id'] as int, data);
         await AuditLogger.log(
           companyId: widget.companyId,
           module: 'Customer',
@@ -210,8 +216,10 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                 Expanded(
                   child: TextField(
                     controller: _creditLimitCtrl,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(labelText: 'Credit Limit'),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    decoration:
+                        const InputDecoration(labelText: 'Credit Limit'),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -219,10 +227,13 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                   child: TextField(
                     controller: _openingBalanceCtrl,
                     enabled: !_isEditing,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     decoration: InputDecoration(
                       labelText: 'Opening Balance',
-                      helperText: _isEditing ? 'Sirf naye customer mein set hoti hai' : null,
+                      helperText: _isEditing
+                          ? 'Sirf naye customer mein set hoti hai'
+                          : null,
                     ),
                   ),
                 ),
@@ -241,7 +252,8 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                   ? const SizedBox(
                       height: 20,
                       width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
                     )
                   : const Text('Customer Save Karein'),
             ),

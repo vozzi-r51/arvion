@@ -41,7 +41,8 @@ class InvoicePreviewScreen extends StatelessWidget {
 
       if (downloadsDir == null) throw Exception("Downloads folder nahi mila");
 
-      final fileName = 'Invoice_${sale['invoice_number']}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final fileName =
+          'Invoice_${sale['invoice_number']}_${DateTime.now().millisecondsSinceEpoch}.pdf';
       final filePath = p.join(downloadsDir.path, fileName);
       final file = File(filePath);
       await file.writeAsBytes(pdfBytes);
@@ -72,7 +73,8 @@ class InvoicePreviewScreen extends StatelessWidget {
     final path = p.join(temp.path, 'Invoice_${sale['invoice_number']}.pdf');
     await File(path).writeAsBytes(pdfBytes);
 
-    await Share.shareXFiles([XFile(path)], text: 'Invoice # ${sale['invoice_number']} from ${company['name']}');
+    await Share.shareXFiles([XFile(path)],
+        text: 'Invoice # ${sale['invoice_number']} from ${company['name']}');
   }
 
   @override
@@ -98,7 +100,9 @@ class InvoicePreviewScreen extends StatelessWidget {
           company: company,
           sale: sale,
           items: items,
-          paperSize: format == PdfPageFormat.a4 ? InvoicePaperSize.a4 : InvoicePaperSize.thermal80mm,
+          paperSize: format == PdfPageFormat.a4
+              ? InvoicePaperSize.a4
+              : InvoicePaperSize.thermal80mm,
         ),
         allowPrinting: true,
         allowSharing: true,

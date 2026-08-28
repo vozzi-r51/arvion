@@ -10,24 +10,28 @@ class PharmacyBatchService {
   }) {
     final cleanBatch = (batchNumber ?? '').trim();
     if (cleanBatch.isEmpty) {
-      throw const FormatException('Batch number is required for pharmacy products.');
+      throw const FormatException(
+          'Batch number is required for pharmacy products.');
     }
 
     final cleanExpiry = (expiryDate ?? '').trim();
     if (cleanExpiry.isEmpty) {
-      throw const FormatException('Expiry date is required for pharmacy products.');
+      throw const FormatException(
+          'Expiry date is required for pharmacy products.');
     }
 
     try {
       DateTime.parse(cleanExpiry);
     } catch (_) {
-      throw const FormatException('Invalid expiry date format. Use YYYY-MM-DD.');
+      throw const FormatException(
+          'Invalid expiry date format. Use YYYY-MM-DD.');
     }
   }
 
   /// Evaluates batch expiry status.
   /// Returns 'expired', 'expiring_soon', or 'valid'.
-  static String evaluateExpiryStatus(String expiryDateStr, {int warningDaysThreshold = 30}) {
+  static String evaluateExpiryStatus(String expiryDateStr,
+      {int warningDaysThreshold = 30}) {
     DateTime expiryDate;
     try {
       expiryDate = DateTime.parse(expiryDateStr);

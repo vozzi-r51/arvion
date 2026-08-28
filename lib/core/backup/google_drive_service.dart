@@ -52,7 +52,8 @@ class GoogleDriveService {
 
   Future<String?> uploadBackup(String filePath) async {
     final driveApi = await _getDriveApi();
-    if (driveApi == null) throw Exception('Google Drive se connect nahi ho sake.');
+    if (driveApi == null)
+      throw Exception('Google Drive se connect nahi ho sake.');
 
     final file = File(filePath);
     final fileName = p.basename(filePath);
@@ -69,7 +70,8 @@ class GoogleDriveService {
 
   Future<List<drive.File>> listBackups() async {
     final driveApi = await _getDriveApi();
-    if (driveApi == null) throw Exception('Google Drive se connect nahi ho sake.');
+    if (driveApi == null)
+      throw Exception('Google Drive se connect nahi ho sake.');
 
     final fileList = await driveApi.files.list(
       spaces: 'appDataFolder',
@@ -82,13 +84,14 @@ class GoogleDriveService {
 
   Future<void> downloadBackup(String fileId, String savePath) async {
     final driveApi = await _getDriveApi();
-    if (driveApi == null) throw Exception('Google Drive se connect nahi ho sake.');
+    if (driveApi == null)
+      throw Exception('Google Drive se connect nahi ho sake.');
 
     final drive.Media media = await driveApi.files.get(
-      fileId, 
+      fileId,
       downloadOptions: drive.DownloadOptions.fullMedia,
     ) as drive.Media;
-    
+
     final saveFile = File(savePath);
     final List<int> dataStore = [];
     await for (final data in media.stream) {

@@ -9,7 +9,8 @@ class BankAccountDetailScreen extends StatefulWidget {
       {super.key, required this.account, required this.companyId});
 
   @override
-  State<BankAccountDetailScreen> createState() => _BankAccountDetailScreenState();
+  State<BankAccountDetailScreen> createState() =>
+      _BankAccountDetailScreenState();
 }
 
 class _BankAccountDetailScreenState extends State<BankAccountDetailScreen> {
@@ -81,13 +82,16 @@ class _BankAccountDetailScreenState extends State<BankAccountDetailScreen> {
                 ),
                 TextField(
                   controller: amountCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Amount (Rs.) *'),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration:
+                      const InputDecoration(labelText: 'Amount (Rs.) *'),
                 ),
                 const SizedBox(height: 8),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text('Date: ${date.toIso8601String().substring(0, 10)}'),
+                  title:
+                      Text('Date: ${date.toIso8601String().substring(0, 10)}'),
                   trailing: const Icon(Icons.calendar_today, size: 18),
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -107,7 +111,9 @@ class _BankAccountDetailScreenState extends State<BankAccountDetailScreen> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
                 final amount = double.tryParse(amountCtrl.text.trim());
@@ -139,7 +145,9 @@ class _BankAccountDetailScreenState extends State<BankAccountDetailScreen> {
       builder: (ctx) => AlertDialog(
         title: const Text('Transaction Delete Karein?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
           TextButton(
               onPressed: () => Navigator.pop(ctx, true),
               child: const Text('Delete', style: TextStyle(color: Colors.red))),
@@ -181,7 +189,8 @@ class _BankAccountDetailScreenState extends State<BankAccountDetailScreen> {
                 _reconciledSelection.clear();
               }),
               icon: const Icon(Icons.checklist, color: Colors.white),
-              label: const Text('Reconcile', style: TextStyle(color: Colors.white)),
+              label: const Text('Reconcile',
+                  style: TextStyle(color: Colors.white)),
             ),
           ] else
             IconButton(
@@ -198,13 +207,16 @@ class _BankAccountDetailScreenState extends State<BankAccountDetailScreen> {
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                    color:
+                        Theme.of(context).colorScheme.primary.withOpacity(0.08),
                     child: Column(
                       children: [
-                        const Text('Current Book Balance', style: TextStyle(fontSize: 13)),
+                        const Text('Current Book Balance',
+                            style: TextStyle(fontSize: 13)),
                         Text(
                           'Rs. ${_balance.toStringAsFixed(0)}',
-                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                              fontSize: 24, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -213,7 +225,8 @@ class _BankAccountDetailScreenState extends State<BankAccountDetailScreen> {
                   _buildReconcileHeader(),
                 Expanded(
                   child: _transactions.isEmpty
-                      ? const Center(child: Text('Abhi koi transaction nahi hai'))
+                      ? const Center(
+                          child: Text('Abhi koi transaction nahi hai'))
                       : ListView.builder(
                           padding: const EdgeInsets.all(12),
                           itemCount: _transactions.length,
@@ -221,30 +234,39 @@ class _BankAccountDetailScreenState extends State<BankAccountDetailScreen> {
                             final t = _transactions[i];
                             final isDeposit = t['type'] == 'deposit';
                             final isReconciled = t['is_reconciled'] == 1;
-                            
-                            if (_reconcileMode && isReconciled) return const SizedBox.shrink();
+
+                            if (_reconcileMode && isReconciled)
+                              return const SizedBox.shrink();
 
                             return Card(
                               margin: const EdgeInsets.only(bottom: 8),
                               child: ListTile(
                                 leading: _reconcileMode
                                     ? Checkbox(
-                                        value: _reconciledSelection.contains(t['id']),
+                                        value: _reconciledSelection
+                                            .contains(t['id']),
                                         onChanged: (v) {
                                           setState(() {
                                             if (v == true) {
-                                              _reconciledSelection.add(t['id'] as int);
+                                              _reconciledSelection
+                                                  .add(t['id'] as int);
                                             } else {
-                                              _reconciledSelection.remove(t['id']);
+                                              _reconciledSelection
+                                                  .remove(t['id']);
                                             }
                                           });
                                         },
                                       )
                                     : Icon(
-                                        isDeposit ? Icons.arrow_downward : Icons.arrow_upward,
-                                        color: isDeposit ? Colors.green : Colors.red,
+                                        isDeposit
+                                            ? Icons.arrow_downward
+                                            : Icons.arrow_upward,
+                                        color: isDeposit
+                                            ? Colors.green
+                                            : Colors.red,
                                       ),
-                                title: Text(isDeposit ? 'Deposit' : 'Withdrawal'),
+                                title:
+                                    Text(isDeposit ? 'Deposit' : 'Withdrawal'),
                                 subtitle: Text(
                                     '${(t['transaction_date'] as String).substring(0, 10)}  •  ${t['description'] ?? ''}'),
                                 trailing: Row(
@@ -253,18 +275,22 @@ class _BankAccountDetailScreenState extends State<BankAccountDetailScreen> {
                                     if (isReconciled && !_reconcileMode)
                                       const Padding(
                                         padding: EdgeInsets.only(right: 8.0),
-                                        child: Icon(Icons.verified, size: 16, color: Colors.blue),
+                                        child: Icon(Icons.verified,
+                                            size: 16, color: Colors.blue),
                                       ),
                                     Text(
                                       'Rs. ${(t['amount'] as num).toStringAsFixed(0)}',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: isDeposit ? Colors.green : Colors.red,
+                                        color: isDeposit
+                                            ? Colors.green
+                                            : Colors.red,
                                       ),
                                     ),
                                     if (!_reconcileMode)
                                       IconButton(
-                                        icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                                        icon: const Icon(Icons.delete_outline,
+                                            size: 18, color: Colors.red),
                                         onPressed: () => _confirmDelete(t),
                                       ),
                                   ],
@@ -281,7 +307,9 @@ class _BankAccountDetailScreenState extends State<BankAccountDetailScreen> {
                       onPressed: _reconciledSelection.isEmpty
                           ? null
                           : () async {
-                              await DBHelper.instance.markTransactionsReconciled(_reconciledSelection.toList());
+                              await DBHelper.instance
+                                  .markTransactionsReconciled(
+                                      _reconciledSelection.toList());
                               setState(() => _reconcileMode = false);
                               _load();
                             },
@@ -290,7 +318,8 @@ class _BankAccountDetailScreenState extends State<BankAccountDetailScreen> {
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
                       ),
-                      child: Text('Mark ${_reconciledSelection.length} Selected as Reconciled'),
+                      child: Text(
+                          'Mark ${_reconciledSelection.length} Selected as Reconciled'),
                     ),
                   ),
               ],
@@ -306,7 +335,7 @@ class _BankAccountDetailScreenState extends State<BankAccountDetailScreen> {
 
   Widget _buildReconcileHeader() {
     double statementBalance = double.tryParse(_statementCtrl.text) ?? 0;
-    
+
     // Logic: Starting Balance (Already Reconciled) + Changes from Newly Selected
     double alreadyReconciledSum = 0;
     for (var t in _transactions) {
@@ -354,7 +383,8 @@ class _BankAccountDetailScreenState extends State<BankAccountDetailScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _reconcileInfo('Calculated', calculatedBalance),
-              _reconcileInfo('Difference', diff, color: diff == 0 ? Colors.green : Colors.red),
+              _reconcileInfo('Difference', diff,
+                  color: diff == 0 ? Colors.green : Colors.red),
             ],
           ),
         ],
@@ -368,7 +398,8 @@ class _BankAccountDetailScreenState extends State<BankAccountDetailScreen> {
         Text(label, style: const TextStyle(fontSize: 11)),
         Text(
           'Rs. ${val.toStringAsFixed(0)}',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: color),
+          style: TextStyle(
+              fontWeight: FontWeight.bold, fontSize: 16, color: color),
         ),
       ],
     );

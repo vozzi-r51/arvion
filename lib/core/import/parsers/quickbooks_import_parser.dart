@@ -12,7 +12,8 @@ class QuickBooksImportParser {
   }) async {
     final genericResult = await GenericCsvExcelParser().parseFile(filePath);
     final List<String> headers = List<String>.from(genericResult['headers']);
-    final List<Map<String, String>> rows = List<Map<String, String>>.from(genericResult['rows']);
+    final List<Map<String, String>> rows =
+        List<Map<String, String>>.from(genericResult['rows']);
 
     final mappings = SmartColumnMapper.mapColumns(
       headers: headers,

@@ -106,7 +106,8 @@ class UXModeService {
       }
 
       // Smart Migration for legacy companies
-      final isAdvancedUser = await AdvancedFeatureDetector.detectAdvancedUsage(companyId);
+      final isAdvancedUser =
+          await AdvancedFeatureDetector.detectAdvancedUsage(companyId);
       final effectiveMode = isAdvancedUser ? UXMode.advanced : UXMode.simple;
 
       await setMode(companyId, effectiveMode);

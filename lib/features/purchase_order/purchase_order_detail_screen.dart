@@ -6,7 +6,8 @@ class PurchaseOrderDetailScreen extends StatefulWidget {
   const PurchaseOrderDetailScreen({super.key, required this.po});
 
   @override
-  State<PurchaseOrderDetailScreen> createState() => _PurchaseOrderDetailScreenState();
+  State<PurchaseOrderDetailScreen> createState() =>
+      _PurchaseOrderDetailScreenState();
 }
 
 class _PurchaseOrderDetailScreenState extends State<PurchaseOrderDetailScreen> {
@@ -24,7 +25,8 @@ class _PurchaseOrderDetailScreenState extends State<PurchaseOrderDetailScreen> {
   }
 
   Future<void> _load() async {
-    final items = await DBHelper.instance.getPurchaseOrderItems(widget.po['id'] as int);
+    final items =
+        await DBHelper.instance.getPurchaseOrderItems(widget.po['id'] as int);
     setState(() {
       _items = items;
       _loading = false;
@@ -32,7 +34,8 @@ class _PurchaseOrderDetailScreenState extends State<PurchaseOrderDetailScreen> {
   }
 
   Future<void> _updateStatus(String status) async {
-    await DBHelper.instance.updatePurchaseOrderStatus(widget.po['id'] as int, status);
+    await DBHelper.instance
+        .updatePurchaseOrderStatus(widget.po['id'] as int, status);
     setState(() => _status = status);
   }
 
@@ -84,14 +87,17 @@ class _PurchaseOrderDetailScreenState extends State<PurchaseOrderDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Supplier: ${po['supplier_name'] ?? 'Not Selected'}'),
-                        Text('Date: ${(po['po_date'] as String).substring(0, 10)}'),
+                        Text(
+                            'Supplier: ${po['supplier_name'] ?? 'Not Selected'}'),
+                        Text(
+                            'Date: ${(po['po_date'] as String).substring(0, 10)}'),
                         if ((po['notes'] as String?)?.isNotEmpty == true)
                           Text('Notes: ${po['notes']}'),
                         const SizedBox(height: 8),
                         Chip(
                           label: Text(_statusLabel(_status)),
-                          backgroundColor: _statusColor(_status).withOpacity(0.15),
+                          backgroundColor:
+                              _statusColor(_status).withOpacity(0.15),
                           labelStyle: TextStyle(color: _statusColor(_status)),
                         ),
                       ],
@@ -104,17 +110,23 @@ class _PurchaseOrderDetailScreenState extends State<PurchaseOrderDetailScreen> {
                 ..._items.map((it) => Card(
                       child: ListTile(
                         title: Text(it['product_name'] as String),
-                        subtitle: Text('${it['quantity']} x Rs. ${it['unit_cost']}'),
-                        trailing: Text('Rs. ${(it['total'] as num).toStringAsFixed(0)}'),
+                        subtitle:
+                            Text('${it['quantity']} x Rs. ${it['unit_cost']}'),
+                        trailing: Text(
+                            'Rs. ${(it['total'] as num).toStringAsFixed(0)}'),
                       ),
                     )),
                 const Divider(height: 32),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Total', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    Text('Rs. ${(po['total_amount'] as num).toStringAsFixed(0)}',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Text('Total',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text(
+                        'Rs. ${(po['total_amount'] as num).toStringAsFixed(0)}',
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -129,8 +141,10 @@ class _PurchaseOrderDetailScreenState extends State<PurchaseOrderDetailScreen> {
                   OutlinedButton.icon(
                     onPressed: () => _updateStatus('cancelled'),
                     icon: const Icon(Icons.cancel_outlined, color: Colors.red),
-                    label: const Text('PO Cancel Karein', style: TextStyle(color: Colors.red)),
-                    style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.red)),
+                    label: const Text('PO Cancel Karein',
+                        style: TextStyle(color: Colors.red)),
+                    style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.red)),
                   ),
                 ],
                 if (_status == 'received') ...[

@@ -4,7 +4,8 @@ import 'package:bizmanager/core/widgets/bizmanager_logo.dart';
 import 'package:bizmanager/core/widgets/motion_widgets.dart';
 
 void main() {
-  testWidgets('BizManagerLogo renders without errors', (WidgetTester tester) async {
+  testWidgets('BizManagerLogo renders without errors',
+      (WidgetTester tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
@@ -16,7 +17,8 @@ void main() {
     expect(find.byType(BizManagerLogo), findsOneWidget);
   });
 
-  testWidgets('AnimatedCountText animates numerical text smoothly', (WidgetTester tester) async {
+  testWidgets('AnimatedCountText animates numerical text smoothly',
+      (WidgetTester tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(

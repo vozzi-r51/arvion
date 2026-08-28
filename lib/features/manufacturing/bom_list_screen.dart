@@ -44,8 +44,10 @@ class _BomListScreenState extends State<BomListScreen> {
                     return Card(
                       child: ListTile(
                         title: Text(b['name'] as String),
-                        subtitle: Text('Finished Item: ${b['finished_product_name']} (Batch Qty: ${b['output_quantity']})'),
-                        trailing: const Icon(Icons.precision_manufacturing, color: Colors.indigo),
+                        subtitle: Text(
+                            'Finished Item: ${b['finished_product_name']} (Batch Qty: ${b['output_quantity']})'),
+                        trailing: const Icon(Icons.precision_manufacturing,
+                            color: Colors.indigo),
                       ),
                     );
                   },
@@ -54,7 +56,8 @@ class _BomListScreenState extends State<BomListScreen> {
         onPressed: () async {
           final res = await Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => BomFormScreen(companyId: widget.companyId)),
+            MaterialPageRoute(
+                builder: (_) => BomFormScreen(companyId: widget.companyId)),
           );
           if (res == true) _load();
         },

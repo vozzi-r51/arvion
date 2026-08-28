@@ -4,7 +4,8 @@ import '../../core/database/db_helper.dart';
 class NewSalesReturnScreen extends StatefulWidget {
   final int companyId;
   final Map<String, dynamic>? initialSale;
-  const NewSalesReturnScreen({super.key, required this.companyId, this.initialSale});
+  const NewSalesReturnScreen(
+      {super.key, required this.companyId, this.initialSale});
 
   @override
   State<NewSalesReturnScreen> createState() => _NewSalesReturnScreenState();
@@ -50,7 +51,8 @@ class _NewSalesReturnScreenState extends State<NewSalesReturnScreen> {
 
   Future<void> _loadItemsForSelectedSale() async {
     setState(() => _loadingItems = true);
-    final items = await DBHelper.instance.getSaleItems(_selectedSale!['id'] as int);
+    final items =
+        await DBHelper.instance.getSaleItems(_selectedSale!['id'] as int);
     setState(() {
       _lines = items
           .map((it) => _ReturnLine(
@@ -82,14 +84,15 @@ class _NewSalesReturnScreenState extends State<NewSalesReturnScreen> {
 
   Future<void> _save() async {
     if (_selectedSale == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Pehle sale select karein')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Pehle sale select karein')));
       return;
     }
-    final selectedLines = _lines.where((l) => l.selected && l.returnQty > 0).toList();
+    final selectedLines =
+        _lines.where((l) => l.selected && l.returnQty > 0).toList();
     if (selectedLines.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Kam se kam ek item select karein')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Kam se kam ek item select karein')));
       return;
     }
 
@@ -126,8 +129,8 @@ class _NewSalesReturnScreenState extends State<NewSalesReturnScreen> {
     setState(() => _saving = false);
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text('Return save ho gaya ($returnNumber)')));
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Return save ho gaya ($returnNumber)')));
     Navigator.of(context).pop(true);
   }
 
@@ -149,7 +152,8 @@ class _NewSalesReturnScreenState extends State<NewSalesReturnScreen> {
                   : '${_selectedSale!['invoice_number']} — ${_selectedSale!['customer_name'] ?? 'Walk-in Customer'}'),
             ),
           ),
-          if (_loadingItems) const Expanded(child: Center(child: CircularProgressIndicator())),
+          if (_loadingItems)
+            const Expanded(child: Center(child: CircularProgressIndicator())),
           if (!_loadingItems && _lines.isNotEmpty)
             Expanded(
               child: ListView.builder(
@@ -161,11 +165,13 @@ class _NewSalesReturnScreenState extends State<NewSalesReturnScreen> {
                     margin: const EdgeInsets.only(bottom: 8),
                     child: CheckboxListTile(
                       value: line.selected,
-                      onChanged: (v) => setState(() => line.selected = v ?? false),
+                      onChanged: (v) =>
+                          setState(() => line.selected = v ?? false),
                       title: Text(line.productName),
                       subtitle: Row(
                         children: [
-                          Text('Rs. ${line.unitPrice.toStringAsFixed(0)} each  •  Max: ${line.maxQty}'),
+                          Text(
+                              'Rs. ${line.unitPrice.toStringAsFixed(0)} each  •  Max: ${line.maxQty}'),
                           const Spacer(),
                           if (line.selected)
                             SizedBox(
@@ -173,11 +179,12 @@ class _NewSalesReturnScreenState extends State<NewSalesReturnScreen> {
                               child: TextFormField(
                                 initialValue: line.returnQty.toStringAsFixed(0),
                                 keyboardType: TextInputType.number,
-                                decoration: const InputDecoration(isDense: true),
+                                decoration:
+                                    const InputDecoration(isDense: true),
                                 onChanged: (v) {
                                   final qty = double.tryParse(v) ?? 0;
-                                  setState(() =>
-                                      line.returnQty = qty.clamp(0, line.maxQty));
+                                  setState(() => line.returnQty =
+                                      qty.clamp(0, line.maxQty));
                                 },
                               ),
                             ),
@@ -189,14 +196,18 @@ class _NewSalesReturnScreenState extends State<NewSalesReturnScreen> {
               ),
             ),
           if (!_loadingItems && _selectedSale != null && _lines.isEmpty)
-            const Expanded(child: Center(child: Text('Is sale mein koi item nahi mila'))),
+            const Expanded(
+                child: Center(child: Text('Is sale mein koi item nahi mila'))),
           if (_selectedSale != null)
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, -2)),
+                  BoxShadow(
+                      color: Colors.black.withOpacity(0.06),
+                      blurRadius: 8,
+                      offset: const Offset(0, -2)),
                 ],
               ),
               child: Column(
@@ -229,9 +240,11 @@ class _NewSalesReturnScreenState extends State<NewSalesReturnScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Refund Total', style: TextStyle(fontSize: 16)),
+                      const Text('Refund Total',
+                          style: TextStyle(fontSize: 16)),
                       Text('Rs. ${_total.toStringAsFixed(0)}',
-                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                          style: const TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold)),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -241,7 +254,8 @@ class _NewSalesReturnScreenState extends State<NewSalesReturnScreen> {
                         ? const SizedBox(
                             height: 20,
                             width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white))
                         : const Text('Return Save Karein'),
                   ),
                 ],
@@ -303,7 +317,8 @@ class _SalePickerSheetState extends State<_SalePickerSheet> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Text('Sale Select Karein', style: Theme.of(context).textTheme.titleMedium),
+            Text('Sale Select Karein',
+                style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 10),
             TextField(
               decoration: const InputDecoration(

@@ -37,10 +37,12 @@ class _StaffUsersScreenState extends State<StaffUsersScreen> {
 
   void _showStaffFormDialog([Map<String, dynamic>? staffToEdit]) {
     final isEditing = staffToEdit != null;
-    final nameCtrl = TextEditingController(text: isEditing ? staffToEdit['name'] as String : '');
+    final nameCtrl = TextEditingController(
+        text: isEditing ? staffToEdit['name'] as String : '');
     final pinCtrl = TextEditingController();
 
-    String selectedRole = isEditing ? (staffToEdit['role'] as String? ?? 'Cashier') : 'Cashier';
+    String selectedRole =
+        isEditing ? (staffToEdit['role'] as String? ?? 'Cashier') : 'Cashier';
     Set<String> selectedPermissions = {};
 
     if (isEditing && staffToEdit['permissions'] != null) {
@@ -56,7 +58,9 @@ class _StaffUsersScreenState extends State<StaffUsersScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: Text(isEditing ? 'Staff User Edit Karein' : 'Naya Staff User Add Karein'),
+          title: Text(isEditing
+              ? 'Staff User Edit Karein'
+              : 'Naya Staff User Add Karein'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -64,7 +68,8 @@ class _StaffUsersScreenState extends State<StaffUsersScreen> {
               children: [
                 TextField(
                   controller: nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Staff Member Name *'),
+                  decoration:
+                      const InputDecoration(labelText: 'Staff Member Name *'),
                 ),
                 const SizedBox(height: 12),
                 TextField(
@@ -73,34 +78,53 @@ class _StaffUsersScreenState extends State<StaffUsersScreen> {
                   obscureText: true,
                   maxLength: 6,
                   decoration: InputDecoration(
-                    labelText: isEditing ? 'Naya PIN (Khali chhodein agar purana rakhna ho)' : 'Login PIN (4-6 Digits) *',
+                    labelText: isEditing
+                        ? 'Naya PIN (Khali chhodein agar purana rakhna ho)'
+                        : 'Login PIN (4-6 Digits) *',
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text('Role Template Choose Karein:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                const Text('Role Template Choose Karein:',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<String>(
                   value: selectedRole,
                   isExpanded: true,
-                  decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+                  decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
                   items: const [
-                    DropdownMenuItem(value: 'Manager', child: Text('Manager (Full Access except Settings/Delete)')),
-                    DropdownMenuItem(value: 'Accountant', child: Text('Accountant (Reports & Finance)')),
-                    DropdownMenuItem(value: 'Cashier', child: Text('Cashier (Sales & Customers)')),
-                    DropdownMenuItem(value: 'Custom', child: Text('Custom Role (Select Toggles)')),
+                    DropdownMenuItem(
+                        value: 'Manager',
+                        child: Text(
+                            'Manager (Full Access except Settings/Delete)')),
+                    DropdownMenuItem(
+                        value: 'Accountant',
+                        child: Text('Accountant (Reports & Finance)')),
+                    DropdownMenuItem(
+                        value: 'Cashier',
+                        child: Text('Cashier (Sales & Customers)')),
+                    DropdownMenuItem(
+                        value: 'Custom',
+                        child: Text('Custom Role (Select Toggles)')),
                   ],
                   onChanged: (val) {
                     if (val == null) return;
                     setDialogState(() {
                       selectedRole = val;
                       if (val != 'Custom') {
-                        selectedPermissions = DefaultRoles.getPermissionsForRole(val);
+                        selectedPermissions =
+                            DefaultRoles.getPermissionsForRole(val);
                       }
                     });
                   },
                 ),
                 const SizedBox(height: 16),
-                const Text('Permission Matrix (Granular Control):', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                const Text('Permission Matrix (Granular Control):',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                 const SizedBox(height: 6),
                 Container(
                   decoration: BoxDecoration(
@@ -113,8 +137,12 @@ class _StaffUsersScreenState extends State<StaffUsersScreen> {
                       return CheckboxListTile(
                         dense: true,
                         activeColor: Theme.of(context).colorScheme.primary,
-                        title: Text(AppPermissions.labels[perm] ?? perm, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                        subtitle: Text(AppPermissions.descriptions[perm] ?? '', style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                        title: Text(AppPermissions.labels[perm] ?? perm,
+                            style: const TextStyle(
+                                fontSize: 13, fontWeight: FontWeight.w600)),
+                        subtitle: Text(AppPermissions.descriptions[perm] ?? '',
+                            style: TextStyle(
+                                fontSize: 11, color: Colors.grey.shade600)),
                         value: isGranted,
                         onChanged: (bool? checked) {
                           setDialogState(() {
@@ -134,7 +162,9 @@ class _StaffUsersScreenState extends State<StaffUsersScreen> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             FilledButton(
               onPressed: () async {
                 final name = nameCtrl.text.trim();
@@ -158,14 +188,24 @@ class _StaffUsersScreenState extends State<StaffUsersScreen> {
 
                 if (isEditing) {
                   final oldData = Map<String, dynamic>.from(staffToEdit);
-                  await DBHelper.instance.updateStaffUser(staffToEdit['id'] as int, data);
+                  await DBHelper.instance
+                      .updateStaffUser(staffToEdit['id'] as int, data);
                   await AuditLogger.log(
                     companyId: widget.companyId,
                     module: 'Staff',
                     action: AuditLogger.update,
-                    description: 'Staff member "$name" ka role/permissions update kiya',
-                    beforeValue: {'name': oldData['name'], 'role': oldData['role'], 'permissions': oldData['permissions']},
-                    afterValue: {'name': name, 'role': selectedRole, 'permissions': jsonEncode(selectedPermissions.toList())},
+                    description:
+                        'Staff member "$name" ka role/permissions update kiya',
+                    beforeValue: {
+                      'name': oldData['name'],
+                      'role': oldData['role'],
+                      'permissions': oldData['permissions']
+                    },
+                    afterValue: {
+                      'name': name,
+                      'role': selectedRole,
+                      'permissions': jsonEncode(selectedPermissions.toList())
+                    },
                   );
                 } else {
                   await DBHelper.instance.insertStaffUser(data);
@@ -173,8 +213,13 @@ class _StaffUsersScreenState extends State<StaffUsersScreen> {
                     companyId: widget.companyId,
                     module: 'Staff',
                     action: AuditLogger.create,
-                    description: 'Naya staff member "$name" ($selectedRole) add kiya',
-                    afterValue: {'name': name, 'role': selectedRole, 'permissions': jsonEncode(selectedPermissions.toList())},
+                    description:
+                        'Naya staff member "$name" ($selectedRole) add kiya',
+                    afterValue: {
+                      'name': name,
+                      'role': selectedRole,
+                      'permissions': jsonEncode(selectedPermissions.toList())
+                    },
                   );
                 }
 
@@ -197,7 +242,9 @@ class _StaffUsersScreenState extends State<StaffUsersScreen> {
         title: const Text('Staff Member Hatayein?'),
         content: Text('"${s['name']}" ka access aur PIN delete ho jayega.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
@@ -233,7 +280,8 @@ class _StaffUsersScreenState extends State<StaffUsersScreen> {
               ? AppEmptyState(
                   icon: Icons.shield_outlined,
                   title: 'Koi Staff Member Add Nahi Hua',
-                  message: 'Apne staff (Manager, Accountant, Cashier) ke liye alag PINs aur permissions set karein.',
+                  message:
+                      'Apne staff (Manager, Accountant, Cashier) ke liye alag PINs aur permissions set karein.',
                   actionLabel: 'Staff Add Karein',
                   onAction: () => _showStaffFormDialog(),
                 )
@@ -259,15 +307,28 @@ class _StaffUsersScreenState extends State<StaffUsersScreen> {
                       margin: const EdgeInsets.only(bottom: AppSpacing.m),
                       shape: RoundedRectangleBorder(
                         borderRadius: AppRadius.medium,
-                        side: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.15)),
+                        side: BorderSide(
+                            color: Theme.of(context)
+                                .dividerColor
+                                .withValues(alpha: 0.15)),
                       ),
                       child: ExpansionTile(
                         leading: CircleAvatar(
-                          backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
-                          child: Text(s['name'][0].toUpperCase(), style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
+                          backgroundColor: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withValues(alpha: 0.12),
+                          child: Text(s['name'][0].toUpperCase(),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color:
+                                      Theme.of(context).colorScheme.primary)),
                         ),
-                        title: Text(s['name'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text('Role: $role (${perms.length} Permissions Active)'),
+                        title: Text(s['name'] as String,
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text(
+                            'Role: $role (${perms.length} Permissions Active)'),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -276,14 +337,16 @@ class _StaffUsersScreenState extends State<StaffUsersScreen> {
                               onPressed: () => _showStaffFormDialog(s),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                              icon: const Icon(Icons.delete_outline,
+                                  color: Colors.red, size: 20),
                               onPressed: () => _confirmDelete(s),
                             ),
                           ],
                         ),
                         children: [
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
                             child: Wrap(
                               spacing: 6,
                               runSpacing: 6,
@@ -291,11 +354,23 @@ class _StaffUsersScreenState extends State<StaffUsersScreen> {
                                 final hasPerm = perms.contains(p);
                                 return Chip(
                                   visualDensity: VisualDensity.compact,
-                                  backgroundColor: hasPerm ? Colors.green.shade50 : Colors.grey.shade100,
-                                  avatar: Icon(hasPerm ? Icons.check_circle : Icons.cancel, size: 14, color: hasPerm ? Colors.green : Colors.grey),
+                                  backgroundColor: hasPerm
+                                      ? Colors.green.shade50
+                                      : Colors.grey.shade100,
+                                  avatar: Icon(
+                                      hasPerm
+                                          ? Icons.check_circle
+                                          : Icons.cancel,
+                                      size: 14,
+                                      color:
+                                          hasPerm ? Colors.green : Colors.grey),
                                   label: Text(
                                     AppPermissions.labels[p] ?? p,
-                                    style: TextStyle(fontSize: 11, color: hasPerm ? Colors.green.shade900 : Colors.grey.shade600),
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        color: hasPerm
+                                            ? Colors.green.shade900
+                                            : Colors.grey.shade600),
                                   ),
                                 );
                               }).toList(),

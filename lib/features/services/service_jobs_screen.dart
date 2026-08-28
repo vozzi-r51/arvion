@@ -11,7 +11,8 @@ class ServiceJobsScreen extends StatefulWidget {
   State<ServiceJobsScreen> createState() => _ServiceJobsScreenState();
 }
 
-class _ServiceJobsScreenState extends State<ServiceJobsScreen> with SingleTickerProviderStateMixin {
+class _ServiceJobsScreenState extends State<ServiceJobsScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   List<Map<String, dynamic>> _jobs = [];
   List<Map<String, dynamic>> _employees = [];
@@ -49,7 +50,8 @@ class _ServiceJobsScreenState extends State<ServiceJobsScreen> with SingleTicker
   void _showForm() async {
     final descCtrl = TextEditingController();
     final amountCtrl = TextEditingController();
-    List<Map<String, dynamic>> customers = await DBHelper.instance.getCustomers(widget.companyId);
+    List<Map<String, dynamic>> customers =
+        await DBHelper.instance.getCustomers(widget.companyId);
 
     int? selectedCustomerId;
     int? selectedTechId;
@@ -68,56 +70,75 @@ class _ServiceJobsScreenState extends State<ServiceJobsScreen> with SingleTicker
               children: [
                 DropdownButtonFormField<int?>(
                   value: selectedCustomerId,
-                  decoration: const InputDecoration(labelText: 'Customer (Optional)'),
+                  decoration:
+                      const InputDecoration(labelText: 'Customer (Optional)'),
                   items: [
-                    const DropdownMenuItem(value: null, child: Text('Walk-in Customer')),
-                    ...customers.map((c) => DropdownMenuItem(value: c['id'] as int, child: Text(c['name'] as String))),
+                    const DropdownMenuItem(
+                        value: null, child: Text('Walk-in Customer')),
+                    ...customers.map((c) => DropdownMenuItem(
+                        value: c['id'] as int,
+                        child: Text(c['name'] as String))),
                   ],
-                  onChanged: (v) => setDialogState(() => selectedCustomerId = v),
+                  onChanged: (v) =>
+                      setDialogState(() => selectedCustomerId = v),
                 ),
                 DropdownButtonFormField<int?>(
                   value: selectedTechId,
-                  decoration: const InputDecoration(labelText: 'Assign Technician (HR Employee)'),
+                  decoration: const InputDecoration(
+                      labelText: 'Assign Technician (HR Employee)'),
                   items: [
-                    const DropdownMenuItem(value: null, child: Text('Unassigned')),
-                    ..._employees.map((e) => DropdownMenuItem(value: e['id'] as int, child: Text('${e['name']} (${e['designation'] ?? 'Technician'})'))),
+                    const DropdownMenuItem(
+                        value: null, child: Text('Unassigned')),
+                    ..._employees.map((e) => DropdownMenuItem(
+                        value: e['id'] as int,
+                        child: Text(
+                            '${e['name']} (${e['designation'] ?? 'Technician'})'))),
                   ],
                   onChanged: (v) => setDialogState(() => selectedTechId = v),
                 ),
                 TextField(
                   controller: descCtrl,
-                  decoration: const InputDecoration(labelText: 'Service Description * (e.g. Haircut, AC Repair)'),
+                  decoration: const InputDecoration(
+                      labelText:
+                          'Service Description * (e.g. Haircut, AC Repair)'),
                 ),
                 TextField(
                   controller: amountCtrl,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Estimated Amount (Rs.)'),
+                  decoration: const InputDecoration(
+                      labelText: 'Estimated Amount (Rs.)'),
                 ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text('Scheduled Date: ${DateFormatter.format(scheduledDate.toIso8601String().substring(0, 10), format: "dd/MM/yyyy")}'),
+                  title: Text(
+                      'Scheduled Date: ${DateFormatter.format(scheduledDate.toIso8601String().substring(0, 10), format: "dd/MM/yyyy")}'),
                   trailing: const Icon(Icons.calendar_today, size: 18),
                   onTap: () async {
                     final picked = await showDatePicker(
                       context: ctx,
                       initialDate: scheduledDate,
-                      firstDate: DateTime.now().subtract(const Duration(days: 30)),
+                      firstDate:
+                          DateTime.now().subtract(const Duration(days: 30)),
                       lastDate: DateTime(2100),
                     );
-                    if (picked != null) setDialogState(() => scheduledDate = picked);
+                    if (picked != null)
+                      setDialogState(() => scheduledDate = picked);
                   },
                 ),
               ],
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
                 if (descCtrl.text.trim().isEmpty) return;
                 String? customerName;
                 if (selectedCustomerId != null) {
-                  customerName = customers.firstWhere((c) => c['id'] == selectedCustomerId)['name'] as String;
+                  customerName = customers.firstWhere(
+                      (c) => c['id'] == selectedCustomerId)['name'] as String;
                 }
                 final db = await DBHelper.instance.database;
                 await db.insert('service_jobs', {
@@ -128,7 +149,8 @@ class _ServiceJobsScreenState extends State<ServiceJobsScreen> with SingleTicker
                   'service_description': descCtrl.text.trim(),
                   'amount': double.tryParse(amountCtrl.text) ?? 0,
                   'status': 'pending',
-                  'scheduled_date': scheduledDate.toIso8601String().substring(0, 10),
+                  'scheduled_date':
+                      scheduledDate.toIso8601String().substring(0, 10),
                   'created_at': DateTime.now().toIso8601String(),
                 });
                 if (!ctx.mounted) return;
@@ -150,10 +172,14 @@ class _ServiceJobsScreenState extends State<ServiceJobsScreen> with SingleTicker
 
   Color _getStatusColor(String status) {
     switch (status) {
-      case 'pending': return Colors.orange;
-      case 'in_progress': return Colors.blue;
-      case 'done': return Colors.green;
-      default: return Colors.grey;
+      case 'pending':
+        return Colors.orange;
+      case 'in_progress':
+        return Colors.blue;
+      case 'done':
+        return Colors.green;
+      default:
+        return Colors.grey;
     }
   }
 
@@ -201,7 +227,8 @@ class _ServiceJobsScreenState extends State<ServiceJobsScreen> with SingleTicker
 
         String techName = 'Unassigned';
         if (techId != null && _employees.isNotEmpty) {
-          final match = _employees.firstWhere((e) => e['id'] == techId, orElse: () => {});
+          final match =
+              _employees.firstWhere((e) => e['id'] == techId, orElse: () => {});
           if (match.isNotEmpty) techName = match['name'] as String;
         }
 
@@ -214,30 +241,43 @@ class _ServiceJobsScreenState extends State<ServiceJobsScreen> with SingleTicker
               children: [
                 Row(
                   children: [
-                    Text('Job #${j['id']}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text('Job #${j['id']}',
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
                     const Spacer(),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
                         color: _getStatusColor(status).withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: Text(status.toUpperCase(), style: TextStyle(color: _getStatusColor(status), fontWeight: FontWeight.bold, fontSize: 10)),
+                      child: Text(status.toUpperCase(),
+                          style: TextStyle(
+                              color: _getStatusColor(status),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 10)),
                     ),
                   ],
                 ),
                 const SizedBox(height: 6),
-                Text(j['service_description'] as String? ?? '', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-                if (j['customer_name'] != null) Text('Customer: ${j['customer_name']}'),
-                Text('Technician: $techName', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo)),
-                if (j['scheduled_date'] != null) Text('Scheduled: ${j['scheduled_date']}'),
+                Text(j['service_description'] as String? ?? '',
+                    style: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w600)),
+                if (j['customer_name'] != null)
+                  Text('Customer: ${j['customer_name']}'),
+                Text('Technician: $techName',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.indigo)),
+                if (j['scheduled_date'] != null)
+                  Text('Scheduled: ${j['scheduled_date']}'),
                 Text('Est. Amount: Rs. ${j['amount']}'),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     if (status == 'pending')
                       TextButton(
-                        onPressed: () => _updateStatus(j['id'] as int, 'in_progress'),
+                        onPressed: () =>
+                            _updateStatus(j['id'] as int, 'in_progress'),
                         child: const Text('Start Job'),
                       ),
                     if (status == 'in_progress')
@@ -248,9 +288,13 @@ class _ServiceJobsScreenState extends State<ServiceJobsScreen> with SingleTicker
                     if (status == 'done')
                       ElevatedButton.icon(
                         onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => NewSaleScreen(companyId: widget.companyId)),
-                          ).then((_) => _load());
+                          Navigator.of(context)
+                              .push(
+                                MaterialPageRoute(
+                                    builder: (_) => NewSaleScreen(
+                                        companyId: widget.companyId)),
+                              )
+                              .then((_) => _load());
                         },
                         icon: const Icon(Icons.receipt_long, size: 16),
                         label: const Text('Create Bill / Sale'),
@@ -268,7 +312,8 @@ class _ServiceJobsScreenState extends State<ServiceJobsScreen> with SingleTicker
   Widget _buildCalendarTab() {
     final Map<String, List<Map<String, dynamic>>> grouped = {};
     for (final j in _jobs) {
-      final date = (j['scheduled_date'] as String? ?? 'Unscheduled').substring(0, 10);
+      final date =
+          (j['scheduled_date'] as String? ?? 'Unscheduled').substring(0, 10);
       grouped.putIfAbsent(date, () => []).add(j);
     }
 
@@ -290,9 +335,16 @@ class _ServiceJobsScreenState extends State<ServiceJobsScreen> with SingleTicker
                 children: [
                   const Icon(Icons.event, size: 18, color: Colors.indigo),
                   const SizedBox(width: 6),
-                  Text(date, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.indigo)),
+                  Text(date,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.indigo)),
                   const SizedBox(width: 8),
-                  Chip(label: Text('${dayJobs.length} jobs'), padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
+                  Chip(
+                      label: Text('${dayJobs.length} jobs'),
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact),
                 ],
               ),
             ),
@@ -300,8 +352,10 @@ class _ServiceJobsScreenState extends State<ServiceJobsScreen> with SingleTicker
               return Card(
                 child: ListTile(
                   title: Text(j['service_description'] as String? ?? ''),
-                  subtitle: Text('Customer: ${j['customer_name'] ?? "Walk-in"} • Status: ${j['status']}'),
-                  trailing: Text('Rs. ${j['amount']}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text(
+                      'Customer: ${j['customer_name'] ?? "Walk-in"} • Status: ${j['status']}'),
+                  trailing: Text('Rs. ${j['amount']}',
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
                 ),
               );
             }),

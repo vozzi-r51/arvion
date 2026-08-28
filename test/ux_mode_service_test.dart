@@ -7,7 +7,8 @@ void main() {
       expect(UXMode.simple.displayName, equals('Simple'));
       expect(UXMode.advanced.displayName, equals('Advanced'));
 
-      expect(UXMode.simple.description, contains('everyday business management'));
+      expect(
+          UXMode.simple.description, contains('everyday business management'));
       expect(UXMode.advanced.description, contains('variants'));
     });
 

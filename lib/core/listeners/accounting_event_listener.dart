@@ -41,7 +41,8 @@ class AccountingEventListener {
           companyId: e.companyId,
           module: 'Receivables',
           action: 'payment',
-          description: 'Payment received from customer #${e.customerId}: ${e.amount}',
+          description:
+              'Payment received from customer #${e.customerId}: ${e.amount}',
         );
       }),
     );
@@ -51,7 +52,8 @@ class AccountingEventListener {
           companyId: e.companyId,
           module: 'Inventory',
           action: 'adjust',
-          description: 'Stock for product #${e.productId} changed by ${e.delta} (${e.reason})',
+          description:
+              'Stock for product #${e.productId} changed by ${e.delta} (${e.reason})',
         );
       }),
     );

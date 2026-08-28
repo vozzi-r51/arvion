@@ -42,11 +42,13 @@ class _TaxCodesScreenState extends State<TaxCodesScreen> {
             children: [
               TextField(
                 controller: nameCtrl,
-                decoration: const InputDecoration(labelText: 'Tax Name (e.g. GST 17%, VAT 5%)'),
+                decoration: const InputDecoration(
+                    labelText: 'Tax Name (e.g. GST 17%, VAT 5%)'),
               ),
               TextField(
                 controller: rateCtrl,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(labelText: 'Tax Rate (%)'),
               ),
               CheckboxListTile(
@@ -57,7 +59,9 @@ class _TaxCodesScreenState extends State<TaxCodesScreen> {
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
                 if (nameCtrl.text.trim().isEmpty) return;
@@ -97,7 +101,9 @@ class _TaxCodesScreenState extends State<TaxCodesScreen> {
                         title: Text(t['name'] as String),
                         subtitle: Text('Rate: ${t['rate']}%'),
                         trailing: t['is_default'] == 1
-                            ? const Chip(label: Text('Default', style: TextStyle(fontSize: 10)))
+                            ? const Chip(
+                                label: Text('Default',
+                                    style: TextStyle(fontSize: 10)))
                             : null,
                       ),
                     );

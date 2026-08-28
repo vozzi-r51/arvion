@@ -34,7 +34,14 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
     'Archive',
   ];
 
-  static const _actions = ['login', 'create', 'update', 'delete', 'stock_change', 'archive'];
+  static const _actions = [
+    'login',
+    'create',
+    'update',
+    'delete',
+    'stock_change',
+    'archive'
+  ];
 
   @override
   void initState() {
@@ -50,7 +57,8 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
       if (!_loadingMore && _hasMore) {
         _loadMore();
       }
@@ -139,12 +147,14 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
 
     if (log['before_value'] != null) {
       try {
-        before = Map<String, dynamic>.from(jsonDecode(log['before_value'] as String));
+        before = Map<String, dynamic>.from(
+            jsonDecode(log['before_value'] as String));
       } catch (_) {}
     }
     if (log['after_value'] != null) {
       try {
-        after = Map<String, dynamic>.from(jsonDecode(log['after_value'] as String));
+        after =
+            Map<String, dynamic>.from(jsonDecode(log['after_value'] as String));
       } catch (_) {}
     }
 
@@ -155,9 +165,12 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
       builder: (ctx) => AlertDialog(
         title: Row(
           children: [
-            Icon(_actionIcon(log['action'] as String), color: _actionColor(log['action'] as String)),
+            Icon(_actionIcon(log['action'] as String),
+                color: _actionColor(log['action'] as String)),
             const SizedBox(width: 8),
-            const Expanded(child: Text('Before & After State Diff', style: TextStyle(fontSize: 16))),
+            const Expanded(
+                child: Text('Before & After State Diff',
+                    style: TextStyle(fontSize: 16))),
           ],
         ),
         content: SingleChildScrollView(
@@ -165,7 +178,9 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(log['description'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              Text(log['description'] as String,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 13)),
               const SizedBox(height: 12),
               Table(
                 border: TableBorder.all(color: Colors.grey.shade300, width: 1),
@@ -178,9 +193,25 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
                   TableRow(
                     decoration: BoxDecoration(color: Colors.grey.shade100),
                     children: const [
-                      Padding(padding: EdgeInsets.all(6), child: Text('Field', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11))),
-                      Padding(padding: EdgeInsets.all(6), child: Text('Pehle (Before)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.red))),
-                      Padding(padding: EdgeInsets.all(6), child: Text('Abhi (After)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.green))),
+                      Padding(
+                          padding: EdgeInsets.all(6),
+                          child: Text('Field',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 11))),
+                      Padding(
+                          padding: EdgeInsets.all(6),
+                          child: Text('Pehle (Before)',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11,
+                                  color: Colors.red))),
+                      Padding(
+                          padding: EdgeInsets.all(6),
+                          child: Text('Abhi (After)',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11,
+                                  color: Colors.green))),
                     ],
                   ),
                   ...allKeys.map((key) {
@@ -193,9 +224,30 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
                         color: isChanged ? Colors.amber.shade50 : null,
                       ),
                       children: [
-                        Padding(padding: const EdgeInsets.all(6), child: Text(key, style: TextStyle(fontWeight: isChanged ? FontWeight.bold : FontWeight.normal, fontSize: 11))),
-                        Padding(padding: const EdgeInsets.all(6), child: Text(valBefore, style: TextStyle(fontSize: 11, color: isChanged ? Colors.red.shade800 : Colors.black87))),
-                        Padding(padding: const EdgeInsets.all(6), child: Text(valAfter, style: TextStyle(fontSize: 11, color: isChanged ? Colors.green.shade800 : Colors.black87))),
+                        Padding(
+                            padding: const EdgeInsets.all(6),
+                            child: Text(key,
+                                style: TextStyle(
+                                    fontWeight: isChanged
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                    fontSize: 11))),
+                        Padding(
+                            padding: const EdgeInsets.all(6),
+                            child: Text(valBefore,
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    color: isChanged
+                                        ? Colors.red.shade800
+                                        : Colors.black87))),
+                        Padding(
+                            padding: const EdgeInsets.all(6),
+                            child: Text(valAfter,
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    color: isChanged
+                                        ? Colors.green.shade800
+                                        : Colors.black87))),
                       ],
                     );
                   }),
@@ -205,7 +257,8 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
         ],
       ),
     );
@@ -225,10 +278,13 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
                   child: DropdownButtonFormField<String?>(
                     value: _moduleFilter,
                     isExpanded: true,
-                    decoration: const InputDecoration(labelText: 'Module', isDense: true),
+                    decoration: const InputDecoration(
+                        labelText: 'Module', isDense: true),
                     items: [
-                      const DropdownMenuItem<String?>(value: null, child: Text('Sab')),
-                      ..._modules.map((m) => DropdownMenuItem<String?>(value: m, child: Text(m))),
+                      const DropdownMenuItem<String?>(
+                          value: null, child: Text('Sab')),
+                      ..._modules.map((m) =>
+                          DropdownMenuItem<String?>(value: m, child: Text(m))),
                     ],
                     onChanged: (v) {
                       setState(() => _moduleFilter = v);
@@ -241,10 +297,13 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
                   child: DropdownButtonFormField<String?>(
                     value: _actionFilter,
                     isExpanded: true,
-                    decoration: const InputDecoration(labelText: 'Action', isDense: true),
+                    decoration: const InputDecoration(
+                        labelText: 'Action', isDense: true),
                     items: [
-                      const DropdownMenuItem<String?>(value: null, child: Text('Sab')),
-                      ..._actions.map((a) => DropdownMenuItem<String?>(value: a, child: Text(a))),
+                      const DropdownMenuItem<String?>(
+                          value: null, child: Text('Sab')),
+                      ..._actions.map((a) =>
+                          DropdownMenuItem<String?>(value: a, child: Text(a))),
                     ],
                     onChanged: (v) {
                       setState(() => _actionFilter = v);
@@ -274,29 +333,40 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
                           final log = _logs[i];
                           final action = log['action'] as String;
                           final ts = (log['timestamp'] as String);
-                          final userName = (log['user_name'] as String?) ?? 'Owner';
-                          final hasDiff = log['before_value'] != null || log['after_value'] != null;
+                          final userName =
+                              (log['user_name'] as String?) ?? 'Owner';
+                          final hasDiff = log['before_value'] != null ||
+                              log['after_value'] != null;
 
                           return Card(
                             margin: const EdgeInsets.only(bottom: 8),
                             child: ListTile(
                               leading: CircleAvatar(
-                                backgroundColor: _actionColor(action).withValues(alpha: 0.15),
-                                child: Icon(_actionIcon(action), color: _actionColor(action), size: 18),
+                                backgroundColor: _actionColor(action)
+                                    .withValues(alpha: 0.15),
+                                child: Icon(_actionIcon(action),
+                                    color: _actionColor(action), size: 18),
                               ),
-                              title: Text(log['description'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                              title: Text(log['description'] as String,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13)),
                               subtitle: Text(
                                 '${log['module']} • User: $userName • ${ts.length >= 16 ? ts.substring(0, 16).replaceFirst('T', ' ') : ts}',
-                                style: TextStyle(fontSize: 11, color: Colors.grey.shade700),
+                                style: TextStyle(
+                                    fontSize: 11, color: Colors.grey.shade700),
                               ),
                               trailing: hasDiff
                                   ? OutlinedButton.icon(
                                       style: OutlinedButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 4),
                                         visualDensity: VisualDensity.compact,
                                       ),
-                                      icon: const Icon(Icons.difference, size: 14),
-                                      label: const Text('Diff', style: TextStyle(fontSize: 11)),
+                                      icon: const Icon(Icons.difference,
+                                          size: 14),
+                                      label: const Text('Diff',
+                                          style: TextStyle(fontSize: 11)),
                                       onPressed: () => _showDiffDialog(log),
                                     )
                                   : null,

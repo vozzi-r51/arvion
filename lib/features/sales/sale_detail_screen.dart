@@ -26,7 +26,8 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
   }
 
   Future<void> _load() async {
-    final items = await DBHelper.instance.getSaleItems(widget.sale['id'] as int);
+    final items =
+        await DBHelper.instance.getSaleItems(widget.sale['id'] as int);
     setState(() {
       _items = items;
       _loading = false;
@@ -97,13 +98,15 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
   Future<void> _printViaBluetooth() async {
     setState(() => _generating = true);
     final devices = await BluetoothPrinterService.getPairedDevices();
-    
+
     if (!mounted) return;
     setState(() => _generating = false);
 
     if (devices.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Koi paired Bluetooth printer nahi mila. Bluetooth on karein aur phone settings se printer pair karein.')),
+        const SnackBar(
+            content: Text(
+                'Koi paired Bluetooth printer nahi mila. Bluetooth on karein aur phone settings se printer pair karein.')),
       );
       return;
     }
@@ -134,8 +137,8 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
     if (!connected) {
       if (mounted) {
         setState(() => _generating = false);
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Printer se connect nahi ho saka')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Printer se connect nahi ho saka')));
       }
       return;
     }
@@ -152,7 +155,8 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
     final printed = await BluetoothPrinterService.printReceipt(
       shopName: 'BizManager',
       invoiceNumber: sale['invoice_number'] as String,
-      dateText: (sale['sale_date'] as String).substring(0, 16).replaceFirst('T', ' '),
+      dateText:
+          (sale['sale_date'] as String).substring(0, 16).replaceFirst('T', ' '),
       customerName: sale['customer_name'] as String? ?? 'Walk-in Customer',
       items: items,
       subtotal: (sale['subtotal'] as num).toStringAsFixed(0),
@@ -181,7 +185,8 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                 ? const SizedBox(
                     width: 20,
                     height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white),
                   )
                 : const Icon(Icons.print_outlined),
             tooltip: 'Print / Share Invoice',
@@ -200,8 +205,10 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Customer: ${sale['customer_name'] ?? 'Walk-in Customer'}'),
-                        Text('Date: ${(sale['sale_date'] as String).substring(0, 16).replaceFirst('T', ' ')}'),
+                        Text(
+                            'Customer: ${sale['customer_name'] ?? 'Walk-in Customer'}'),
+                        Text(
+                            'Date: ${(sale['sale_date'] as String).substring(0, 16).replaceFirst('T', ' ')}'),
                         Text('Payment: ${sale['payment_method']}'),
                         if ((sale['sale_type'] as String) == 'due')
                           Text(
@@ -220,7 +227,8 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                         title: Text(item['product_name'] as String),
                         subtitle: Text(
                             '${item['quantity']} x Rs. ${item['unit_price']}'),
-                        trailing: Text('Rs. ${(item['total'] as num).toStringAsFixed(0)}'),
+                        trailing: Text(
+                            'Rs. ${(item['total'] as num).toStringAsFixed(0)}'),
                       ),
                     )),
                 const Divider(height: 32),
@@ -232,7 +240,8 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                 _summaryRow('Due', sale['due_amount'] as num),
                 const SizedBox(height: 20),
                 OutlinedButton.icon(
-                  onPressed: _loading || _generating ? null : _showPaperSizeSheet,
+                  onPressed:
+                      _loading || _generating ? null : _showPaperSizeSheet,
                   icon: const Icon(Icons.print_outlined),
                   label: const Text('Print / Share Invoice'),
                 ),
@@ -252,8 +261,10 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                           if (result == true && mounted) _load();
                         },
                   icon: const Icon(Icons.keyboard_return, color: Colors.red),
-                  label: const Text('Return Items', style: TextStyle(color: Colors.red)),
-                  style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.red)),
+                  label: const Text('Return Items',
+                      style: TextStyle(color: Colors.red)),
+                  style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.red)),
                 ),
               ],
             ),

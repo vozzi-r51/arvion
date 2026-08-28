@@ -38,7 +38,8 @@ class _ProfitReportScreenState extends State<ProfitReportScreen> {
     final from = _iso(_from);
     final to = _iso(_to);
 
-    final sales = await DBHelper.instance.getSalesBetween(widget.companyId, from, to);
+    final sales =
+        await DBHelper.instance.getSalesBetween(widget.companyId, from, to);
     final revenue =
         sales.fold(0.0, (sum, s) => sum + (s['total_amount'] as num));
     final grossProfit =
@@ -67,7 +68,10 @@ class _ProfitReportScreenState extends State<ProfitReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Profit & Loss'), actions: [IconButton(icon: const Icon(Icons.picture_as_pdf), onPressed: _exportPdf)]),
+      appBar: AppBar(title: const Text('Profit & Loss'), actions: [
+        IconButton(
+            icon: const Icon(Icons.picture_as_pdf), onPressed: _exportPdf)
+      ]),
       body: Column(
         children: [
           DateRangeBar(
@@ -108,7 +112,8 @@ class _ProfitReportScreenState extends State<ProfitReportScreen> {
                                     ? Icons.trending_up
                                     : Icons.trending_down,
                                 size: 36,
-                                color: _netProfit >= 0 ? Colors.green : Colors.red,
+                                color:
+                                    _netProfit >= 0 ? Colors.green : Colors.red,
                               ),
                               const SizedBox(height: 8),
                               Text(
@@ -116,7 +121,9 @@ class _ProfitReportScreenState extends State<ProfitReportScreen> {
                                 style: TextStyle(
                                   fontSize: 26,
                                   fontWeight: FontWeight.bold,
-                                  color: _netProfit >= 0 ? Colors.green : Colors.red,
+                                  color: _netProfit >= 0
+                                      ? Colors.green
+                                      : Colors.red,
                                 ),
                               ),
                               Text(_netProfit >= 0 ? 'Net Profit' : 'Net Loss'),
@@ -143,7 +150,8 @@ class _ProfitReportScreenState extends State<ProfitReportScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: style),
-          Text('$_currency ${value.toStringAsFixed(0)}', style: style.copyWith(color: color)),
+          Text('$_currency ${value.toStringAsFixed(0)}',
+              style: style.copyWith(color: color)),
         ],
       ),
     );
@@ -171,6 +179,7 @@ class _ProfitReportScreenState extends State<ProfitReportScreen> {
       },
     );
 
-    await Printing.sharePdf(bytes: pdfBytes, filename: 'profit_loss_report.pdf');
+    await Printing.sharePdf(
+        bytes: pdfBytes, filename: 'profit_loss_report.pdf');
   }
 }

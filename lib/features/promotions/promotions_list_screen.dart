@@ -29,11 +29,16 @@ class _PromotionsListScreenState extends State<PromotionsListScreen> {
 
   void _showForm({Map<String, dynamic>? existing}) {
     final nameCtrl = TextEditingController(text: existing?['name'] ?? '');
-    final valueCtrl = TextEditingController(text: existing?['value']?.toString() ?? '');
+    final valueCtrl =
+        TextEditingController(text: existing?['value']?.toString() ?? '');
     String type = existing?['type'] ?? 'percent';
     int? catId = existing?['applicable_category_id'];
-    DateTime start = existing != null ? DateTime.parse(existing['start_date']) : DateTime.now();
-    DateTime end = existing != null ? DateTime.parse(existing['end_date']) : DateTime.now().add(const Duration(days: 30));
+    DateTime start = existing != null
+        ? DateTime.parse(existing['start_date'])
+        : DateTime.now();
+    DateTime end = existing != null
+        ? DateTime.parse(existing['end_date'])
+        : DateTime.now().add(const Duration(days: 30));
 
     showDialog(
       context: context,
@@ -44,22 +49,33 @@ class _PromotionsListScreenState extends State<PromotionsListScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Promo Name')),
+                TextField(
+                    controller: nameCtrl,
+                    decoration: const InputDecoration(labelText: 'Promo Name')),
                 DropdownButtonFormField<String>(
                   value: type,
                   items: const [
-                    DropdownMenuItem(value: 'percent', child: Text('Percentage (%)')),
-                    DropdownMenuItem(value: 'flat', child: Text('Flat Amount (Rs.)')),
+                    DropdownMenuItem(
+                        value: 'percent', child: Text('Percentage (%)')),
+                    DropdownMenuItem(
+                        value: 'flat', child: Text('Flat Amount (Rs.)')),
                   ],
                   onChanged: (v) => setDialogState(() => type = v!),
                   decoration: const InputDecoration(labelText: 'Type'),
                 ),
-                TextField(controller: valueCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Value')),
+                TextField(
+                    controller: valueCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Value')),
                 const SizedBox(height: 10),
-                Text('Valid from: ${start.toIso8601String().substring(0, 10)} to ${end.toIso8601String().substring(0, 10)}'),
+                Text(
+                    'Valid from: ${start.toIso8601String().substring(0, 10)} to ${end.toIso8601String().substring(0, 10)}'),
                 TextButton(
                   onPressed: () async {
-                    final picked = await showDateRangePicker(context: context, firstDate: DateTime(2020), lastDate: DateTime(2100));
+                    final picked = await showDateRangePicker(
+                        context: context,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2100));
                     if (picked != null) {
                       setDialogState(() {
                         start = picked.start;
@@ -73,7 +89,9 @@ class _PromotionsListScreenState extends State<PromotionsListScreen> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
                 final data = {

@@ -26,7 +26,8 @@ class DomainEventBus {
 
   /// Register a listener for a specific event type. Returns a function
   /// that, when called, removes the listener (use in dispose() to avoid leaks).
-  void Function() on<T extends DomainEvent>(FutureOr<void> Function(T) handler) {
+  void Function() on<T extends DomainEvent>(
+      FutureOr<void> Function(T) handler) {
     _listeners.putIfAbsent(T, () => []);
     _listeners[T]!.add(handler);
     return () {
@@ -146,13 +147,15 @@ class ExpenseRecordedEvent extends DomainEvent {
 class CustomerCreatedEvent extends DomainEvent {
   final int customerId;
   final int companyId;
-  const CustomerCreatedEvent({required this.customerId, required this.companyId});
+  const CustomerCreatedEvent(
+      {required this.customerId, required this.companyId});
 }
 
 class SupplierCreatedEvent extends DomainEvent {
   final int supplierId;
   final int companyId;
-  const SupplierCreatedEvent({required this.supplierId, required this.companyId});
+  const SupplierCreatedEvent(
+      {required this.supplierId, required this.companyId});
 }
 
 class ProductCreatedEvent extends DomainEvent {

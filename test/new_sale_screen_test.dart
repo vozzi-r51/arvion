@@ -14,7 +14,8 @@ void main() {
   });
 
   testWidgets('NewSaleScreen builds without layout exceptions', (tester) async {
-    await tester.pumpWidget(const MaterialApp(home: NewSaleScreen(companyId: 1)));
+    await tester
+        .pumpWidget(const MaterialApp(home: NewSaleScreen(companyId: 1)));
     await tester.pump();
 
     expect(tester.takeException(), isNull);

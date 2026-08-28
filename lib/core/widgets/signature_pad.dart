@@ -41,8 +41,8 @@ class _SignaturePadState extends State<SignaturePad> {
 
   Future<Uint8List?> _exportPng() async {
     if (_isEmpty) return null;
-    final boundary =
-        _boundaryKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+    final boundary = _boundaryKey.currentContext?.findRenderObject()
+        as RenderRepaintBoundary?;
     if (boundary == null) return null;
     final image = await boundary.toImage(pixelRatio: 2.0);
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
@@ -58,7 +58,8 @@ class _SignaturePadState extends State<SignaturePad> {
         child: GestureDetector(
           onPanUpdate: (details) {
             final box = context.findRenderObject() as RenderBox;
-            setState(() => _points.add(box.globalToLocal(details.globalPosition)));
+            setState(
+                () => _points.add(box.globalToLocal(details.globalPosition)));
           },
           onPanEnd: (_) => setState(() => _points.add(null)),
           child: CustomPaint(

@@ -22,13 +22,15 @@ class ProjectManagementService {
       'budget_amount': budgetAmount,
       'status': 'in_progress',
       'completion_percent': 0.0,
-      'start_date': startDate ?? DateTime.now().toIso8601String().substring(0, 10),
+      'start_date':
+          startDate ?? DateTime.now().toIso8601String().substring(0, 10),
       'expected_end_date': expectedEndDate,
       'created_at': DateTime.now().toIso8601String(),
     });
   }
 
-  static Future<void> updateCompletionPercent(int projectId, double percent) async {
+  static Future<void> updateCompletionPercent(
+      int projectId, double percent) async {
     if (percent < 0 || percent > 100) {
       throw RangeError('Completion percent must be between 0 and 100.');
     }
@@ -36,7 +38,10 @@ class ProjectManagementService {
     final db = await DBHelper.instance.database;
     await db.update(
       'projects',
-      {'completion_percent': percent, 'status': percent == 100 ? 'completed' : 'in_progress'},
+      {
+        'completion_percent': percent,
+        'status': percent == 100 ? 'completed' : 'in_progress'
+      },
       where: 'id = ?',
       whereArgs: [projectId],
     );

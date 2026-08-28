@@ -49,7 +49,8 @@ class _AIScreenState extends State<AIScreen> {
       if (mounted) {
         setState(() {
           _isVoiceReady = true;
-          _engine = AIEngine(widget.companyId, locale: _voice.isUrduMode ? 'ur' : 'en');
+          _engine = AIEngine(widget.companyId,
+              locale: _voice.isUrduMode ? 'ur' : 'en');
         });
       }
     });
@@ -57,7 +58,8 @@ class _AIScreenState extends State<AIScreen> {
     // Initialize TFLite model for AI intent classification
     _initializeTFLite();
 
-    _addSystemMessage("Asalam-o-Alaikum! Main BizManager AI hoon. Main aapke business data ko samajhne mein aapki madad kar sakta hoon.");
+    _addSystemMessage(
+        "Asalam-o-Alaikum! Main BizManager AI hoon. Main aapke business data ko samajhne mein aapki madad kar sakta hoon.");
   }
 
   /// Initialize TFLite intent classifier
@@ -72,11 +74,12 @@ class _AIScreenState extends State<AIScreen> {
     }
   }
 
-  void _addSystemMessage(String text, {AIIntent? pendingIntent, Map<String, dynamic>? params}) {
+  void _addSystemMessage(String text,
+      {AIIntent? pendingIntent, Map<String, dynamic>? params}) {
     setState(() {
       _messages.add(_ChatMessage(
-        text: text, 
-        isUser: false, 
+        text: text,
+        isUser: false,
         time: DateTime.now(),
         pendingIntent: pendingIntent,
         params: params,
@@ -87,19 +90,20 @@ class _AIScreenState extends State<AIScreen> {
 
   Future<void> _handleSend(String text) async {
     if (text.trim().isEmpty) return;
-    
+
     setState(() {
-      _messages.add(_ChatMessage(text: text, isUser: true, time: DateTime.now()));
+      _messages
+          .add(_ChatMessage(text: text, isUser: true, time: DateTime.now()));
       _controller.clear();
     });
     _scrollToBottom();
 
     // AI Processing
     final response = await _engine.processQuery(text);
-    
+
     if (mounted) {
       _addSystemMessage(
-        response.text, 
+        response.text,
         pendingIntent: response.pendingIntent,
         params: response.params,
       );
@@ -118,7 +122,8 @@ class _AIScreenState extends State<AIScreen> {
     });
 
     if (confirm) {
-      final result = await _engine.executeConfirmedAction(msg.pendingIntent!, msg.params!);
+      final result =
+          await _engine.executeConfirmedAction(msg.pendingIntent!, msg.params!);
       _addSystemMessage(result);
       _voice.speak(result);
     } else {
@@ -154,15 +159,18 @@ class _AIScreenState extends State<AIScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         leading: MainShell.getMenuButton(context),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('BizManager AI', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            Text('Your private business assistant', style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.7))),
+            const Text('BizManager AI',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            Text('Your private business assistant',
+                style: TextStyle(
+                    fontSize: 11, color: Colors.white.withOpacity(0.7))),
           ],
         ),
         actions: [
@@ -170,18 +178,25 @@ class _AIScreenState extends State<AIScreen> {
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
               child: ChoiceChip(
-                label: Text(_voice.isUrduMode ? 'Urdu' : 'English', style: const TextStyle(fontSize: 12)),
+                label: Text(_voice.isUrduMode ? 'Urdu' : 'English',
+                    style: const TextStyle(fontSize: 12)),
                 selected: _voice.isUrduMode,
                 onSelected: (val) {
                   setState(() {
                     _voice.setLocale(val);
-                    _engine = AIEngine(widget.companyId, locale: val ? 'ur' : 'en');
+                    _engine =
+                        AIEngine(widget.companyId, locale: val ? 'ur' : 'en');
                   });
                 },
                 selectedColor: Colors.white,
-                labelStyle: TextStyle(color: _voice.isUrduMode ? theme.colorScheme.primary : Colors.white),
+                labelStyle: TextStyle(
+                    color: _voice.isUrduMode
+                        ? theme.colorScheme.primary
+                        : Colors.white),
                 backgroundColor: Colors.transparent,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: Colors.white)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    side: const BorderSide(color: Colors.white)),
               ),
             ),
         ],
@@ -195,7 +210,8 @@ class _AIScreenState extends State<AIScreen> {
                     controller: _scrollController,
                     padding: const EdgeInsets.all(16),
                     itemCount: _messages.length,
-                    itemBuilder: (ctx, i) => _buildMessageBubble(_messages[i], i),
+                    itemBuilder: (ctx, i) =>
+                        _buildMessageBubble(_messages[i], i),
                   ),
           ),
           _buildInputArea(),
@@ -232,7 +248,8 @@ class _AIScreenState extends State<AIScreen> {
                   child: ActionChip(
                     label: Text(s),
                     onPressed: () => _handleSend(s),
-                    backgroundColor: theme.colorScheme.primary.withOpacity(0.05),
+                    backgroundColor:
+                        theme.colorScheme.primary.withOpacity(0.05),
                   ),
                 )),
           ],
@@ -245,14 +262,17 @@ class _AIScreenState extends State<AIScreen> {
     return Align(
       alignment: msg.isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Column(
-        crossAxisAlignment: msg.isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment:
+            msg.isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
           Container(
             margin: const EdgeInsets.only(bottom: 4),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+            constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.75),
             decoration: BoxDecoration(
-              color: msg.isUser ? const Color(0xFF2563EB) : Colors.grey.shade200,
+              color:
+                  msg.isUser ? const Color(0xFF2563EB) : Colors.grey.shade200,
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(16),
                 topRight: const Radius.circular(16),
@@ -306,14 +326,18 @@ class _AIScreenState extends State<AIScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -2)),
+          BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -2)),
         ],
       ),
       child: SafeArea(
         child: Row(
           children: [
             IconButton(
-              icon: Icon(_isListening ? Icons.mic : Icons.mic_none, color: _isListening ? Colors.red : const Color(0xFF2563EB)),
+              icon: Icon(_isListening ? Icons.mic : Icons.mic_none,
+                  color: _isListening ? Colors.red : const Color(0xFF2563EB)),
               onPressed: _toggleVoice,
             ),
             Expanded(

@@ -72,7 +72,8 @@ class CostCenterRepository extends BaseRepository {
     if (isActive != null) updates['is_active'] = isActive ? 1 : 0;
 
     if (updates.isNotEmpty) {
-      await db.update('cost_centers', updates, where: 'id = ?', whereArgs: [id]);
+      await db
+          .update('cost_centers', updates, where: 'id = ?', whereArgs: [id]);
     }
   }
 

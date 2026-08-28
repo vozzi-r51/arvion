@@ -12,7 +12,8 @@ class VersionedBundleExportService {
     final products = await DBHelper.instance.getProducts(companyId);
     final customers = await DBHelper.instance.getCustomers(companyId);
     final suppliers = await DBHelper.instance.getSuppliers(companyId);
-    final auditLogs = await DBHelper.instance.getAuditLogs(companyId, limit: 1000);
+    final auditLogs =
+        await DBHelper.instance.getAuditLogs(companyId, limit: 1000);
 
     final bundle = {
       'schema_version': '2.0',

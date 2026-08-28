@@ -12,8 +12,10 @@ class LocalizationProvider extends ChangeNotifier {
   String get currencyCode => _company?['currency_code'] as String? ?? 'PKR';
   String get currencySymbol => _company?['currency_symbol'] as String? ?? 'Rs.';
   int get decimalPlaces => _company?['decimal_places'] as int? ?? 2;
-  String get thousandSeparator => _company?['thousand_separator'] as String? ?? ',';
-  String get decimalSeparator => _company?['decimal_separator'] as String? ?? '.';
+  String get thousandSeparator =>
+      _company?['thousand_separator'] as String? ?? ',';
+  String get decimalSeparator =>
+      _company?['decimal_separator'] as String? ?? '.';
   String get dateFormat => _company?['date_format'] as String? ?? 'dd/MM/yyyy';
   String get locale => _locale;
 

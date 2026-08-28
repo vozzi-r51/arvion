@@ -70,7 +70,8 @@ class _EmployeeFormScreenState extends State<EmployeeFormScreen> {
     };
 
     if (_isEditing) {
-      await DBHelper.instance.updateEmployee(widget.existing!['id'] as int, data);
+      await DBHelper.instance
+          .updateEmployee(widget.existing!['id'] as int, data);
     } else {
       data['created_at'] = DateTime.now().toIso8601String();
       await DBHelper.instance.insertEmployee(data);
@@ -151,12 +152,14 @@ class _EmployeeFormScreenState extends State<EmployeeFormScreen> {
           TextField(
             controller: _salaryCtrl,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(labelText: 'Monthly Salary (Rs.)'),
+            decoration:
+                const InputDecoration(labelText: 'Monthly Salary (Rs.)'),
           ),
           const SizedBox(height: 12),
           ListTile(
             contentPadding: EdgeInsets.zero,
-            title: Text('Joining Date: ${_joiningDate.toIso8601String().substring(0, 10)}'),
+            title: Text(
+                'Joining Date: ${_joiningDate.toIso8601String().substring(0, 10)}'),
             trailing: const Icon(Icons.calendar_today, size: 18),
             onTap: () async {
               final picked = await showDatePicker(
@@ -181,7 +184,8 @@ class _EmployeeFormScreenState extends State<EmployeeFormScreen> {
                 ? const SizedBox(
                     height: 20,
                     width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white),
                   )
                 : const Text('Employee Save Karein'),
           ),

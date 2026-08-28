@@ -31,7 +31,9 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('Domain Event Bus & Event Dispatching Tests', () {
-    test('DomainEventBus dispatches events to registered listeners with timestamp', () async {
+    test(
+        'DomainEventBus dispatches events to registered listeners with timestamp',
+        () async {
       final bus = DomainEventBus.instance;
       SaleCompletedEvent? receivedEvent;
 
@@ -53,7 +55,8 @@ void main() {
       unsubscribe();
     });
 
-    test('Listener exceptions are isolated and do not break event dispatching', () {
+    test('Listener exceptions are isolated and do not break event dispatching',
+        () {
       final bus = DomainEventBus.instance;
       bool healthyListenerCalled = false;
 
@@ -79,7 +82,9 @@ void main() {
   });
 
   group('Service Locator & Repository Dependency Injection Tests', () {
-    test('GetIt service locator allows swapping repositories with fakes for testing', () async {
+    test(
+        'GetIt service locator allows swapping repositories with fakes for testing',
+        () async {
       final sl = GetIt.instance;
 
       if (sl.isRegistered<SalesRepository>()) {

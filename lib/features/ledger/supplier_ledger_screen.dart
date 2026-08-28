@@ -43,8 +43,9 @@ class _SupplierLedgerScreenState extends State<SupplierLedgerScreen> {
         'date': p['purchase_date'],
         'type': 'purchase',
         'label': 'Purchase ${p['invoice_number']}',
-        'detail': 'Total: Rs. ${(p['total_amount'] as num).toStringAsFixed(0)}, '
-            'Paid: Rs. ${(p['paid_amount'] as num).toStringAsFixed(0)}',
+        'detail':
+            'Total: Rs. ${(p['total_amount'] as num).toStringAsFixed(0)}, '
+                'Paid: Rs. ${(p['paid_amount'] as num).toStringAsFixed(0)}',
         'amount': (p['due_amount'] as num).toDouble(),
       });
     }
@@ -54,12 +55,14 @@ class _SupplierLedgerScreenState extends State<SupplierLedgerScreen> {
         'date': pay['payment_date'],
         'type': 'payment',
         'label': 'Payment Made',
-        'detail': pay['notes'] as String? ?? pay['payment_method'] as String? ?? '',
+        'detail':
+            pay['notes'] as String? ?? pay['payment_method'] as String? ?? '',
         'amount': (pay['amount'] as num).toDouble(),
       });
     }
 
-    entries.sort((a, b) => (b['date'] as String).compareTo(a['date'] as String));
+    entries
+        .sort((a, b) => (b['date'] as String).compareTo(a['date'] as String));
 
     final freshSupplier = await DBHelper.instance.getSupplierById(_supplierId);
     final company = await DBHelper.instance.getCompanyById(widget.companyId);
@@ -77,7 +80,8 @@ class _SupplierLedgerScreenState extends State<SupplierLedgerScreen> {
 
   Future<void> _remind() async {
     if (_currentBalance <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Balance 0 hai.')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Balance 0 hai.')));
       return;
     }
 
@@ -88,15 +92,22 @@ class _SupplierLedgerScreenState extends State<SupplierLedgerScreen> {
         children: [
           SimpleDialogOption(
             onPressed: () => Navigator.pop(ctx, 'Calm'),
-            child: const ListTile(leading: Icon(Icons.sentiment_satisfied, color: Colors.green), title: Text('Calm (Friendly)')),
+            child: const ListTile(
+                leading: Icon(Icons.sentiment_satisfied, color: Colors.green),
+                title: Text('Calm (Friendly)')),
           ),
           SimpleDialogOption(
             onPressed: () => Navigator.pop(ctx, 'Firm'),
-            child: const ListTile(leading: Icon(Icons.sentiment_neutral, color: Colors.orange), title: Text('Firm (Formal)')),
+            child: const ListTile(
+                leading: Icon(Icons.sentiment_neutral, color: Colors.orange),
+                title: Text('Firm (Formal)')),
           ),
           SimpleDialogOption(
             onPressed: () => Navigator.pop(ctx, 'Strict'),
-            child: const ListTile(leading: Icon(Icons.sentiment_very_dissatisfied, color: Colors.red), title: Text('Strict (Urgent)')),
+            child: const ListTile(
+                leading:
+                    Icon(Icons.sentiment_very_dissatisfied, color: Colors.red),
+                title: Text('Strict (Urgent)')),
           ),
         ],
       ),
@@ -111,11 +122,14 @@ class _SupplierLedgerScreenState extends State<SupplierLedgerScreen> {
 
     String message = '';
     if (selectedTone == 'Calm') {
-      message = "Asalam-o-Alaikum $supplierName, umeed hai aap khairiyat se honge. Aik choti si guzarish hai ke humara baki balance Rs. $balanceStr baki hai. Is par thori tawaja dein. Shukriya - $shopName";
+      message =
+          "Asalam-o-Alaikum $supplierName, umeed hai aap khairiyat se honge. Aik choti si guzarish hai ke humara baki balance Rs. $balanceStr baki hai. Is par thori tawaja dein. Shukriya - $shopName";
     } else if (selectedTone == 'Firm') {
-      message = "Dear $supplierName, ye aapke balance Rs. $balanceStr ki settlement ke baray mein enquiry hai. Regards - $shopName";
+      message =
+          "Dear $supplierName, ye aapke balance Rs. $balanceStr ki settlement ke baray mein enquiry hai. Regards - $shopName";
     } else {
-      message = "URGENT: $supplierName, aapka balance Rs. $balanceStr kafi arsay se pending hai. Ye final reminder hai. - $shopName";
+      message =
+          "URGENT: $supplierName, aapka balance Rs. $balanceStr kafi arsay se pending hai. Ye final reminder hai. - $shopName";
     }
 
     final String mobile = widget.supplier['phone'] ?? '';
@@ -150,17 +164,21 @@ class _SupplierLedgerScreenState extends State<SupplierLedgerScreen> {
 
     if (choice == 'wa') {
       String cleanPhone = whatsapp.replaceAll(RegExp(r'[^0-9]'), '');
-      if (cleanPhone.startsWith('0')) cleanPhone = '92' + cleanPhone.substring(1);
-      final url = "https://wa.me/$cleanPhone?text=${Uri.encodeComponent(message)}";
+      if (cleanPhone.startsWith('0'))
+        cleanPhone = '92' + cleanPhone.substring(1);
+      final url =
+          "https://wa.me/$cleanPhone?text=${Uri.encodeComponent(message)}";
       if (await canLaunchUrl(Uri.parse(url))) {
         await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
       }
     } else if (choice == 'sms') {
-      final success = await SMSService.sendSMS(mobile: mobile, message: message);
+      final success =
+          await SMSService.sendSMS(mobile: mobile, message: message);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(success ? 'SMS bhej diya gaya' : 'SMS fail ho gaya (Check settings/internet)'))
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(success
+                ? 'SMS bhej diya gaya'
+                : 'SMS fail ho gaya (Check settings/internet)')));
       }
     } else if (choice == 'share') {
       await Share.share(message, subject: 'Payment Enquiry');
@@ -183,7 +201,8 @@ class _SupplierLedgerScreenState extends State<SupplierLedgerScreen> {
             children: [
               TextField(
                 controller: amountCtrl,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(labelText: 'Amount (Rs.) *'),
               ),
               const SizedBox(height: 8),
@@ -217,7 +236,9 @@ class _SupplierLedgerScreenState extends State<SupplierLedgerScreen> {
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
                 final amount = double.tryParse(amountCtrl.text.trim());
@@ -264,16 +285,19 @@ class _SupplierLedgerScreenState extends State<SupplierLedgerScreen> {
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                  color:
+                      Theme.of(context).colorScheme.primary.withOpacity(0.08),
                   child: Column(
                     children: [
-                      const Text('Current Balance', style: TextStyle(fontSize: 13)),
+                      const Text('Current Balance',
+                          style: TextStyle(fontSize: 13)),
                       Text(
                         '$_currency ${_currentBalance.toStringAsFixed(0)}',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: _currentBalance > 0 ? Colors.red : Colors.green,
+                          color:
+                              _currentBalance > 0 ? Colors.red : Colors.green,
                         ),
                       ),
                     ],
@@ -281,7 +305,8 @@ class _SupplierLedgerScreenState extends State<SupplierLedgerScreen> {
                 ),
                 Expanded(
                   child: _entries.isEmpty
-                      ? const Center(child: Text('Abhi koi ledger entry nahi hai'))
+                      ? const Center(
+                          child: Text('Abhi koi ledger entry nahi hai'))
                       : ListView.builder(
                           padding: const EdgeInsets.all(12),
                           itemCount: _entries.length,
@@ -292,7 +317,9 @@ class _SupplierLedgerScreenState extends State<SupplierLedgerScreen> {
                               margin: const EdgeInsets.only(bottom: 8),
                               child: ListTile(
                                 leading: Icon(
-                                  isPurchase ? Icons.arrow_upward : Icons.arrow_downward,
+                                  isPurchase
+                                      ? Icons.arrow_upward
+                                      : Icons.arrow_downward,
                                   color: isPurchase ? Colors.red : Colors.green,
                                 ),
                                 title: Text(e['label'] as String),
@@ -302,7 +329,8 @@ class _SupplierLedgerScreenState extends State<SupplierLedgerScreen> {
                                   '$_currency ${(e['amount'] as double).toStringAsFixed(0)}',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: isPurchase ? Colors.red : Colors.green,
+                                    color:
+                                        isPurchase ? Colors.red : Colors.green,
                                   ),
                                 ),
                               ),

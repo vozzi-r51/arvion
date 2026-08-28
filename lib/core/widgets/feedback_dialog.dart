@@ -37,8 +37,11 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
             value: _type,
             decoration: const InputDecoration(labelText: 'Feedback Type'),
             items: const [
-              DropdownMenuItem(value: 'Feature Suggestion', child: Text('Naye Feature ki Khwahish')),
-              DropdownMenuItem(value: 'Bug Report', child: Text('Masla / Bug Report')),
+              DropdownMenuItem(
+                  value: 'Feature Suggestion',
+                  child: Text('Naye Feature ki Khwahish')),
+              DropdownMenuItem(
+                  value: 'Bug Report', child: Text('Masla / Bug Report')),
               DropdownMenuItem(value: 'General', child: Text('Aam Feedback')),
             ],
             onChanged: (v) {
@@ -56,13 +59,17 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
         ],
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel')),
         FilledButton(
           onPressed: () {
             if (_feedbackCtrl.text.trim().isEmpty) return;
             Navigator.pop(context);
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Aapka feedback bhej diya gaya hai. Shukriya!'), backgroundColor: Colors.green),
+              const SnackBar(
+                  content: Text('Aapka feedback bhej diya gaya hai. Shukriya!'),
+                  backgroundColor: Colors.green),
             );
           },
           child: const Text('Submit Feedback'),

@@ -50,7 +50,8 @@ Future<void> main() async {
   }
 
   final prefs = await SharedPreferences.getInstance();
-  final bool crashReportingEnabled = prefs.getBool('crash_reporting_enabled') ?? true;
+  final bool crashReportingEnabled =
+      prefs.getBool('crash_reporting_enabled') ?? true;
 
   // Disable runtime fetching of fonts to ensure 100% offline operation.
   GoogleFonts.config.allowRuntimeFetching = false;
@@ -58,7 +59,8 @@ Future<void> main() async {
   if (crashReportingEnabled) {
     await SentryFlutter.init(
       (options) {
-        options.dsn = 'https://example@sentry.io/example'; // TODO: Replace with real DSN
+        options.dsn =
+            'https://example@sentry.io/example'; // TODO: Replace with real DSN
         options.tracesSampleRate = 1.0;
       },
       appRunner: () => _runApp(),

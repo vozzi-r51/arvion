@@ -6,7 +6,8 @@ class ProductionOrderFormScreen extends StatefulWidget {
   const ProductionOrderFormScreen({super.key, required this.companyId});
 
   @override
-  State<ProductionOrderFormScreen> createState() => _ProductionOrderFormScreenState();
+  State<ProductionOrderFormScreen> createState() =>
+      _ProductionOrderFormScreenState();
 }
 
 class _ProductionOrderFormScreenState extends State<ProductionOrderFormScreen> {
@@ -103,18 +104,24 @@ class _ProductionOrderFormScreenState extends State<ProductionOrderFormScreen> {
               children: [
                 DropdownButtonFormField<int>(
                   value: _selectedBomId,
-                  decoration: const InputDecoration(labelText: 'Select Bill of Materials (BOM) *'),
-                  items: _boms.map((b) => DropdownMenuItem<int>(
-                    value: b['id'] as int,
-                    child: Text('${b['name']} (${b['finished_product_name']})'),
-                  )).toList(),
+                  decoration: const InputDecoration(
+                      labelText: 'Select Bill of Materials (BOM) *'),
+                  items: _boms
+                      .map((b) => DropdownMenuItem<int>(
+                            value: b['id'] as int,
+                            child: Text(
+                                '${b['name']} (${b['finished_product_name']})'),
+                          ))
+                      .toList(),
                   onChanged: _onBomChanged,
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _qtyCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Quantity to Produce *'),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration:
+                      const InputDecoration(labelText: 'Quantity to Produce *'),
                   onChanged: (_) => setState(() {}),
                 ),
                 const SizedBox(height: 12),
@@ -123,8 +130,10 @@ class _ProductionOrderFormScreenState extends State<ProductionOrderFormScreen> {
                     Expanded(
                       child: TextField(
                         controller: _laborCostCtrl,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        decoration: const InputDecoration(labelText: 'Labor Cost (Estimated)'),
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        decoration: const InputDecoration(
+                            labelText: 'Labor Cost (Estimated)'),
                         onChanged: (_) => setState(() {}),
                       ),
                     ),
@@ -132,8 +141,10 @@ class _ProductionOrderFormScreenState extends State<ProductionOrderFormScreen> {
                     Expanded(
                       child: TextField(
                         controller: _overheadCostCtrl,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        decoration: const InputDecoration(labelText: 'Overhead Cost'),
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        decoration:
+                            const InputDecoration(labelText: 'Overhead Cost'),
                         onChanged: (_) => setState(() {}),
                       ),
                     ),
@@ -148,30 +159,46 @@ class _ProductionOrderFormScreenState extends State<ProductionOrderFormScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Production Summary', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo)),
+                          Text('Production Summary',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.indigo)),
                           const SizedBox(height: 8),
-                          Text('Est. Raw Material Cost: Rs. ${_totalMaterialCost.toStringAsFixed(0)}'),
-                          Text('Est. Labor + Overhead: Rs. ${((double.tryParse(_laborCostCtrl.text) ?? 0) + (double.tryParse(_overheadCostCtrl.text) ?? 0)).toStringAsFixed(0)}'),
+                          Text(
+                              'Est. Raw Material Cost: Rs. ${_totalMaterialCost.toStringAsFixed(0)}'),
+                          Text(
+                              'Est. Labor + Overhead: Rs. ${((double.tryParse(_laborCostCtrl.text) ?? 0) + (double.tryParse(_overheadCostCtrl.text) ?? 0)).toStringAsFixed(0)}'),
                           const Divider(),
-                          Text('Est. Total Unit Cost: Rs. ${((_totalMaterialCost + (double.tryParse(_laborCostCtrl.text) ?? 0) + (double.tryParse(_overheadCostCtrl.text) ?? 0)) / _qtyToProduce).toStringAsFixed(2)} / unit',
-                              style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Text(
+                              'Est. Total Unit Cost: Rs. ${((_totalMaterialCost + (double.tryParse(_laborCostCtrl.text) ?? 0) + (double.tryParse(_overheadCostCtrl.text) ?? 0)) / _qtyToProduce).toStringAsFixed(2)} / unit',
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text('Estimated Raw Materials Required', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                  Text('Estimated Raw Materials Required',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleSmall
+                          ?.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   ..._bomItems.map((item) {
-                    final outputQty = (_selectedBom!['output_quantity'] as num).toDouble();
+                    final outputQty =
+                        (_selectedBom!['output_quantity'] as num).toDouble();
                     final multiplier = _qtyToProduce / outputQty;
-                    final reqQty = (item['quantity_required'] as num).toDouble() * multiplier;
+                    final reqQty =
+                        (item['quantity_required'] as num).toDouble() *
+                            multiplier;
 
                     return ListTile(
                       dense: true,
                       title: Text(item['raw_material_name'] as String),
-                      subtitle: Text('Required: ${reqQty.toStringAsFixed(2)} ${item['unit']}'),
-                      trailing: Text('Rs. ${(reqQty * (item['unit_cost'] as num).toDouble()).toStringAsFixed(0)}'),
+                      subtitle: Text(
+                          'Required: ${reqQty.toStringAsFixed(2)} ${item['unit']}'),
+                      trailing: Text(
+                          'Rs. ${(reqQty * (item['unit_cost'] as num).toDouble()).toStringAsFixed(0)}'),
                     );
                   }).toList(),
                 ],

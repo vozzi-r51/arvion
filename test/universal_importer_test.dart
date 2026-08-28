@@ -6,7 +6,9 @@ import 'package:bizmanager/core/import/parsers/iif_parser.dart';
 
 void main() {
   group('Universal Importer - Smart Column Mapping Engine Tests', () {
-    test('Auto-detects QuickBooks Online product export headers with high confidence', () {
+    test(
+        'Auto-detects QuickBooks Online product export headers with high confidence',
+        () {
       final headers = [
         'Product/Service Name',
         'SKU',
@@ -77,10 +79,17 @@ void main() {
   });
 
   group('Universal Importer - Validation Engine Tests', () {
-    test('Flags invalid product rows missing product name or invalid prices', () {
+    test('Flags invalid product rows missing product name or invalid prices',
+        () {
       final mappings = [
-        ColumnMapping(sourceHeader: 'Item Name', targetField: 'name', confidence: ImportConfidence.high),
-        ColumnMapping(sourceHeader: 'Price', targetField: 'retail_price', confidence: ImportConfidence.high),
+        ColumnMapping(
+            sourceHeader: 'Item Name',
+            targetField: 'name',
+            confidence: ImportConfidence.high),
+        ColumnMapping(
+            sourceHeader: 'Price',
+            targetField: 'retail_price',
+            confidence: ImportConfidence.high),
       ];
 
       final invalidRow1 = ParsedRow(
@@ -109,13 +118,20 @@ void main() {
       );
 
       expect(result2.isValid, isFalse);
-      expect(result2.validationErrors.any((e) => e.contains('valid number')), isTrue);
+      expect(result2.validationErrors.any((e) => e.contains('valid number')),
+          isTrue);
     });
 
     test('Passes valid customer rows with numeric opening balance', () {
       final mappings = [
-        ColumnMapping(sourceHeader: 'Party Name', targetField: 'name', confidence: ImportConfidence.high),
-        ColumnMapping(sourceHeader: 'Balance', targetField: 'current_balance', confidence: ImportConfidence.high),
+        ColumnMapping(
+            sourceHeader: 'Party Name',
+            targetField: 'name',
+            confidence: ImportConfidence.high),
+        ColumnMapping(
+            sourceHeader: 'Balance',
+            targetField: 'current_balance',
+            confidence: ImportConfidence.high),
       ];
 
       final validRow = ParsedRow(

@@ -18,20 +18,26 @@ void main() {
     await databaseFactory.deleteDatabase(path);
   });
 
-  test('deep settings: formatters, custom document numbering, tax codes, and price lists', () async {
+  test(
+      'deep settings: formatters, custom document numbering, tax codes, and price lists',
+      () async {
     final db = DBHelper.instance;
 
     // 1. Test AppFormatters
-    final pkrFormatted = AppFormatters.formatCurrency(1250, symbol: 'Rs.', decimals: 0);
+    final pkrFormatted =
+        AppFormatters.formatCurrency(1250, symbol: 'Rs.', decimals: 0);
     expect(pkrFormatted, 'Rs. 1,250');
 
-    final usdFormatted = AppFormatters.formatCurrency(1250.5, symbol: '\$', decimals: 2);
+    final usdFormatted =
+        AppFormatters.formatCurrency(1250.5, symbol: '\$', decimals: 2);
     expect(usdFormatted, '\$ 1,250.50');
 
-    final euroStyle = AppFormatters.formatCurrency(1250.5, symbol: '€', decimals: 2, style: 'european');
+    final euroStyle = AppFormatters.formatCurrency(1250.5,
+        symbol: '€', decimals: 2, style: 'european');
     expect(euroStyle, '€ 1.250,50');
 
-    final formattedDate = AppFormatters.formatDate(DateTime(2026, 8, 27), pattern: 'dd/MM/yyyy');
+    final formattedDate =
+        AppFormatters.formatDate(DateTime(2026, 8, 27), pattern: 'dd/MM/yyyy');
     expect(formattedDate, '27/08/2026');
 
     // 2. Company with Custom Numbering & Settings

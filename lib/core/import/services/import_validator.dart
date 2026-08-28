@@ -29,13 +29,16 @@ class ImportValidator {
         }
 
         final retailPriceStr = extracted['retail_price']?.toString() ?? '0';
-        if (retailPriceStr.isNotEmpty && double.tryParse(retailPriceStr) == null) {
+        if (retailPriceStr.isNotEmpty &&
+            double.tryParse(retailPriceStr) == null) {
           errors.add('Selling Price must be a valid number ($retailPriceStr)');
         }
 
         final purchasePriceStr = extracted['purchase_price']?.toString() ?? '0';
-        if (purchasePriceStr.isNotEmpty && double.tryParse(purchasePriceStr) == null) {
-          errors.add('Purchase Price must be a valid number ($purchasePriceStr)');
+        if (purchasePriceStr.isNotEmpty &&
+            double.tryParse(purchasePriceStr) == null) {
+          errors
+              .add('Purchase Price must be a valid number ($purchasePriceStr)');
         }
 
         final stockStr = extracted['current_stock']?.toString() ?? '0';

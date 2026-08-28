@@ -3,8 +3,8 @@ import '../database/db_helper.dart';
 
 /// Enum for UI experience modes
 enum UiMode {
-  simple,    // Basic fields only, advanced features hidden
-  advanced,  // All features visible
+  simple, // Basic fields only, advanced features hidden
+  advanced, // All features visible
 }
 
 /// Provider managing UI complexity mode and feature visibility
@@ -65,7 +65,8 @@ class UiModeProvider extends ChangeNotifier {
 
     // Show if template requires it (e.g., Clothing always needs variants)
     final templateFamily = _company?['template_family'] as String?;
-    final requiresVariants = ['clothing', 'jewelry', 'apparel'].contains(templateFamily?.toLowerCase());
+    final requiresVariants = ['clothing', 'jewelry', 'apparel']
+        .contains(templateFamily?.toLowerCase());
     return requiresVariants;
   }
 

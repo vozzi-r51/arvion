@@ -23,7 +23,8 @@ class _CommitteeMembersTabState extends State<CommitteeMembersTab> {
 
   Future<void> _load() async {
     setState(() => _loading = true);
-    final rows = await DBHelper.instance.getCommitteeMembers(widget.committeeId);
+    final rows =
+        await DBHelper.instance.getCommitteeMembers(widget.committeeId);
     setState(() {
       _members = rows;
       _loading = false;
@@ -56,7 +57,8 @@ class _CommitteeMembersTabState extends State<CommitteeMembersTab> {
               const SizedBox(height: 8),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                title: Text('Join Date: ${joinDate.toIso8601String().substring(0, 10)}'),
+                title: Text(
+                    'Join Date: ${joinDate.toIso8601String().substring(0, 10)}'),
                 trailing: const Icon(Icons.calendar_today, size: 18),
                 onTap: () async {
                   final picked = await showDatePicker(
@@ -71,7 +73,9 @@ class _CommitteeMembersTabState extends State<CommitteeMembersTab> {
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
                 if (nameCtrl.text.trim().isEmpty) return;
@@ -101,12 +105,16 @@ class _CommitteeMembersTabState extends State<CommitteeMembersTab> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Member Nikalein?'),
-        content: Text('"${m['member_name']}" is committee se nikal diya jayega.'),
+        content:
+            Text('"${m['member_name']}" is committee se nikal diya jayega.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
           TextButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Nikal Dein', style: TextStyle(color: Colors.red))),
+              child: const Text('Nikal Dein',
+                  style: TextStyle(color: Colors.red))),
         ],
       ),
     );
@@ -133,7 +141,9 @@ class _CommitteeMembersTabState extends State<CommitteeMembersTab> {
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: hasDrawn ? Colors.green.shade100 : Colors.grey.shade200,
+                      backgroundColor: hasDrawn
+                          ? Colors.green.shade100
+                          : Colors.grey.shade200,
                       child: Text(
                         (m['member_name'] as String).isNotEmpty
                             ? (m['member_name'] as String)[0].toUpperCase()
@@ -149,10 +159,12 @@ class _CommitteeMembersTabState extends State<CommitteeMembersTab> {
                           const Padding(
                             padding: EdgeInsets.only(right: 6),
                             child: Text('Draw Ho Gaya',
-                                style: TextStyle(color: Colors.green, fontSize: 11)),
+                                style: TextStyle(
+                                    color: Colors.green, fontSize: 11)),
                           ),
                         IconButton(
-                          icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                          icon: const Icon(Icons.delete_outline,
+                              size: 18, color: Colors.red),
                           onPressed: () => _confirmDelete(m),
                         ),
                       ],

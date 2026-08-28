@@ -8,7 +8,8 @@ class PurchaseOrdersListScreen extends StatefulWidget {
   const PurchaseOrdersListScreen({super.key, required this.companyId});
 
   @override
-  State<PurchaseOrdersListScreen> createState() => _PurchaseOrdersListScreenState();
+  State<PurchaseOrdersListScreen> createState() =>
+      _PurchaseOrdersListScreenState();
 }
 
 class _PurchaseOrdersListScreenState extends State<PurchaseOrdersListScreen> {
@@ -46,7 +47,9 @@ class _PurchaseOrdersListScreenState extends State<PurchaseOrdersListScreen> {
         title: const Text('PO Delete Karein?'),
         content: Text('"${po['po_number']}" delete ho jayega.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
           TextButton(
               onPressed: () => Navigator.pop(ctx, true),
               child: const Text('Delete', style: TextStyle(color: Colors.red))),
@@ -92,27 +95,35 @@ class _PurchaseOrdersListScreenState extends State<PurchaseOrdersListScreen> {
                         margin: const EdgeInsets.only(bottom: 8),
                         child: ListTile(
                           leading: CircleAvatar(
-                            backgroundColor: _statusColor(status).withOpacity(0.15),
+                            backgroundColor:
+                                _statusColor(status).withOpacity(0.15),
                             child: Icon(Icons.description_outlined,
                                 color: _statusColor(status), size: 18),
                           ),
                           title: Text(po['po_number'] as String),
-                          subtitle: Text(po['supplier_name'] as String? ?? 'Not Selected'),
+                          subtitle: Text(
+                              po['supplier_name'] as String? ?? 'Not Selected'),
                           trailing: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Text('Rs. ${(po['total_amount'] as num).toStringAsFixed(0)}',
-                                  style: const TextStyle(fontWeight: FontWeight.bold)),
-                              Text(status[0].toUpperCase() + status.substring(1),
-                                  style: TextStyle(color: _statusColor(status), fontSize: 11)),
+                              Text(
+                                  'Rs. ${(po['total_amount'] as num).toStringAsFixed(0)}',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold)),
+                              Text(
+                                  status[0].toUpperCase() + status.substring(1),
+                                  style: TextStyle(
+                                      color: _statusColor(status),
+                                      fontSize: 11)),
                             ],
                           ),
                           onLongPress: () => _confirmDelete(po),
                           onTap: () async {
                             await Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (_) => PurchaseOrderDetailScreen(po: po),
+                                builder: (_) =>
+                                    PurchaseOrderDetailScreen(po: po),
                               ),
                             );
                             _load();

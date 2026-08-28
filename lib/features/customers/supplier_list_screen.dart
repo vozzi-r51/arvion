@@ -40,7 +40,8 @@ class _SupplierListScreenState extends State<SupplierListScreen> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
       if (!_loadingMore && _hasMore) {
         _loadMore();
       }
@@ -90,7 +91,8 @@ class _SupplierListScreenState extends State<SupplierListScreen> {
   Future<void> _openForm({Map<String, dynamic>? existing}) async {
     final result = await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => SupplierFormScreen(companyId: widget.companyId, existing: existing),
+        builder: (_) =>
+            SupplierFormScreen(companyId: widget.companyId, existing: existing),
       ),
     );
     if (result == true) _load();
@@ -113,9 +115,12 @@ class _SupplierListScreenState extends State<SupplierListScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Supplier Delete Karein?'),
-        content: Text('"${s['company_name']}" delete ho jayega. Baad mein Recycle Bin se restore ho sakta hai.'),
+        content: Text(
+            '"${s['company_name']}" delete ho jayega. Baad mein Recycle Bin se restore ho sakta hai.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
@@ -153,7 +158,8 @@ class _SupplierListScreenState extends State<SupplierListScreen> {
                 hintText: 'Company naam ya phone se search karein',
                 border: OutlineInputBorder(borderRadius: AppRadius.medium),
                 filled: true,
-                contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.m),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: AppSpacing.m),
               ),
               onChanged: (v) {
                 _query = v;
@@ -179,7 +185,8 @@ class _SupplierListScreenState extends State<SupplierListScreen> {
                       )
                     : ListView.builder(
                         controller: _scrollController,
-                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.l),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.l),
                         itemCount: _suppliers.length + (_loadingMore ? 1 : 0),
                         itemBuilder: (ctx, i) {
                           if (i == _suppliers.length) {
@@ -189,26 +196,38 @@ class _SupplierListScreenState extends State<SupplierListScreen> {
                             );
                           }
                           final s = _suppliers[i];
-                          final balance = (s['current_balance'] as num).toDouble();
+                          final balance =
+                              (s['current_balance'] as num).toDouble();
                           return Card(
                             elevation: 0,
                             margin: const EdgeInsets.only(bottom: AppSpacing.m),
                             shape: RoundedRectangleBorder(
                               borderRadius: AppRadius.medium,
-                              side: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+                              side: BorderSide(
+                                  color: Theme.of(context)
+                                      .dividerColor
+                                      .withValues(alpha: 0.1)),
                             ),
                             child: ListTile(
                               leading: CircleAvatar(
-                                backgroundColor: Colors.indigo.withValues(alpha: 0.12),
-                                child: const Icon(Icons.local_shipping_outlined, color: Colors.indigo, size: 20),
+                                backgroundColor:
+                                    Colors.indigo.withValues(alpha: 0.12),
+                                child: const Icon(Icons.local_shipping_outlined,
+                                    color: Colors.indigo, size: 20),
                               ),
-                              title: Text(s['company_name'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
+                              title: Text(s['company_name'] as String,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold)),
                               subtitle: Text(
                                 '${s['contact_person'] ?? ''}  •  ${s['phone'] ?? ''}\nBalance: ${balance.toStringAsFixed(0)}',
-                                style: TextStyle(color: balance > 0 ? Colors.red : Colors.green),
+                                style: TextStyle(
+                                    color: balance > 0
+                                        ? Colors.red
+                                        : Colors.green),
                               ),
                               isThreeLine: true,
-                              trailing: const Icon(Icons.chevron_right, size: 18),
+                              trailing:
+                                  const Icon(Icons.chevron_right, size: 18),
                               onTap: () => _openLedger(s),
                               onLongPress: () {
                                 showModalBottomSheet(
@@ -226,7 +245,8 @@ class _SupplierListScreenState extends State<SupplierListScreen> {
                                           },
                                         ),
                                         ListTile(
-                                          leading: const Icon(Icons.edit_outlined),
+                                          leading:
+                                              const Icon(Icons.edit_outlined),
                                           title: const Text('Edit Karein'),
                                           onTap: () {
                                             Navigator.pop(context);
@@ -234,8 +254,12 @@ class _SupplierListScreenState extends State<SupplierListScreen> {
                                           },
                                         ),
                                         ListTile(
-                                          leading: const Icon(Icons.delete_outline, color: Colors.red),
-                                          title: const Text('Delete Karein', style: TextStyle(color: Colors.red)),
+                                          leading: const Icon(
+                                              Icons.delete_outline,
+                                              color: Colors.red),
+                                          title: const Text('Delete Karein',
+                                              style:
+                                                  TextStyle(color: Colors.red)),
                                           onTap: () {
                                             Navigator.pop(context);
                                             _confirmDelete(s);

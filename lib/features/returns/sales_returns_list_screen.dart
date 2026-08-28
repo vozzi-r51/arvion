@@ -57,7 +57,8 @@ class _SalesReturnsListScreenState extends State<SalesReturnsListScreen> {
                         child: ListTile(
                           leading: const CircleAvatar(
                             backgroundColor: Colors.red,
-                            child: Icon(Icons.keyboard_return, color: Colors.white, size: 18),
+                            child: Icon(Icons.keyboard_return,
+                                color: Colors.white, size: 18),
                           ),
                           title: Text(r['return_number'] as String),
                           subtitle: Text(

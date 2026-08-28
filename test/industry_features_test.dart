@@ -17,7 +17,9 @@ void main() {
     await databaseFactory.deleteDatabase(path);
   });
 
-  test('industry specific features: Restaurant Tables, Service Jobs, Pharmacy Expiry', () async {
+  test(
+      'industry specific features: Restaurant Tables, Service Jobs, Pharmacy Expiry',
+      () async {
     final db = DBHelper.instance;
     final companyId = await db.insertCompany({
       'name': 'Industry Test Company',
@@ -58,7 +60,8 @@ void main() {
     expect(jobs.first['status'], 'done');
 
     // 3. Pharmacy Expiry Tracking Check
-    final expDate = DateTime.now().add(const Duration(days: 15)).toIso8601String();
+    final expDate =
+        DateTime.now().add(const Duration(days: 15)).toIso8601String();
     final medId = await db.insertProduct({
       'company_id': companyId,
       'name': 'Panadol 500mg',

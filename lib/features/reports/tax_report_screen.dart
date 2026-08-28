@@ -48,8 +48,14 @@ class _TaxReportScreenState extends State<TaxReportScreen> {
     final columns = ['Description', 'Amount (Rs.)'];
     final rows = [
       ['Total Sales (Inclusive)', _data!['total_sales']!.toStringAsFixed(2)],
-      ['Tax Collected (Output GST)', _data!['tax_collected']!.toStringAsFixed(2)],
-      ['Total Purchases (Inclusive)', _data!['total_purchases']!.toStringAsFixed(2)],
+      [
+        'Tax Collected (Output GST)',
+        _data!['tax_collected']!.toStringAsFixed(2)
+      ],
+      [
+        'Total Purchases (Inclusive)',
+        _data!['total_purchases']!.toStringAsFixed(2)
+      ],
       ['Tax Paid (Input GST)', _data!['tax_paid']!.toStringAsFixed(2)],
     ];
 
@@ -70,13 +76,15 @@ class _TaxReportScreenState extends State<TaxReportScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final netPayable = (_data?['tax_collected'] ?? 0) - (_data?['tax_paid'] ?? 0);
+    final netPayable =
+        (_data?['tax_collected'] ?? 0) - (_data?['tax_paid'] ?? 0);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('GST / Tax Summary'),
         actions: [
-          IconButton(onPressed: _exportPdf, icon: const Icon(Icons.picture_as_pdf)),
+          IconButton(
+              onPressed: _exportPdf, icon: const Icon(Icons.picture_as_pdf)),
         ],
       ),
       body: Column(
@@ -101,31 +109,44 @@ class _TaxReportScreenState extends State<TaxReportScreen> {
                 padding: const EdgeInsets.all(16),
                 children: [
                   _statCard('Total Sales', _data!['total_sales']!, Colors.blue),
-                  _statCard('Tax Collected (Output)', _data!['tax_collected']!, Colors.teal),
+                  _statCard('Tax Collected (Output)', _data!['tax_collected']!,
+                      Colors.teal),
                   const Divider(height: 32),
-                  _statCard('Total Purchases', _data!['total_purchases']!, Colors.orange),
-                  _statCard('Tax Paid (Input)', _data!['tax_paid']!, Colors.deepOrange),
+                  _statCard('Total Purchases', _data!['total_purchases']!,
+                      Colors.orange),
+                  _statCard('Tax Paid (Input)', _data!['tax_paid']!,
+                      Colors.deepOrange),
                   const Divider(height: 32),
                   Card(
-                    color: netPayable >= 0 ? Colors.red.shade50 : Colors.green.shade50,
+                    color: netPayable >= 0
+                        ? Colors.red.shade50
+                        : Colors.green.shade50,
                     child: Padding(
                       padding: const EdgeInsets.all(20),
                       child: Column(
                         children: [
-                          const Text('Net Tax Payable', style: TextStyle(fontSize: 14)),
+                          const Text('Net Tax Payable',
+                              style: TextStyle(fontSize: 14)),
                           const SizedBox(height: 8),
                           Text(
                             '$_currency ${netPayable.toStringAsFixed(2)}',
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: netPayable >= 0 ? Colors.red : Colors.green,
+                              color:
+                                  netPayable >= 0 ? Colors.red : Colors.green,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            netPayable >= 0 ? 'Payable to Govt' : 'Input Credit Available',
-                            style: TextStyle(fontSize: 11, color: netPayable >= 0 ? Colors.red : Colors.green),
+                            netPayable >= 0
+                                ? 'Payable to Govt'
+                                : 'Input Credit Available',
+                            style: TextStyle(
+                                fontSize: 11,
+                                color: netPayable >= 0
+                                    ? Colors.red
+                                    : Colors.green),
                           ),
                         ],
                       ),
@@ -145,7 +166,8 @@ class _TaxReportScreenState extends State<TaxReportScreen> {
         title: Text(label, style: const TextStyle(fontSize: 14)),
         trailing: Text(
           '$_currency ${value.toStringAsFixed(2)}',
-          style: TextStyle(fontWeight: FontWeight.bold, color: color, fontSize: 15),
+          style: TextStyle(
+              fontWeight: FontWeight.bold, color: color, fontSize: 15),
         ),
       ),
     );

@@ -13,7 +13,8 @@ class BudgetVsActualScreen extends StatefulWidget {
 }
 
 class _BudgetVsActualScreenState extends State<BudgetVsActualScreen> {
-  String _selectedMonth = DateTime.now().toIso8601String().substring(0, 7); // "2026-08"
+  String _selectedMonth =
+      DateTime.now().toIso8601String().substring(0, 7); // "2026-08"
   List<Map<String, dynamic>> _report = [];
   bool _loading = true;
 
@@ -43,7 +44,8 @@ class _BudgetVsActualScreenState extends State<BudgetVsActualScreen> {
   }
 
   void _showSetBudgetDialog(String category, double currentBudget) {
-    final amountCtrl = TextEditingController(text: currentBudget > 0 ? currentBudget.toStringAsFixed(0) : '');
+    final amountCtrl = TextEditingController(
+        text: currentBudget > 0 ? currentBudget.toStringAsFixed(0) : '');
 
     showDialog(
       context: context,
@@ -52,17 +54,20 @@ class _BudgetVsActualScreenState extends State<BudgetVsActualScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('$_selectedMonth ke liye budget set karein:', style: const TextStyle(fontSize: 13)),
+            Text('$_selectedMonth ke liye budget set karein:',
+                style: const TextStyle(fontSize: 13)),
             const SizedBox(height: 12),
             TextField(
               controller: amountCtrl,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Budgeted Amount (Rs.) *'),
+              decoration:
+                  const InputDecoration(labelText: 'Budgeted Amount (Rs.) *'),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           FilledButton(
             onPressed: () async {
               final amount = double.tryParse(amountCtrl.text.trim()) ?? 0.0;
@@ -94,14 +99,19 @@ class _BudgetVsActualScreenState extends State<BudgetVsActualScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Month: $_selectedMonth', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text('Month: $_selectedMonth',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16)),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.edit_calendar, size: 18),
                   label: const Text('Categories Budget Set Karein'),
                   onPressed: () {
                     for (final cat in _defaultCategories) {
-                      final match = _report.firstWhere((r) => r['category'] == cat, orElse: () => {'budgeted': 0.0});
-                      _showSetBudgetDialog(cat, (match['budgeted'] as num).toDouble());
+                      final match = _report.firstWhere(
+                          (r) => r['category'] == cat,
+                          orElse: () => {'budgeted': 0.0});
+                      _showSetBudgetDialog(
+                          cat, (match['budgeted'] as num).toDouble());
                       break;
                     }
                   },
@@ -116,7 +126,8 @@ class _BudgetVsActualScreenState extends State<BudgetVsActualScreen> {
                     ? AppEmptyState(
                         icon: Icons.pie_chart_outline,
                         title: 'Koi Budget Set Nahi',
-                        message: 'Apni expense categories ke monthly budgets set karein taake variance track ho sake.',
+                        message:
+                            'Apni expense categories ke monthly budgets set karein taake variance track ho sake.',
                         actionLabel: 'Set Monthly Budget',
                         onAction: () => _showSetBudgetDialog('Rent', 0.0),
                       )
@@ -128,7 +139,8 @@ class _BudgetVsActualScreenState extends State<BudgetVsActualScreen> {
                           final category = item['category'] as String;
                           final budgeted = (item['budgeted'] as num).toDouble();
                           final actual = (item['actual'] as num).toDouble();
-                          final percent = (item['percentUsed'] as num).toDouble();
+                          final percent =
+                              (item['percentUsed'] as num).toDouble();
                           final isOver = item['isOverBudget'] as bool;
 
                           return Card(
@@ -139,33 +151,63 @@ class _BudgetVsActualScreenState extends State<BudgetVsActualScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(category, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                                      Text(category,
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 15)),
                                       IconButton(
                                         icon: const Icon(Icons.edit, size: 18),
-                                        onPressed: () => _showSetBudgetDialog(category, budgeted),
+                                        onPressed: () => _showSetBudgetDialog(
+                                            category, budgeted),
                                       ),
                                     ],
                                   ),
                                   const SizedBox(height: 6),
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text('Budget: Rs. ${budgeted.toStringAsFixed(0)}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                                      Text('Actual: Rs. ${actual.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isOver ? Colors.red : Colors.green)),
+                                      Text(
+                                          'Budget: Rs. ${budgeted.toStringAsFixed(0)}',
+                                          style: const TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 12)),
+                                      Text(
+                                          'Actual: Rs. ${actual.toStringAsFixed(0)}',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 13,
+                                              color: isOver
+                                                  ? Colors.red
+                                                  : Colors.green)),
                                     ],
                                   ),
                                   const SizedBox(height: 8),
                                   LinearProgressIndicator(
                                     value: (percent / 100.0).clamp(0.0, 1.0),
                                     backgroundColor: Colors.grey.shade200,
-                                    color: isOver ? Colors.red : (percent >= 80 ? Colors.orange : Colors.green),
+                                    color: isOver
+                                        ? Colors.red
+                                        : (percent >= 80
+                                            ? Colors.orange
+                                            : Colors.green),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    isOver ? '⚠️ Over Budget by Rs. ${(actual - budgeted).toStringAsFixed(0)} (${percent.toStringAsFixed(0)}%)' : '${percent.toStringAsFixed(0)}% utilized',
-                                    style: TextStyle(fontSize: 11, fontWeight: isOver ? FontWeight.bold : FontWeight.normal, color: isOver ? Colors.red : Colors.grey.shade700),
+                                    isOver
+                                        ? '⚠️ Over Budget by Rs. ${(actual - budgeted).toStringAsFixed(0)} (${percent.toStringAsFixed(0)}%)'
+                                        : '${percent.toStringAsFixed(0)}% utilized',
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: isOver
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                        color: isOver
+                                            ? Colors.red
+                                            : Colors.grey.shade700),
                                   ),
                                 ],
                               ),

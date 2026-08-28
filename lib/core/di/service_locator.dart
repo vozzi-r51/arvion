@@ -72,16 +72,19 @@ Future<void> setupServiceLocator() async {
     sl.registerLazySingleton<AnalyticsRepository>(() => AnalyticsRepository());
   }
   if (!sl.isRegistered<CostCenterRepository>()) {
-    sl.registerLazySingleton<CostCenterRepository>(() => CostCenterRepository());
+    sl.registerLazySingleton<CostCenterRepository>(
+        () => CostCenterRepository());
   }
   if (!sl.isRegistered<AccountingRepository>()) {
-    sl.registerLazySingleton<AccountingRepository>(() => AccountingRepository());
+    sl.registerLazySingleton<AccountingRepository>(
+        () => AccountingRepository());
   }
   if (!sl.isRegistered<HrRepository>()) {
     sl.registerLazySingleton<HrRepository>(() => HrRepository());
   }
   if (!sl.isRegistered<FixedAssetsRepository>()) {
-    sl.registerLazySingleton<FixedAssetsRepository>(() => FixedAssetsRepository());
+    sl.registerLazySingleton<FixedAssetsRepository>(
+        () => FixedAssetsRepository());
   }
   if (!sl.isRegistered<BudgetRepository>()) {
     sl.registerLazySingleton<BudgetRepository>(() => BudgetRepository());
@@ -90,41 +93,43 @@ Future<void> setupServiceLocator() async {
     sl.registerLazySingleton<CurrencyRepository>(() => CurrencyRepository());
   }
   if (!sl.isRegistered<FiscalYearRepository>()) {
-    sl.registerLazySingleton<FiscalYearRepository>(() => FiscalYearRepository());
+    sl.registerLazySingleton<FiscalYearRepository>(
+        () => FiscalYearRepository());
   }
   if (!sl.isRegistered<DataArchiveRepository>()) {
-    sl.registerLazySingleton<DataArchiveRepository>(() => DataArchiveRepository());
+    sl.registerLazySingleton<DataArchiveRepository>(
+        () => DataArchiveRepository());
   }
 
   // Services (built on repositories, handle multi-repo coordination)
   if (!sl.isRegistered<SalesService>()) {
     sl.registerLazySingleton<SalesService>(() => SalesService(
-      salesRepository: sl<SalesRepository>(),
-      inventoryRepository: sl<InventoryRepository>(),
-      customerRepository: sl<CustomerRepository>(),
-    ));
+          salesRepository: sl<SalesRepository>(),
+          inventoryRepository: sl<InventoryRepository>(),
+          customerRepository: sl<CustomerRepository>(),
+        ));
   }
   if (!sl.isRegistered<PurchaseService>()) {
     sl.registerLazySingleton<PurchaseService>(() => PurchaseService(
-      purchaseRepository: sl<PurchaseRepository>(),
-      inventoryRepository: sl<InventoryRepository>(),
-      supplierRepository: sl<SupplierRepository>(),
-    ));
+          purchaseRepository: sl<PurchaseRepository>(),
+          inventoryRepository: sl<InventoryRepository>(),
+          supplierRepository: sl<SupplierRepository>(),
+        ));
   }
   if (!sl.isRegistered<CustomerService>()) {
     sl.registerLazySingleton<CustomerService>(() => CustomerService(
-      customerRepository: sl<CustomerRepository>(),
-    ));
+          customerRepository: sl<CustomerRepository>(),
+        ));
   }
   if (!sl.isRegistered<InventoryService>()) {
     sl.registerLazySingleton<InventoryService>(() => InventoryService(
-      inventoryRepository: sl<InventoryRepository>(),
-    ));
+          inventoryRepository: sl<InventoryRepository>(),
+        ));
   }
   if (!sl.isRegistered<ExpenseService>()) {
     sl.registerLazySingleton<ExpenseService>(() => ExpenseService(
-      expenseRepository: sl<ExpenseRepository>(),
-    ));
+          expenseRepository: sl<ExpenseRepository>(),
+        ));
   }
 
   // Wire event listeners. Register them once at startup so that any

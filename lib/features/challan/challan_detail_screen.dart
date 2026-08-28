@@ -23,7 +23,8 @@ class _ChallanDetailScreenState extends State<ChallanDetailScreen> {
   }
 
   Future<void> _load() async {
-    final items = await DBHelper.instance.getChallanItems(widget.challan['id'] as int);
+    final items =
+        await DBHelper.instance.getChallanItems(widget.challan['id'] as int);
     setState(() {
       _items = items;
       _loading = false;
@@ -31,7 +32,8 @@ class _ChallanDetailScreenState extends State<ChallanDetailScreen> {
   }
 
   Future<void> _markDelivered() async {
-    await DBHelper.instance.updateChallanStatus(widget.challan['id'] as int, 'delivered');
+    await DBHelper.instance
+        .updateChallanStatus(widget.challan['id'] as int, 'delivered');
     setState(() => _status = 'delivered');
   }
 
@@ -54,16 +56,23 @@ class _ChallanDetailScreenState extends State<ChallanDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Customer: ${challan['customer_name'] ?? 'Walk-in Customer'}'),
-                        Text('Date: ${(challan['challan_date'] as String).substring(0, 10)}'),
-                        if ((challan['delivery_address'] as String?)?.isNotEmpty == true)
+                        Text(
+                            'Customer: ${challan['customer_name'] ?? 'Walk-in Customer'}'),
+                        Text(
+                            'Date: ${(challan['challan_date'] as String).substring(0, 10)}'),
+                        if ((challan['delivery_address'] as String?)
+                                ?.isNotEmpty ==
+                            true)
                           Text('Address: ${challan['delivery_address']}'),
                         const SizedBox(height: 8),
                         Chip(
                           label: Text(isDelivered ? 'Delivered' : 'Pending'),
                           backgroundColor:
-                              (isDelivered ? Colors.green : Colors.orange).withOpacity(0.15),
-                          labelStyle: TextStyle(color: isDelivered ? Colors.green : Colors.orange),
+                              (isDelivered ? Colors.green : Colors.orange)
+                                  .withOpacity(0.15),
+                          labelStyle: TextStyle(
+                              color:
+                                  isDelivered ? Colors.green : Colors.orange),
                         ),
                       ],
                     ),
@@ -78,9 +87,11 @@ class _ChallanDetailScreenState extends State<ChallanDetailScreen> {
                         trailing: Text('Qty: ${it['quantity']}'),
                       ),
                     )),
-                if (signaturePath != null && File(signaturePath).existsSync()) ...[
+                if (signaturePath != null &&
+                    File(signaturePath).existsSync()) ...[
                   const SizedBox(height: 16),
-                  Text('Customer Signature', style: Theme.of(context).textTheme.titleMedium),
+                  Text('Customer Signature',
+                      style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 8),
                   Container(
                     decoration: BoxDecoration(

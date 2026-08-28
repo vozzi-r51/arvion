@@ -16,7 +16,8 @@ class _BomFormScreenState extends State<BomFormScreen> {
 
   List<Map<String, dynamic>> _products = [];
   int? _selectedFinishedProductId;
-  final List<Map<String, dynamic>> _bomItems = []; // {product_id, name, qty, unit}
+  final List<Map<String, dynamic>> _bomItems =
+      []; // {product_id, name, qty, unit}
 
   bool _loading = true;
   bool _saving = false;
@@ -57,7 +58,8 @@ class _BomFormScreenState extends State<BomFormScreen> {
           decoration: const InputDecoration(labelText: 'Quantity Required'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               final qty = double.tryParse(qtyCtrl.text) ?? 1.0;
@@ -104,11 +106,13 @@ class _BomFormScreenState extends State<BomFormScreen> {
       'created_at': DateTime.now().toIso8601String(),
     };
 
-    final items = _bomItems.map((it) => {
-      'raw_material_product_id': it['raw_material_product_id'],
-      'quantity_required': it['quantity_required'],
-      'unit': it['unit'],
-    }).toList();
+    final items = _bomItems
+        .map((it) => {
+              'raw_material_product_id': it['raw_material_product_id'],
+              'quantity_required': it['quantity_required'],
+              'unit': it['unit'],
+            })
+        .toList();
 
     await DBHelper.instance.insertBomWithItems(bom: bom, items: items);
 
@@ -128,31 +132,42 @@ class _BomFormScreenState extends State<BomFormScreen> {
               children: [
                 TextField(
                   controller: _nameCtrl,
-                  decoration: const InputDecoration(labelText: 'BOM Name (e.g. Standard Shirt Formula) *'),
+                  decoration: const InputDecoration(
+                      labelText: 'BOM Name (e.g. Standard Shirt Formula) *'),
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<int>(
                   value: _selectedFinishedProductId,
-                  decoration: const InputDecoration(labelText: 'Finished Product *'),
-                  items: _products.map((p) => DropdownMenuItem<int>(
-                    value: p['id'] as int,
-                    child: Text(p['name'] as String),
-                  )).toList(),
-                  onChanged: (v) => setState(() => _selectedFinishedProductId = v),
+                  decoration:
+                      const InputDecoration(labelText: 'Finished Product *'),
+                  items: _products
+                      .map((p) => DropdownMenuItem<int>(
+                            value: p['id'] as int,
+                            child: Text(p['name'] as String),
+                          ))
+                      .toList(),
+                  onChanged: (v) =>
+                      setState(() => _selectedFinishedProductId = v),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _outputQtyCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   decoration: const InputDecoration(
                     labelText: 'Batch Output Quantity',
-                    helperText: 'Is formula se kitni finished units banti hain?',
+                    helperText:
+                        'Is formula se kitni finished units banti hain?',
                   ),
                 ),
                 const SizedBox(height: 20),
                 Row(
                   children: [
-                    Text('Raw Materials Required', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                    Text('Raw Materials Required',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleSmall
+                            ?.copyWith(fontWeight: FontWeight.bold)),
                     const Spacer(),
                     OutlinedButton.icon(
                       onPressed: _addRawMaterial,
@@ -177,10 +192,12 @@ class _BomFormScreenState extends State<BomFormScreen> {
                       return Card(
                         child: ListTile(
                           title: Text(item['name'] as String),
-                          subtitle: Text('Required: ${item['quantity_required']} ${item['unit']}'),
+                          subtitle: Text(
+                              'Required: ${item['quantity_required']} ${item['unit']}'),
                           trailing: IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => setState(() => _bomItems.removeAt(i)),
+                            onPressed: () =>
+                                setState(() => _bomItems.removeAt(i)),
                           ),
                         ),
                       );
@@ -190,7 +207,8 @@ class _BomFormScreenState extends State<BomFormScreen> {
                 TextField(
                   controller: _notesCtrl,
                   maxLines: 2,
-                  decoration: const InputDecoration(labelText: 'Notes / Instructions'),
+                  decoration:
+                      const InputDecoration(labelText: 'Notes / Instructions'),
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
@@ -216,7 +234,8 @@ class _ProductPickerSheet extends StatelessWidget {
       height: 400,
       child: Column(
         children: [
-          Text('Select Raw Material', style: Theme.of(context).textTheme.titleMedium),
+          Text('Select Raw Material',
+              style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 10),
           Expanded(
             child: ListView.builder(

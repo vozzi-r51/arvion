@@ -47,14 +47,15 @@ class PurchaseRepository extends BaseRepository {
 
   /// Fetch items for a purchase.
   Future<List<Map<String, dynamic>>> getPurchaseItems(int purchaseId) async {
-    return await db.query('purchase_items', where: 'purchase_id = ?', whereArgs: [purchaseId]);
+    return await db.query('purchase_items',
+        where: 'purchase_id = ?', whereArgs: [purchaseId]);
   }
 
   /// Today's total purchases for dashboards / AI.
   Future<double> getTodaysPurchaseTotal(int companyId) async {
     final today = DateTime.now().toIso8601String().substring(0, 10);
     final rows = await db.rawQuery(
-      "SELECT COALESCE(SUM(total), 0) AS total FROM purchases "
+      "SELECT COALESCE(SUM(total_amount), 0) AS total FROM purchases "
       "WHERE company_id = ? AND purchase_date LIKE ?",
       [companyId, '$today%'],
     );

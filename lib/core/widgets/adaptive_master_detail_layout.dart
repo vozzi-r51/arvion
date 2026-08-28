@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 /// and standard single-screen navigation stack on Mobile phones (< 600px).
 class AdaptiveMasterDetailLayout<T> extends StatefulWidget {
   final List<T> items;
-  final Widget Function(BuildContext context, T item, bool isSelected) masterItemBuilder;
+  final Widget Function(BuildContext context, T item, bool isSelected)
+      masterItemBuilder;
   final Widget Function(BuildContext context, T item) detailBuilder;
   final Widget emptyDetailWidget;
   final Widget emptyMasterWidget;
@@ -18,7 +19,8 @@ class AdaptiveMasterDetailLayout<T> extends StatefulWidget {
     required this.masterItemBuilder,
     required this.detailBuilder,
     this.emptyDetailWidget = const Center(
-      child: Text('Select an item from the list to view details', style: TextStyle(color: Colors.grey)),
+      child: Text('Select an item from the list to view details',
+          style: TextStyle(color: Colors.grey)),
     ),
     this.emptyMasterWidget = const Center(child: Text('No items found')),
     required this.title,
@@ -26,10 +28,12 @@ class AdaptiveMasterDetailLayout<T> extends StatefulWidget {
   });
 
   @override
-  State<AdaptiveMasterDetailLayout<T>> createState() => _AdaptiveMasterDetailLayoutState<T>();
+  State<AdaptiveMasterDetailLayout<T>> createState() =>
+      _AdaptiveMasterDetailLayoutState<T>();
 }
 
-class _AdaptiveMasterDetailLayoutState<T> extends State<AdaptiveMasterDetailLayout<T>> {
+class _AdaptiveMasterDetailLayoutState<T>
+    extends State<AdaptiveMasterDetailLayout<T>> {
   T? _selectedItem;
 
   @override
@@ -93,7 +97,8 @@ class _AdaptiveMasterDetailLayoutState<T> extends State<AdaptiveMasterDetailLayo
                         final isSelected = _selectedItem == item;
                         return GestureDetector(
                           onTap: () => setState(() => _selectedItem = item),
-                          child: widget.masterItemBuilder(context, item, isSelected),
+                          child: widget.masterItemBuilder(
+                              context, item, isSelected),
                         );
                       },
                     ),

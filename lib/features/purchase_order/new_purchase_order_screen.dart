@@ -20,7 +20,8 @@ class _PoCartItem {
 class NewPurchaseOrderScreen extends StatefulWidget {
   final int companyId;
   final List<Map<String, dynamic>>? initialItems;
-  const NewPurchaseOrderScreen({super.key, required this.companyId, this.initialItems});
+  const NewPurchaseOrderScreen(
+      {super.key, required this.companyId, this.initialItems});
 
   @override
   State<NewPurchaseOrderScreen> createState() => _NewPurchaseOrderScreenState();
@@ -129,7 +130,8 @@ class _NewPurchaseOrderScreenState extends State<NewPurchaseOrderScreen> {
             })
         .toList();
 
-    await DBHelper.instance.insertPurchaseOrderWithItems(po: poData, items: itemsData);
+    await DBHelper.instance
+        .insertPurchaseOrderWithItems(po: poData, items: itemsData);
 
     setState(() => _saving = false);
     if (!mounted) return;
@@ -153,7 +155,8 @@ class _NewPurchaseOrderScreenState extends State<NewPurchaseOrderScreen> {
         children: [
           Expanded(
             child: _cart.isEmpty
-                ? const Center(child: Text('Cart khali hai — product add karein'))
+                ? const Center(
+                    child: Text('Cart khali hai — product add karein'))
                 : ListView.builder(
                     padding: const EdgeInsets.all(12),
                     itemCount: _cart.length,
@@ -171,19 +174,24 @@ class _NewPurchaseOrderScreenState extends State<NewPurchaseOrderScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(item.name,
-                                        style: const TextStyle(fontWeight: FontWeight.bold)),
-                                    Text('Rs. ${item.unitCost.toStringAsFixed(0)} each',
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold)),
+                                    Text(
+                                        'Rs. ${item.unitCost.toStringAsFixed(0)} each',
                                         style: const TextStyle(fontSize: 12)),
                                   ],
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.remove_circle_outline, size: 20),
+                                icon: const Icon(Icons.remove_circle_outline,
+                                    size: 20),
                                 onPressed: () => _changeQty(i, -1),
                               ),
-                              Text('${item.qty.toStringAsFixed(item.qty % 1 == 0 ? 0 : 1)}'),
+                              Text(
+                                  '${item.qty.toStringAsFixed(item.qty % 1 == 0 ? 0 : 1)}'),
                               IconButton(
-                                icon: const Icon(Icons.add_circle_outline, size: 20),
+                                icon: const Icon(Icons.add_circle_outline,
+                                    size: 20),
                                 onPressed: () => _changeQty(i, 1),
                               ),
                               SizedBox(
@@ -191,11 +199,13 @@ class _NewPurchaseOrderScreenState extends State<NewPurchaseOrderScreen> {
                                 child: Text(
                                   'Rs. ${item.total.toStringAsFixed(0)}',
                                   textAlign: TextAlign.right,
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold),
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.close, size: 18, color: Colors.red),
+                                icon: const Icon(Icons.close,
+                                    size: 18, color: Colors.red),
                                 onPressed: () => _removeItem(i),
                               ),
                             ],
@@ -210,7 +220,10 @@ class _NewPurchaseOrderScreenState extends State<NewPurchaseOrderScreen> {
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, -2)),
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.06),
+                    blurRadius: 8,
+                    offset: const Offset(0, -2)),
               ],
             ),
             child: Column(
@@ -226,7 +239,8 @@ class _NewPurchaseOrderScreenState extends State<NewPurchaseOrderScreen> {
                   value: _selectedSupplierId,
                   decoration: const InputDecoration(labelText: 'Supplier'),
                   items: [
-                    const DropdownMenuItem<int?>(value: null, child: Text('Select Nahi Kiya')),
+                    const DropdownMenuItem<int?>(
+                        value: null, child: Text('Select Nahi Kiya')),
                     ..._suppliers.map((s) => DropdownMenuItem<int?>(
                           value: s['id'] as int,
                           child: Text(s['company_name'] as String),
@@ -245,7 +259,8 @@ class _NewPurchaseOrderScreenState extends State<NewPurchaseOrderScreen> {
                   children: [
                     const Text('Total', style: TextStyle(fontSize: 16)),
                     Text('Rs. ${_total.toStringAsFixed(0)}',
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        style: const TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -255,7 +270,8 @@ class _NewPurchaseOrderScreenState extends State<NewPurchaseOrderScreen> {
                       ? const SizedBox(
                           height: 20,
                           width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white))
                       : const Text('PO Save Karein (Draft)'),
                 ),
               ],
@@ -287,8 +303,8 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
   }
 
   Future<void> _load() async {
-    final rows =
-        await DBHelper.instance.getProducts(widget.companyId, searchQuery: _query);
+    final rows = await DBHelper.instance
+        .getProducts(widget.companyId, searchQuery: _query);
     setState(() {
       _products = rows;
       _loading = false;
@@ -306,7 +322,8 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Text('Product Select Karein', style: Theme.of(context).textTheme.titleMedium),
+            Text('Product Select Karein',
+                style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 10),
             TextField(
               decoration: const InputDecoration(
@@ -331,7 +348,8 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                             final p = _products[i];
                             return ListTile(
                               title: Text(p['name'] as String),
-                              subtitle: Text('Cost: Rs. ${p['purchase_price']}'),
+                              subtitle:
+                                  Text('Cost: Rs. ${p['purchase_price']}'),
                               onTap: () => Navigator.of(context).pop(p),
                             );
                           },

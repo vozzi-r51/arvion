@@ -12,23 +12,41 @@ void main() {
   group('1. In-App Searchable Help Center Tests', () {
     test('Filter FAQs by category and search keyword case-insensitively', () {
       final faqs = [
-        {'category': 'Sales', 'q': 'Nayi Sale kaise create karein?', 'a': 'Sales tab mein Nayi Sale button dabaayein.'},
-        {'category': 'Payments', 'q': 'JazzCash payment kaise lein?', 'a': 'Payment method se JazzCash select karein.'},
-        {'category': 'Accounting', 'q': 'Fiscal Year Closing kya hai?', 'a': 'Net Profit Retained Earnings mein transfer hota hai.'},
+        {
+          'category': 'Sales',
+          'q': 'Nayi Sale kaise create karein?',
+          'a': 'Sales tab mein Nayi Sale button dabaayein.'
+        },
+        {
+          'category': 'Payments',
+          'q': 'JazzCash payment kaise lein?',
+          'a': 'Payment method se JazzCash select karein.'
+        },
+        {
+          'category': 'Accounting',
+          'q': 'Fiscal Year Closing kya hai?',
+          'a': 'Net Profit Retained Earnings mein transfer hota hai.'
+        },
       ];
 
-      final searchInvoice = faqs.where((f) => f['q']!.toLowerCase().contains('sale') || f['a']!.toLowerCase().contains('sale')).toList();
+      final searchInvoice = faqs
+          .where((f) =>
+              f['q']!.toLowerCase().contains('sale') ||
+              f['a']!.toLowerCase().contains('sale'))
+          .toList();
       expect(searchInvoice.length, equals(1));
       expect(searchInvoice.first['category'], equals('Sales'));
 
-      final paymentsCat = faqs.where((f) => f['category'] == 'Payments').toList();
+      final paymentsCat =
+          faqs.where((f) => f['category'] == 'Payments').toList();
       expect(paymentsCat.length, equals(1));
       expect(paymentsCat.first['q'], contains('JazzCash'));
     });
   });
 
   group('2. Privacy-Aware User Feedback System Tests', () {
-    test('Submits feature suggestion locally and rejects empty title', () async {
+    test('Submits feature suggestion locally and rejects empty title',
+        () async {
       final feedbackService = FeedbackService.instance;
 
       expect(

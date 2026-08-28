@@ -59,21 +59,24 @@ class AuthService {
   Future<void> setPin(String pin, {String? question, String? answer}) async {
     final salt = _generateSalt();
     final hash = _hashPinV2(pin, salt);
-    
+
     // 1. Store secrets in Keystore/Keychain
     await SecureAppStorage.write(_keyPinHash, hash);
     await SecureAppStorage.write(_keyPinSalt, salt);
-    
+
     // 2. Store metadata + backup in SQLite (for redundancy/migrations)
-    await DBHelper.instance.savePin(hash, salt, question: question, answer: answer);
+    await DBHelper.instance
+        .savePin(hash, salt, question: question, answer: answer);
   }
 
-  Future<Map<String, dynamic>?> getSecurityInfo() => DBHelper.instance.getSecurityRow();
+  Future<Map<String, dynamic>?> getSecurityInfo() =>
+      DBHelper.instance.getSecurityRow();
 
   Future<bool> verifyRecovery(String answer) async {
     final row = await DBHelper.instance.getSecurityRow();
     if (row == null || row['security_answer'] == null) return false;
-    return answer.trim().toLowerCase() == (row['security_answer'] as String).trim().toLowerCase();
+    return answer.trim().toLowerCase() ==
+        (row['security_answer'] as String).trim().toLowerCase();
   }
 
   /// Verifies a PIN entered at login against the stored hash.
@@ -97,10 +100,10 @@ class AuthService {
     } else {
       // Old raw SHA-256 verify
       isValid = _hashPinV1(pin, salt) == storedHash;
-      
+
       // Automatic upgrade to V2 on successful login
       if (isValid) {
-        await setPin(pin); 
+        await setPin(pin);
       }
     }
 
@@ -119,7 +122,7 @@ class AuthService {
     for (final s in staff) {
       final storedHash = s['pin_hash'] as String;
       final salt = s['pin_salt'] as String;
-      
+
       bool isValid = false;
       if (storedHash.startsWith('v2:')) {
         isValid = _hashPinV2(pin, salt) == storedHash;
@@ -134,7 +137,7 @@ class AuthService {
           });
         }
       }
-      
+
       if (isValid) return s;
     }
     return null;

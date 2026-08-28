@@ -4,58 +4,82 @@ import '../database/db_helper.dart';
 
 /// All discrete permission constants across BizManager modules.
 abstract class AppPermissions {
-  static const viewDashboard          = 'view_dashboard';
-  static const viewReports            = 'view_reports';
-  static const viewSales              = 'view_sales';
-  static const createSales            = 'create_sales';
-  static const editSales              = 'edit_sales';
-  static const deleteSales            = 'delete_sales';
+  static const viewDashboard = 'view_dashboard';
+  static const viewReports = 'view_reports';
+  static const viewSales = 'view_sales';
+  static const createSales = 'create_sales';
+  static const editSales = 'edit_sales';
+  static const deleteSales = 'delete_sales';
 
-  static const viewPurchases          = 'view_purchases';
-  static const createPurchases        = 'create_purchases';
-  static const editPurchases          = 'edit_purchases';
-  static const deletePurchases        = 'delete_purchases';
-  static const approvePo              = 'approve_po';
+  static const viewPurchases = 'view_purchases';
+  static const createPurchases = 'create_purchases';
+  static const editPurchases = 'edit_purchases';
+  static const deletePurchases = 'delete_purchases';
+  static const approvePo = 'approve_po';
 
-  static const viewCustomers          = 'view_customers';
-  static const editCustomers          = 'edit_customers';
-  static const deleteCustomers        = 'delete_customers';
+  static const viewCustomers = 'view_customers';
+  static const editCustomers = 'edit_customers';
+  static const deleteCustomers = 'delete_customers';
 
-  static const viewSuppliers          = 'view_suppliers';
-  static const editSuppliers          = 'edit_suppliers';
-  static const deleteSuppliers        = 'delete_suppliers';
+  static const viewSuppliers = 'view_suppliers';
+  static const editSuppliers = 'edit_suppliers';
+  static const deleteSuppliers = 'delete_suppliers';
 
-  static const viewInventory          = 'view_inventory';
-  static const editInventory          = 'edit_inventory';
-  static const adjustStock            = 'adjust_stock';
-  static const editPrices             = 'edit_prices';
+  static const viewInventory = 'view_inventory';
+  static const editInventory = 'edit_inventory';
+  static const adjustStock = 'adjust_stock';
+  static const editPrices = 'edit_prices';
 
-  static const viewExpenses           = 'view_expenses';
-  static const createExpenses         = 'create_expenses';
-  static const editExpenses           = 'edit_expenses';
-  static const deleteExpenses         = 'delete_expenses';
+  static const viewExpenses = 'view_expenses';
+  static const createExpenses = 'create_expenses';
+  static const editExpenses = 'edit_expenses';
+  static const deleteExpenses = 'delete_expenses';
 
-  static const viewAccounting         = 'view_accounting';
-  static const deleteRecords          = 'delete_records';
-  static const manageUsers            = 'manage_users';
-  static const manageRoles            = 'manage_roles';
-  static const manageCompanySettings  = 'manage_company_settings';
+  static const viewAccounting = 'view_accounting';
+  static const deleteRecords = 'delete_records';
+  static const manageUsers = 'manage_users';
+  static const manageRoles = 'manage_roles';
+  static const manageCompanySettings = 'manage_company_settings';
 
-  static const viewAuditLog           = 'view_audit_log';
-  static const exportData             = 'export_data';
-  static const importData             = 'import_data';
+  static const viewAuditLog = 'view_audit_log';
+  static const exportData = 'export_data';
+  static const importData = 'import_data';
 
   /// List of all system permissions.
   static const all = <String>[
-    viewDashboard, viewReports,
-    viewSales, createSales, editSales, deleteSales,
-    viewPurchases, createPurchases, editPurchases, deletePurchases, approvePo,
-    viewCustomers, editCustomers, deleteCustomers,
-    viewSuppliers, editSuppliers, deleteSuppliers,
-    viewInventory, editInventory, adjustStock, editPrices,
-    viewExpenses, createExpenses, editExpenses, deleteExpenses,
-    viewAccounting, deleteRecords, manageUsers, manageRoles, manageCompanySettings,
-    viewAuditLog, exportData, importData,
+    viewDashboard,
+    viewReports,
+    viewSales,
+    createSales,
+    editSales,
+    deleteSales,
+    viewPurchases,
+    createPurchases,
+    editPurchases,
+    deletePurchases,
+    approvePo,
+    viewCustomers,
+    editCustomers,
+    deleteCustomers,
+    viewSuppliers,
+    editSuppliers,
+    deleteSuppliers,
+    viewInventory,
+    editInventory,
+    adjustStock,
+    editPrices,
+    viewExpenses,
+    createExpenses,
+    editExpenses,
+    deleteExpenses,
+    viewAccounting,
+    deleteRecords,
+    manageUsers,
+    manageRoles,
+    manageCompanySettings,
+    viewAuditLog,
+    exportData,
+    importData,
   ];
 }
 
@@ -187,7 +211,8 @@ class RbacService {
 
   Future<List<Map<String, dynamic>>> getRoles(int companyId) async {
     final db = await DBHelper.instance.database;
-    return db.query('roles', where: 'company_id = ?', whereArgs: [companyId], orderBy: 'id ASC');
+    return db.query('roles',
+        where: 'company_id = ?', whereArgs: [companyId], orderBy: 'id ASC');
   }
 
   Future<Map<String, dynamic>?> getRoleById(int roleId) async {
@@ -220,13 +245,18 @@ class RbacService {
     });
 
     for (final pKey in permissions) {
-      await setPermission(companyId: companyId, roleName: name, permissionKey: pKey, allowed: true);
+      await setPermission(
+          companyId: companyId,
+          roleName: name,
+          permissionKey: pKey,
+          allowed: true);
     }
 
     return roleId;
   }
 
-  Future<void> updateRolePermissions(int roleId, List<String> permissions) async {
+  Future<void> updateRolePermissions(
+      int roleId, List<String> permissions) async {
     final db = await DBHelper.instance.database;
     final role = await getRoleById(roleId);
 
@@ -241,7 +271,11 @@ class RbacService {
       final cId = role['company_id'] as int;
       final rName = role['name'] as String;
       for (final pKey in permissions) {
-        await setPermission(companyId: cId, roleName: rName, permissionKey: pKey, allowed: true);
+        await setPermission(
+            companyId: cId,
+            roleName: rName,
+            permissionKey: pKey,
+            allowed: true);
       }
     }
   }

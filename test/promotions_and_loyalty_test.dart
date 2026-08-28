@@ -4,7 +4,9 @@ import 'package:bizmanager/core/loyalty/loyalty_service.dart';
 
 void main() {
   group('Promotion Engine - Rule Calculations & Eligibility Tests', () {
-    test('Buy 2 Get 1 Free promotion calculates correct free quantity and discount', () {
+    test(
+        'Buy 2 Get 1 Free promotion calculates correct free quantity and discount',
+        () {
       final promotion = {
         'id': 101,
         'name': 'Buy 2 Get 1 Free',
@@ -65,7 +67,9 @@ void main() {
       expect(result2.reason, contains('coupon'));
     });
 
-    test('Total usage limit rejects promotion when current_use_count >= max_uses_total', () {
+    test(
+        'Total usage limit rejects promotion when current_use_count >= max_uses_total',
+        () {
       final promotion = {
         'id': 103,
         'name': 'Limited Promo',
@@ -88,7 +92,8 @@ void main() {
   });
 
   group('Customer Loyalty Points Service Tests', () {
-    test('Calculates loyalty points earned based on rate (1 point per 100 PKR)', () {
+    test('Calculates loyalty points earned based on rate (1 point per 100 PKR)',
+        () {
       final points = LoyaltyService.calculatePointsEarned(
         eligibleAmount: 1000.0,
         pointsPerCurrency: 0.01,

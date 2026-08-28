@@ -10,7 +10,7 @@ class VoiceService {
 
   Future<void> init() async {
     _isSpeechAvailable = await _speech.initialize();
-    
+
     if (_isSpeechAvailable) {
       final locales = await _speech.locales();
       for (var l in locales) {

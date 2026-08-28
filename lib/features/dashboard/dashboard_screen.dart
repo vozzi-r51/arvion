@@ -11,6 +11,7 @@ import '../../core/repositories/purchase_repository.dart';
 import '../../core/repositories/expense_repository.dart';
 import '../../core/repositories/analytics_repository.dart';
 import '../../core/services/query_cache_service.dart';
+import '../../core/services/error_reporter.dart';
 import '../../core/providers/localization_provider.dart';
 import '../settings/settings_screen.dart';
 import '../products/product_form_screen.dart';
@@ -57,123 +58,192 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _loadAll({bool forceRefresh = false}) async {
+    if (!mounted) return;
     setState(() => _loading = true);
-    final company = await DBHelper.instance.getActiveCompany();
-    if (company != null) {
-      final companyId = company['id'] as int;
-      final cacheKey = 'dashboard_stats_$companyId';
 
-      if (forceRefresh) {
-        QueryCacheService.instance.invalidate(cacheKey);
+    try {
+      final company = await DBHelper.instance.getActiveCompany();
+      if (company != null) {
+        final companyId = company['id'] as int;
+        final cacheKey = 'dashboard_stats_$companyId';
+
+        if (forceRefresh) {
+          QueryCacheService.instance.invalidate(cacheKey);
+        }
+
+        final cached =
+            QueryCacheService.instance.get<Map<String, dynamic>>(cacheKey);
+        if (cached != null) {
+          _todaysSales = (cached['todaysSales'] as num?)?.toDouble() ?? 0.0;
+          _todaysProfit = (cached['todaysProfit'] as num?)?.toDouble() ?? 0.0;
+          _todaysPurchase =
+              (cached['todaysPurchase'] as num?)?.toDouble() ?? 0.0;
+          _todaysExpenses =
+              (cached['todaysExpenses'] as num?)?.toDouble() ?? 0.0;
+          _currency = (cached['currency'] as String?) ?? 'Rs.';
+          _loading = false;
+          if (mounted) setState(() {});
+          return;
+        }
+
+        // Use repositories with safe fallback
+        final inventoryRepo = sl.isRegistered<InventoryRepository>()
+            ? sl<InventoryRepository>()
+            : null;
+        final customerRepo = sl.isRegistered<CustomerRepository>()
+            ? sl<CustomerRepository>()
+            : null;
+        final supplierRepo = sl.isRegistered<SupplierRepository>()
+            ? sl<SupplierRepository>()
+            : null;
+        final salesRepo =
+            sl.isRegistered<SalesRepository>() ? sl<SalesRepository>() : null;
+        final purchaseRepo = sl.isRegistered<PurchaseRepository>()
+            ? sl<PurchaseRepository>()
+            : null;
+        final expenseRepo = sl.isRegistered<ExpenseRepository>()
+            ? sl<ExpenseRepository>()
+            : null;
+        final analyticsRepo = sl.isRegistered<AnalyticsRepository>()
+            ? sl<AnalyticsRepository>()
+            : null;
+
+        final productCount = inventoryRepo != null
+            ? await inventoryRepo.getProductCount(companyId)
+            : 0;
+        final lowStockCount = inventoryRepo != null
+            ? await inventoryRepo.getLowStockCount(companyId)
+            : 0;
+        final customerCount = customerRepo != null
+            ? await customerRepo.getCustomerCount(companyId)
+            : 0;
+        final supplierCount = supplierRepo != null
+            ? await supplierRepo.getSupplierCount(companyId)
+            : 0;
+
+        _todaysSales = salesRepo != null
+            ? await salesRepo.getTodaysSalesTotal(companyId)
+            : 0.0;
+        _todaysProfit = analyticsRepo != null
+            ? await analyticsRepo.getTodaysProfit(companyId)
+            : 0.0;
+        _todaysPurchase = purchaseRepo != null
+            ? await purchaseRepo.getTodaysPurchaseTotal(companyId)
+            : 0.0;
+        _todaysExpenses = expenseRepo != null
+            ? await expenseRepo.getTodaysExpensesTotal(companyId)
+            : 0.0;
+
+        _currency = (company['currency_symbol'] as String?) ?? 'Rs.';
+
+        final lowStockProducts =
+            await DBHelper.instance.getLowStockProducts(companyId);
+
+        final to = DateTime.now();
+        final from = to.subtract(const Duration(days: 30));
+        final sales = await DBHelper.instance.getSalesBetween(
+            companyId,
+            from.toIso8601String().substring(0, 10),
+            to.toIso8601String().substring(0, 10));
+        final purchases = await DBHelper.instance.getPurchasesBetween(
+            companyId,
+            from.toIso8601String().substring(0, 10),
+            to.toIso8601String().substring(0, 10));
+
+        final Map<int, double> salesMap = {};
+        final Map<int, double> purchaseMap = {};
+
+        for (var s in sales) {
+          final rawDate = s['sale_date'] as String?;
+          final parsedDate =
+              rawDate != null ? DateTime.tryParse(rawDate) : null;
+          final day = parsedDate?.day ?? DateTime.now().day;
+          final amount = (s['total_amount'] as num?)?.toDouble() ??
+              (s['total'] as num?)?.toDouble() ??
+              0.0;
+          salesMap[day] = (salesMap[day] ?? 0.0) + amount;
+        }
+
+        for (var p in purchases) {
+          final rawDate = p['purchase_date'] as String?;
+          final parsedDate =
+              rawDate != null ? DateTime.tryParse(rawDate) : null;
+          final day = parsedDate?.day ?? DateTime.now().day;
+          final amount = (p['total_amount'] as num?)?.toDouble() ??
+              (p['total'] as num?)?.toDouble() ??
+              0.0;
+          purchaseMap[day] = (purchaseMap[day] ?? 0.0) + amount;
+        }
+
+        QueryCacheService.instance.set(
+            cacheKey,
+            {
+              'productCount': productCount,
+              'lowStockCount': lowStockCount,
+              'customerCount': customerCount,
+              'supplierCount': supplierCount,
+              'todaysSales': _todaysSales,
+              'todaysProfit': _todaysProfit,
+              'todaysPurchase': _todaysPurchase,
+              'todaysExpenses': _todaysExpenses,
+              'currency': _currency,
+              'lowStockProducts': lowStockProducts,
+              'salesMap': salesMap,
+              'purchaseMap': purchaseMap,
+            },
+            ttl: const Duration(minutes: 5));
+
+        final List<FlSpot> sSpots = [];
+        final List<FlSpot> pSpots = [];
+        for (int i = 0; i < 30; i++) {
+          final date = from.add(Duration(days: i));
+          final day = date.day;
+          sSpots.add(FlSpot(i.toDouble(), salesMap[day] ?? 0.0));
+          pSpots.add(FlSpot(i.toDouble(), purchaseMap[day] ?? 0.0));
+        }
+
+        // Top Products
+        final topProds =
+            await DBHelper.instance.getTopSellingProducts(companyId);
+        final List<BarChartGroupData> groups = [];
+        for (int i = 0; i < topProds.length; i++) {
+          final qty = (topProds[i]['total_qty'] as num?)?.toDouble() ??
+              (topProds[i]['quantity'] as num?)?.toDouble() ??
+              0.0;
+          groups.add(BarChartGroupData(
+            x: i,
+            barRods: [
+              BarChartRodData(
+                toY: qty,
+                color: Colors.blueAccent,
+                width: 15,
+                borderRadius: BorderRadius.circular(4),
+              )
+            ],
+          ));
+        }
+
+        if (mounted) {
+          setState(() {
+            _activeCompany = company;
+            _productCount = productCount;
+            _lowStockCount = lowStockCount;
+            _lowStockProducts = lowStockProducts;
+            _customerCount = customerCount;
+            _supplierCount = supplierCount;
+            _salesSpots = sSpots;
+            _purchaseSpots = pSpots;
+            _topProductGroups = groups;
+          });
+        }
       }
-
-      final cached = QueryCacheService.instance.get<Map<String, dynamic>>(cacheKey);
-      if (cached != null) {
-        _todaysSales = cached['todaysSales'] as double;
-        _todaysProfit = cached['todaysProfit'] as double;
-        _todaysPurchase = cached['todaysPurchase'] as double;
-        _todaysExpenses = cached['todaysExpenses'] as double;
-        _currency = cached['currency'] as String;
-        _loading = false;
-        if (mounted) setState(() {});
-        return;
+    } catch (e, s) {
+      ErrorReporter.instance.report(e,
+          module: 'Dashboard', action: 'loadAll', stack: s.toString());
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
       }
-
-      // Use repositories instead of DBHelper
-      final inventoryRepo = sl<InventoryRepository>();
-      final customerRepo = sl<CustomerRepository>();
-      final supplierRepo = sl<SupplierRepository>();
-      final salesRepo = sl<SalesRepository>();
-      final purchaseRepo = sl<PurchaseRepository>();
-      final expenseRepo = sl<ExpenseRepository>();
-      final analyticsRepo = sl<AnalyticsRepository>();
-
-      final productCount = await inventoryRepo.getProductCount(companyId);
-      final lowStockCount = await inventoryRepo.getLowStockCount(companyId);
-      final customerCount = await customerRepo.getCustomerCount(companyId);
-      final supplierCount = await supplierRepo.getSupplierCount(companyId);
-
-      _todaysSales = await salesRepo.getTodaysSalesTotal(companyId);
-      _todaysProfit = await analyticsRepo.getTodaysProfit(companyId);
-      _todaysPurchase = await purchaseRepo.getTodaysPurchaseTotal(companyId);
-      _todaysExpenses = await expenseRepo.getTodaysExpensesTotal(companyId);
-
-      _currency = company['currency_symbol'] ?? 'Rs.';
-
-      final lowStockProducts = await DBHelper.instance.getLowStockProducts(companyId);
-
-      final to = DateTime.now();
-      final from = to.subtract(const Duration(days: 30));
-      final sales = await DBHelper.instance.getSalesBetween(companyId, from.toIso8601String().substring(0, 10), to.toIso8601String().substring(0, 10));
-      final purchases = await DBHelper.instance.getPurchasesBetween(companyId, from.toIso8601String().substring(0, 10), to.toIso8601String().substring(0, 10));
-
-      final Map<int, double> salesMap = {};
-      final Map<int, double> purchaseMap = {};
-
-      for (var s in sales) {
-        final day = DateTime.parse(s['sale_date']).day;
-        salesMap[day] = (salesMap[day] ?? 0) + (s['total_amount'] as num).toDouble();
-      }
-      for (var p in purchases) {
-        final day = DateTime.parse(p['purchase_date']).day;
-        purchaseMap[day] = (purchaseMap[day] ?? 0) + (p['total_amount'] as num).toDouble();
-      }
-
-      QueryCacheService.instance.set(cacheKey, {
-        'productCount': productCount,
-        'lowStockCount': lowStockCount,
-        'customerCount': customerCount,
-        'supplierCount': supplierCount,
-        'todaysSales': _todaysSales,
-        'todaysProfit': _todaysProfit,
-        'todaysPurchase': _todaysPurchase,
-        'todaysExpenses': _todaysExpenses,
-        'currency': _currency,
-        'lowStockProducts': lowStockProducts,
-        'salesMap': salesMap,
-        'purchaseMap': purchaseMap,
-      }, ttl: const Duration(minutes: 5));
-
-      final List<FlSpot> sSpots = [];
-      final List<FlSpot> pSpots = [];
-      for (int i = 0; i < 30; i++) {
-        final date = from.add(Duration(days: i));
-        final day = date.day;
-        sSpots.add(FlSpot(i.toDouble(), salesMap[day] ?? 0));
-        pSpots.add(FlSpot(i.toDouble(), purchaseMap[day] ?? 0));
-      }
-
-      // Top Products
-      final topProds = await DBHelper.instance.getTopSellingProducts(companyId);
-      final List<BarChartGroupData> groups = [];
-      for (int i = 0; i < topProds.length; i++) {
-        groups.add(BarChartGroupData(
-          x: i,
-          barRods: [
-            BarChartRodData(
-              toY: (topProds[i]['total_qty'] as num).toDouble(),
-              color: Colors.blueAccent,
-              width: 15,
-              borderRadius: BorderRadius.circular(4),
-            )
-          ],
-        ));
-      }
-
-      setState(() {
-        _activeCompany = company;
-        _productCount = productCount;
-        _lowStockCount = lowStockCount;
-        _lowStockProducts = lowStockProducts;
-        _customerCount = customerCount;
-        _supplierCount = supplierCount;
-        _salesSpots = sSpots;
-        _purchaseSpots = pSpots;
-        _topProductGroups = groups;
-        _loading = false;
-      });
-    } else {
-      setState(() => _loading = false);
     }
   }
 
@@ -184,33 +254,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final locProvider = context.read<LocalizationProvider>();
 
     return [
-      _DashboardStat('Today\'s ${term.get('sale')}s', locProvider.formatCurrency(_todaysSales),
-          Icons.point_of_sale, Colors.teal),
+      _DashboardStat(
+          'Today\'s ${term.get('sale')}s',
+          locProvider.formatCurrency(_todaysSales),
+          Icons.point_of_sale,
+          Colors.teal),
       if (isOwner)
-        _DashboardStat('Today\'s Purchase', locProvider.formatCurrency(_todaysPurchase),
-            Icons.shopping_cart, Colors.indigo),
+        _DashboardStat(
+            'Today\'s Purchase',
+            locProvider.formatCurrency(_todaysPurchase),
+            Icons.shopping_cart,
+            Colors.indigo),
       if (isOwner)
-        _DashboardStat('Today\'s Profit', locProvider.formatCurrency(_todaysProfit),
-            Icons.trending_up, Colors.green),
+        _DashboardStat(
+            'Today\'s Profit',
+            locProvider.formatCurrency(_todaysProfit),
+            Icons.trending_up,
+            Colors.green),
       if (isOwner)
-        _DashboardStat('Today\'s Expenses', locProvider.formatCurrency(_todaysExpenses),
-            Icons.receipt_long, Colors.orange),
-      _DashboardStat('Total Customers', '$_customerCount', Icons.people,
-          Colors.blue),
+        _DashboardStat(
+            'Today\'s Expenses',
+            locProvider.formatCurrency(_todaysExpenses),
+            Icons.receipt_long,
+            Colors.orange),
+      _DashboardStat(
+          'Total Customers', '$_customerCount', Icons.people, Colors.blue),
       if (isOwner)
         _DashboardStat('Total Suppliers', '$_supplierCount',
             Icons.local_shipping, Colors.purple),
-      _DashboardStat('Total ${term.get('product')}s', '$_productCount', Icons.inventory_2,
-          Colors.brown),
-      _DashboardStat('Low Stock Alert', '$_lowStockCount',
-          Icons.warning_amber, Colors.red),
+      _DashboardStat('Total ${term.get('product')}s', '$_productCount',
+          Icons.inventory_2, Colors.brown),
+      _DashboardStat('Low Stock Alert', '$_lowStockCount', Icons.warning_amber,
+          Colors.red),
     ];
   }
 
   List<_QuickAction> get _quickActions {
     final term = context.read<TerminologyProvider>();
     return [
-      _QuickAction(term.get('sale'), Icons.add_shopping_cart, color: Colors.teal),
+      _QuickAction(term.get('sale'), Icons.add_shopping_cart,
+          color: Colors.teal),
       _QuickAction('Purchase', Icons.shopping_bag, color: Colors.indigo),
       _QuickAction('Expense', Icons.receipt_long, color: Colors.orange),
       _QuickAction(term.get('product'), Icons.add_box, color: Colors.brown),
@@ -225,18 +308,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     if (action.title == term.get('sale')) {
       Navigator.of(context)
-          .push(MaterialPageRoute(
-              builder: (_) => NewSaleScreen(companyId: id)))
+          .push(MaterialPageRoute(builder: (_) => NewSaleScreen(companyId: id)))
           .then((_) => _loadAll());
       return;
     }
-    
+
     if (action.title == term.get('product')) {
-       Navigator.of(context)
+      Navigator.of(context)
           .push(MaterialPageRoute(
               builder: (_) => ProductFormScreen(companyId: id)))
           .then((_) => _loadAll());
-       return;
+      return;
     }
 
     switch (action.title) {
@@ -394,13 +476,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
-                    Theme.of(context).colorScheme.primary.withValues(alpha: 0.04),
+                    Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.12),
+                    Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.04),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(alpha: 0.12),
                 ),
               ),
               child: Row(
@@ -451,7 +542,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Card(
                 color: Colors.orange.shade50,
                 child: ListTile(
-                  leading: const Icon(Icons.warning_amber, color: Colors.orange),
+                  leading:
+                      const Icon(Icons.warning_amber, color: Colors.orange),
                   title: Text('$_lowStockCount items low stock par hain'),
                   trailing: TextButton(
                     onPressed: _showReorderSuggestions,
@@ -464,8 +556,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Text(
               'Quick Actions',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 10),
             SizedBox(
@@ -501,7 +593,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             width: 34,
                             height: 34,
                             decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Icon(action.icon,
@@ -524,8 +619,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Text(
               'Last 30 Days Trend',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 10),
             _buildChart(),
@@ -533,8 +628,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Text(
               'Top 5 Products (by Qty)',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 10),
             _buildBarChart(),
@@ -542,8 +637,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Text(
               'Overview',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 10),
             GridView.builder(
@@ -564,7 +659,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
-                      color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
+                      color:
+                          Theme.of(context).dividerColor.withValues(alpha: 0.2),
                     ),
                   ),
                   child: Column(
@@ -639,7 +735,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     Text(
                       'Today\'s ${term.get('sale')}s',
-                      style: AppTypography.titleSmall(context).copyWith(color: Colors.white70),
+                      style: AppTypography.titleSmall(context)
+                          .copyWith(color: Colors.white70),
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
@@ -664,9 +761,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _miniStat('Profit', '$_currency ${_todaysProfit.toStringAsFixed(0)}'),
-                _miniStat('Purchases', '$_currency ${_todaysPurchase.toStringAsFixed(0)}'),
-                _miniStat('Expenses', '$_currency ${_todaysExpenses.toStringAsFixed(0)}'),
+                _miniStat(
+                    'Profit', '$_currency ${_todaysProfit.toStringAsFixed(0)}'),
+                _miniStat('Purchases',
+                    '$_currency ${_todaysPurchase.toStringAsFixed(0)}'),
+                _miniStat('Expenses',
+                    '$_currency ${_todaysExpenses.toStringAsFixed(0)}'),
               ],
             ),
           ],
@@ -679,9 +779,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+        Text(label,
+            style: const TextStyle(color: Colors.white70, fontSize: 11)),
         const SizedBox(height: 2),
-        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+        Text(value,
+            style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 13)),
       ],
     );
   }
@@ -693,7 +798,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+        border: Border.all(
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
       ),
       child: LineChart(
         LineChartData(
@@ -707,7 +813,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: Colors.teal,
               barWidth: 3,
               dotData: const FlDotData(show: false),
-              belowBarData: BarAreaData(show: true, color: Colors.teal.withValues(alpha: 0.1)),
+              belowBarData: BarAreaData(
+                  show: true, color: Colors.teal.withValues(alpha: 0.1)),
             ),
             LineChartBarData(
               spots: _purchaseSpots,
@@ -715,7 +822,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: Colors.indigo,
               barWidth: 3,
               dotData: const FlDotData(show: false),
-              belowBarData: BarAreaData(show: true, color: Colors.indigo.withValues(alpha: 0.1)),
+              belowBarData: BarAreaData(
+                  show: true, color: Colors.indigo.withValues(alpha: 0.1)),
             ),
           ],
         ),
@@ -737,7 +845,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+        border: Border.all(
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
       ),
       child: BarChart(
         BarChartData(
@@ -783,7 +892,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text(
                   'Coming Soon: ${family.replaceAllMapped(RegExp(r'([A-Z])'), (match) => ' ${match.group(0)}').trim().toUpperCase()}',
                   style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 12, color: Colors.amber),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      color: Colors.amber),
                 ),
                 const Text(
                   'Is business type ke liye makhsoos features aglay update mein shamil kiye jayenge. Filhal aap standard retail features use kar saktay hain.',

@@ -14,10 +14,12 @@ class HardwareBarcodeScannerListener extends StatefulWidget {
   });
 
   @override
-  State<HardwareBarcodeScannerListener> createState() => _HardwareBarcodeScannerListenerState();
+  State<HardwareBarcodeScannerListener> createState() =>
+      _HardwareBarcodeScannerListenerState();
 }
 
-class _HardwareBarcodeScannerListenerState extends State<HardwareBarcodeScannerListener> {
+class _HardwareBarcodeScannerListenerState
+    extends State<HardwareBarcodeScannerListener> {
   final StringBuffer _buffer = StringBuffer();
   DateTime _lastKeyPressTime = DateTime.now();
 
@@ -31,7 +33,8 @@ class _HardwareBarcodeScannerListenerState extends State<HardwareBarcodeScannerL
       }
       _lastKeyPressTime = now;
 
-      if (event.logicalKey == LogicalKeyboardKey.enter || event.logicalKey == LogicalKeyboardKey.numpadEnter) {
+      if (event.logicalKey == LogicalKeyboardKey.enter ||
+          event.logicalKey == LogicalKeyboardKey.numpadEnter) {
         final barcode = _buffer.toString().trim();
         if (barcode.isNotEmpty) {
           widget.onBarcodeScanned(barcode);

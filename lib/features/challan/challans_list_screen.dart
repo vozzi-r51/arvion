@@ -60,9 +60,12 @@ class _ChallansListScreenState extends State<ChallansListScreen> {
                         child: ListTile(
                           leading: CircleAvatar(
                             backgroundColor:
-                                (isDelivered ? Colors.green : Colors.orange).shade100,
+                                (isDelivered ? Colors.green : Colors.orange)
+                                    .shade100,
                             child: Icon(
-                              isDelivered ? Icons.check_circle : Icons.local_shipping,
+                              isDelivered
+                                  ? Icons.check_circle
+                                  : Icons.local_shipping,
                               color: isDelivered ? Colors.green : Colors.orange,
                               size: 18,
                             ),
@@ -73,7 +76,8 @@ class _ChallansListScreenState extends State<ChallansListScreen> {
                           trailing: Text(
                             isDelivered ? 'Delivered' : 'Pending',
                             style: TextStyle(
-                                color: isDelivered ? Colors.green : Colors.orange,
+                                color:
+                                    isDelivered ? Colors.green : Colors.orange,
                                 fontSize: 12),
                           ),
                           onTap: () async {

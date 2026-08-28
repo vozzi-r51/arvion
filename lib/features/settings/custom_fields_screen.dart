@@ -23,7 +23,8 @@ class _CustomFieldsScreenState extends State<CustomFieldsScreen> {
 
   Future<void> _load() async {
     setState(() => _loading = true);
-    final rows = await DBHelper.instance.getCustomFieldDefinitions(widget.companyId, _selectedModule);
+    final rows = await DBHelper.instance
+        .getCustomFieldDefinitions(widget.companyId, _selectedModule);
     setState(() {
       _fields = rows;
       _loading = false;
@@ -44,20 +45,24 @@ class _CustomFieldsScreenState extends State<CustomFieldsScreen> {
             children: [
               TextField(
                 controller: nameCtrl,
-                decoration: const InputDecoration(labelText: 'Field Name (e.g. Spice Level)'),
+                decoration: const InputDecoration(
+                    labelText: 'Field Name (e.g. Spice Level)'),
               ),
               DropdownButtonFormField<String>(
                 value: type,
                 decoration: const InputDecoration(labelText: 'Field Type'),
                 items: ['text', 'number', 'date', 'dropdown']
-                    .map((t) => DropdownMenuItem(value: t, child: Text(t.toUpperCase())))
+                    .map((t) => DropdownMenuItem(
+                        value: t, child: Text(t.toUpperCase())))
                     .toList(),
                 onChanged: (v) => setState(() => type = v ?? 'text'),
               ),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
                 if (nameCtrl.text.trim().isEmpty) return;
@@ -90,7 +95,10 @@ class _CustomFieldsScreenState extends State<CustomFieldsScreen> {
             child: DropdownButtonFormField<String>(
               value: _selectedModule,
               decoration: const InputDecoration(labelText: 'Select Module'),
-              items: _modules.map((m) => DropdownMenuItem(value: m, child: Text(m.toUpperCase()))).toList(),
+              items: _modules
+                  .map((m) =>
+                      DropdownMenuItem(value: m, child: Text(m.toUpperCase())))
+                  .toList(),
               onChanged: (v) {
                 if (v != null) {
                   setState(() => _selectedModule = v);
@@ -103,7 +111,9 @@ class _CustomFieldsScreenState extends State<CustomFieldsScreen> {
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
                 : _fields.isEmpty
-                    ? const Center(child: Text('No custom fields defined for this module.'))
+                    ? const Center(
+                        child:
+                            Text('No custom fields defined for this module.'))
                     : ListView.builder(
                         itemCount: _fields.length,
                         itemBuilder: (ctx, i) {

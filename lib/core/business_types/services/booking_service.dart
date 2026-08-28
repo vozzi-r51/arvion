@@ -33,7 +33,7 @@ class BookingService {
     required int resourceId,
     required String bookingNumber,
     required String startDate, // "2026-09-01"
-    required String endDate,   // "2026-09-04"
+    required String endDate, // "2026-09-04"
     required double totalAmount,
   }) async {
     final db = await DBHelper.instance.database;
@@ -41,12 +41,14 @@ class BookingService {
     // Check overlapping bookings: start1 < end2 AND start2 > end1
     final overlaps = await db.query(
       'bookings',
-      where: 'company_id = ? AND resource_id = ? AND status != "cancelled" AND start_date < ? AND end_date > ?',
+      where:
+          'company_id = ? AND resource_id = ? AND status != "cancelled" AND start_date < ? AND end_date > ?',
       whereArgs: [companyId, resourceId, endDate, startDate],
     );
 
     if (overlaps.isNotEmpty) {
-      throw StateError('Resource is already booked for the selected dates ($startDate to $endDate).');
+      throw StateError(
+          'Resource is already booked for the selected dates ($startDate to $endDate).');
     }
 
     return await db.insert('bookings', {

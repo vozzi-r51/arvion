@@ -22,7 +22,8 @@ class AccountingRepository extends BaseRepository {
     required String date,
     required String reference,
     required String description,
-    required List<Map<String, dynamic>> lines, // [{account_id, debit, credit, memo}]
+    required List<Map<String, dynamic>>
+        lines, // [{account_id, debit, credit, memo}]
   }) async {
     return runInTransaction((txn) async {
       final entryId = await txn.insert('journal_entries', {
@@ -86,12 +87,18 @@ class AccountingRepository extends BaseRepository {
       for (final acc in accounts) {
         final type = (acc['type'] as String).toLowerCase();
         final name = (acc['name'] as String).toLowerCase();
-        if (event.customerId != null && type == 'asset' && name.contains('receivable')) {
+        if (event.customerId != null &&
+            type == 'asset' &&
+            name.contains('receivable')) {
           cashOrArAccountId = acc['id'] as int;
-        } else if (cashOrArAccountId == null && type == 'asset' && (name.contains('cash') || name.contains('bank'))) {
+        } else if (cashOrArAccountId == null &&
+            type == 'asset' &&
+            (name.contains('cash') || name.contains('bank'))) {
           cashOrArAccountId = acc['id'] as int;
         }
-        if (type == 'revenue' || name.contains('sale') || name.contains('income')) {
+        if (type == 'revenue' ||
+            name.contains('sale') ||
+            name.contains('income')) {
           salesRevenueAccountId = acc['id'] as int;
         }
       }
@@ -103,8 +110,16 @@ class AccountingRepository extends BaseRepository {
           reference: 'SALE-${event.saleId}',
           description: 'Auto-posted sale revenue for Invoice #${event.saleId}',
           lines: [
-            {'account_id': cashOrArAccountId, 'debit': event.total, 'credit': 0.0},
-            {'account_id': salesRevenueAccountId, 'debit': 0.0, 'credit': event.total},
+            {
+              'account_id': cashOrArAccountId,
+              'debit': event.total,
+              'credit': 0.0
+            },
+            {
+              'account_id': salesRevenueAccountId,
+              'debit': 0.0,
+              'credit': event.total
+            },
           ],
         );
       }

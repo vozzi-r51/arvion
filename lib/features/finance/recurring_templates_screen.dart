@@ -16,7 +16,8 @@ class RecurringTemplatesScreen extends StatefulWidget {
   });
 
   @override
-  State<RecurringTemplatesScreen> createState() => _RecurringTemplatesScreenState();
+  State<RecurringTemplatesScreen> createState() =>
+      _RecurringTemplatesScreenState();
 }
 
 class _RecurringTemplatesScreenState extends State<RecurringTemplatesScreen> {
@@ -41,7 +42,8 @@ class _RecurringTemplatesScreenState extends State<RecurringTemplatesScreen> {
       _currencySymbol = company['currency_symbol'] as String? ?? 'Rs.';
     }
 
-    final rows = await DBHelper.instance.getRecurringTemplates(widget.companyId);
+    final rows =
+        await DBHelper.instance.getRecurringTemplates(widget.companyId);
     final custs = await DBHelper.instance.getCustomers(widget.companyId);
     final prods = await DBHelper.instance.getProducts(widget.companyId);
 
@@ -65,15 +67,19 @@ class _RecurringTemplatesScreenState extends State<RecurringTemplatesScreen> {
     await db.insert('recurring_templates', copyData);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Template duplicated as "${copyData['category']}"!')),
+      SnackBar(
+          content: Text('Template duplicated as "${copyData['category']}"!')),
     );
     _load();
   }
 
   void _showForm({Map<String, dynamic>? existing, int? preselectedCustomerId}) {
-    final categoryCtrl = TextEditingController(text: existing?['category'] ?? '');
-    final amountCtrl = TextEditingController(text: existing?['amount']?.toString() ?? '');
-    String type = existing?['type'] ?? (preselectedCustomerId != null ? 'sale' : 'expense');
+    final categoryCtrl =
+        TextEditingController(text: existing?['category'] ?? '');
+    final amountCtrl =
+        TextEditingController(text: existing?['amount']?.toString() ?? '');
+    String type = existing?['type'] ??
+        (preselectedCustomerId != null ? 'sale' : 'expense');
     String frequency = existing?['frequency'] ?? 'monthly';
     int? selectedCustomerId = existing?['customer_id'] ?? preselectedCustomerId;
 
@@ -99,11 +105,15 @@ class _RecurringTemplatesScreenState extends State<RecurringTemplatesScreen> {
         builder: (ctx, setDialogState) {
           double calculatedSubtotal = 0;
           for (final item in cartItems) {
-            calculatedSubtotal += ((item['quantity'] as num) * (item['unit_price'] as num)).toDouble();
+            calculatedSubtotal +=
+                ((item['quantity'] as num) * (item['unit_price'] as num))
+                    .toDouble();
           }
 
           return AlertDialog(
-            title: Text(existing == null ? 'Nayi Recurring Template' : 'Template Edit Karein'),
+            title: Text(existing == null
+                ? 'Nayi Recurring Template'
+                : 'Template Edit Karein'),
             content: SizedBox(
               width: double.maxFinite,
               child: SingleChildScrollView(
@@ -114,29 +124,37 @@ class _RecurringTemplatesScreenState extends State<RecurringTemplatesScreen> {
                       value: type,
                       decoration: const InputDecoration(labelText: 'Type'),
                       items: const [
-                        DropdownMenuItem(value: 'expense', child: Text('Expense')),
-                        DropdownMenuItem(value: 'income', child: Text('Income')),
-                        DropdownMenuItem(value: 'sale', child: Text('Sale / Invoice')),
+                        DropdownMenuItem(
+                            value: 'expense', child: Text('Expense')),
+                        DropdownMenuItem(
+                            value: 'income', child: Text('Income')),
+                        DropdownMenuItem(
+                            value: 'sale', child: Text('Sale / Invoice')),
                       ],
                       onChanged: (v) => setDialogState(() => type = v!),
                     ),
-                    TextField(controller: categoryCtrl, decoration: const InputDecoration(labelText: 'Template Name / Description')),
-
+                    TextField(
+                        controller: categoryCtrl,
+                        decoration: const InputDecoration(
+                            labelText: 'Template Name / Description')),
                     if (type == 'sale') ...[
                       const SizedBox(height: 12),
                       DropdownButtonFormField<int>(
                         value: selectedCustomerId,
-                        decoration: const InputDecoration(labelText: 'Select Customer *'),
+                        decoration: const InputDecoration(
+                            labelText: 'Select Customer *'),
                         items: _customers
                             .map((c) => DropdownMenuItem<int>(
                                   value: c['id'] as int,
                                   child: Text(c['name'] as String),
                                 ))
                             .toList(),
-                        onChanged: (v) => setDialogState(() => selectedCustomerId = v),
+                        onChanged: (v) =>
+                            setDialogState(() => selectedCustomerId = v),
                       ),
                       const SizedBox(height: 16),
-                      const Text('Invoice Items (Cart Picker):', style: TextStyle(fontWeight: FontWeight.bold)),
+                      const Text('Invoice Items (Cart Picker):',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
 
                       // Cart item picker controls
@@ -145,7 +163,8 @@ class _RecurringTemplatesScreenState extends State<RecurringTemplatesScreen> {
                           Expanded(
                             child: DropdownButtonFormField<int>(
                               value: selectedProdId,
-                              decoration: const InputDecoration(labelText: 'Product'),
+                              decoration:
+                                  const InputDecoration(labelText: 'Product'),
                               items: _products
                                   .map((p) => DropdownMenuItem<int>(
                                         value: p['id'] as int,
@@ -154,10 +173,13 @@ class _RecurringTemplatesScreenState extends State<RecurringTemplatesScreen> {
                                   .toList(),
                               onChanged: (v) {
                                 if (v != null) {
-                                  final p = _products.firstWhere((prod) => prod['id'] == v);
+                                  final p = _products
+                                      .firstWhere((prod) => prod['id'] == v);
                                   setDialogState(() {
                                     selectedProdId = v;
-                                    itemPrice = (p['retail_price'] as num?)?.toDouble() ?? 0.0;
+                                    itemPrice = (p['retail_price'] as num?)
+                                            ?.toDouble() ??
+                                        0.0;
                                   });
                                 }
                               },
@@ -167,14 +189,18 @@ class _RecurringTemplatesScreenState extends State<RecurringTemplatesScreen> {
                           SizedBox(
                             width: 60,
                             child: TextField(
-                              decoration: const InputDecoration(labelText: 'Qty'),
+                              decoration:
+                                  const InputDecoration(labelText: 'Qty'),
                               keyboardType: TextInputType.number,
-                              controller: TextEditingController(text: itemQty.toStringAsFixed(0)),
-                              onChanged: (v) => itemQty = double.tryParse(v) ?? 1,
+                              controller: TextEditingController(
+                                  text: itemQty.toStringAsFixed(0)),
+                              onChanged: (v) =>
+                                  itemQty = double.tryParse(v) ?? 1,
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.add_circle, color: Colors.blue),
+                            icon: const Icon(Icons.add_circle,
+                                color: Colors.blue),
                             onPressed: () {
                               if (selectedProdId != null && itemQty > 0) {
                                 setDialogState(() {
@@ -195,16 +221,21 @@ class _RecurringTemplatesScreenState extends State<RecurringTemplatesScreen> {
                       ...cartItems.map((item) {
                         final p = _products.firstWhere(
                           (prod) => prod['id'] == item['product_id'],
-                          orElse: () => {'name': 'Product #${item['product_id']}'},
+                          orElse: () =>
+                              {'name': 'Product #${item['product_id']}'},
                         );
-                        final tot = (item['quantity'] as num) * (item['unit_price'] as num);
+                        final tot = (item['quantity'] as num) *
+                            (item['unit_price'] as num);
                         return ListTile(
                           dense: true,
                           title: Text(p['name'] as String),
-                          subtitle: Text('${item['quantity']} x Rs. ${item['unit_price']} = Rs. $tot'),
+                          subtitle: Text(
+                              '${item['quantity']} x Rs. ${item['unit_price']} = Rs. $tot'),
                           trailing: IconButton(
-                            icon: const Icon(Icons.remove_circle, color: Colors.red, size: 18),
-                            onPressed: () => setDialogState(() => cartItems.remove(item)),
+                            icon: const Icon(Icons.remove_circle,
+                                color: Colors.red, size: 18),
+                            onPressed: () =>
+                                setDialogState(() => cartItems.remove(item)),
                           ),
                         );
                       }),
@@ -212,28 +243,39 @@ class _RecurringTemplatesScreenState extends State<RecurringTemplatesScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Subtotal:', style: TextStyle(fontWeight: FontWeight.bold)),
-                          Text('Rs. ${calculatedSubtotal.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+                          const Text('Subtotal:',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text('Rs. ${calculatedSubtotal.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green)),
                         ],
                       ),
                     ] else ...[
-                      TextField(controller: amountCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Amount')),
+                      TextField(
+                          controller: amountCtrl,
+                          keyboardType: TextInputType.number,
+                          decoration:
+                              const InputDecoration(labelText: 'Amount')),
                     ],
-
                     DropdownButtonFormField<String>(
                       value: frequency,
                       decoration: const InputDecoration(labelText: 'Frequency'),
                       items: const [
-                        DropdownMenuItem(value: 'monthly', child: Text('Monthly')),
-                        DropdownMenuItem(value: 'weekly', child: Text('Weekly')),
+                        DropdownMenuItem(
+                            value: 'monthly', child: Text('Monthly')),
+                        DropdownMenuItem(
+                            value: 'weekly', child: Text('Weekly')),
                         DropdownMenuItem(value: 'daily', child: Text('Daily')),
-                        DropdownMenuItem(value: 'yearly', child: Text('Yearly')),
+                        DropdownMenuItem(
+                            value: 'yearly', child: Text('Yearly')),
                       ],
                       onChanged: (v) => setDialogState(() => frequency = v!),
                     ),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: Text('Next Due: ${nextDue.toIso8601String().substring(0, 10)}'),
+                      title: Text(
+                          'Next Due: ${nextDue.toIso8601String().substring(0, 10)}'),
                       trailing: const Icon(Icons.calendar_today, size: 18),
                       onTap: () async {
                         final picked = await showDatePicker(
@@ -242,7 +284,8 @@ class _RecurringTemplatesScreenState extends State<RecurringTemplatesScreen> {
                           firstDate: DateTime.now(),
                           lastDate: DateTime(2100),
                         );
-                        if (picked != null) setDialogState(() => nextDue = picked);
+                        if (picked != null)
+                          setDialogState(() => nextDue = picked);
                       },
                     ),
                   ],
@@ -250,17 +293,21 @@ class _RecurringTemplatesScreenState extends State<RecurringTemplatesScreen> {
               ),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel')),
               ElevatedButton(
                 onPressed: () async {
                   double finalAmt = 0;
                   if (type == 'sale') {
                     if (selectedCustomerId == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Customer Select Karein!')));
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text('Customer Select Karein!')));
                       return;
                     }
                     if (cartItems.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('At least 1 product add karein!')));
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text('At least 1 product add karein!')));
                       return;
                     }
                     finalAmt = calculatedSubtotal;
@@ -271,7 +318,9 @@ class _RecurringTemplatesScreenState extends State<RecurringTemplatesScreen> {
                   final data = {
                     'company_id': widget.companyId,
                     'type': type,
-                    'category': categoryCtrl.text.isNotEmpty ? categoryCtrl.text : 'Recurring $type',
+                    'category': categoryCtrl.text.isNotEmpty
+                        ? categoryCtrl.text
+                        : 'Recurring $type',
                     'amount': finalAmt,
                     'frequency': frequency,
                     'next_due_date': nextDue.toIso8601String().substring(0, 10),
@@ -283,7 +332,8 @@ class _RecurringTemplatesScreenState extends State<RecurringTemplatesScreen> {
 
                   if (existing != null) {
                     final db = await DBHelper.instance.database;
-                    await db.update('recurring_templates', data, where: 'id = ?', whereArgs: [existing['id']]);
+                    await db.update('recurring_templates', data,
+                        where: 'id = ?', whereArgs: [existing['id']]);
                   } else {
                     await DBHelper.instance.insertRecurringTemplate(data);
                   }
@@ -322,31 +372,46 @@ class _RecurringTemplatesScreenState extends State<RecurringTemplatesScreen> {
                     );
 
                     return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
                       child: ListTile(
                         leading: Icon(
-                          isSale ? Icons.event_repeat : (isExpense ? Icons.remove_circle_outline : Icons.add_circle_outline),
-                          color: isSale ? Colors.blue : (isExpense ? Colors.red : Colors.green),
+                          isSale
+                              ? Icons.event_repeat
+                              : (isExpense
+                                  ? Icons.remove_circle_outline
+                                  : Icons.add_circle_outline),
+                          color: isSale
+                              ? Colors.blue
+                              : (isExpense ? Colors.red : Colors.green),
                         ),
-                        title: Text(t['category'] as String? ?? 'Recurring Item', style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text('Type: ${t['type'].toString().toUpperCase()} • ${t['frequency'].toUpperCase()}\nNext Due: ${t['next_due_date']} • Amount: $formattedAmt'),
+                        title: Text(
+                            t['category'] as String? ?? 'Recurring Item',
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text(
+                            'Type: ${t['type'].toString().toUpperCase()} • ${t['frequency'].toUpperCase()}\nNext Due: ${t['next_due_date']} • Amount: $formattedAmt'),
                         isThreeLine: true,
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.copy_outlined, color: Colors.indigo),
+                              icon: const Icon(Icons.copy_outlined,
+                                  color: Colors.indigo),
                               tooltip: 'Duplicate Template',
                               onPressed: () => _duplicateTemplate(t),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.edit_outlined, color: Colors.blue),
+                              icon: const Icon(Icons.edit_outlined,
+                                  color: Colors.blue),
                               onPressed: () => _showForm(existing: t),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.delete_outline, color: Colors.red),
+                              icon: const Icon(Icons.delete_outline,
+                                  color: Colors.red),
                               onPressed: () async {
-                                await DBHelper.instance.deleteRecurringTemplate(t['id']);
+                                await DBHelper.instance
+                                    .deleteRecurringTemplate(t['id']);
                                 _load();
                               },
                             ),

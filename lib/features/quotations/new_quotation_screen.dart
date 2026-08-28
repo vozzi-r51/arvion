@@ -35,8 +35,10 @@ class _QuoteCartItem {
     this.conversionFactor = 1,
     this.isSecondary = false,
   }) {
-    priceController = TextEditingController(text: displayPrice.toStringAsFixed(0));
-    qtyController = TextEditingController(text: qty.toStringAsFixed(qty % 1 == 0 ? 0 : 1));
+    priceController =
+        TextEditingController(text: displayPrice.toStringAsFixed(0));
+    qtyController =
+        TextEditingController(text: qty.toStringAsFixed(qty % 1 == 0 ? 0 : 1));
   }
 
   void updateControllers() {
@@ -55,7 +57,8 @@ class _QuoteCartItem {
     qtyController.dispose();
   }
 
-  double get displayPrice => isSecondary ? unitPrice * conversionFactor : unitPrice;
+  double get displayPrice =>
+      isSecondary ? unitPrice * conversionFactor : unitPrice;
   double get total => displayPrice * qty;
   double get baseQty => isSecondary ? qty * conversionFactor : qty;
 }
@@ -99,8 +102,10 @@ class _NewQuotationScreenState extends State<NewQuotationScreen> {
   double get _subtotal => _cart.fold(0, (sum, item) => sum + item.total);
   double get _discount => double.tryParse(_discountCtrl.text.trim()) ?? 0;
   double get _taxPercent => double.tryParse(_taxPercentCtrl.text.trim()) ?? 0;
-  double get _taxAmount => ((_subtotal - _discount).clamp(0, double.infinity)) * _taxPercent / 100;
-  double get _grandTotal => (_subtotal - _discount + _taxAmount).clamp(0, double.infinity);
+  double get _taxAmount =>
+      ((_subtotal - _discount).clamp(0, double.infinity)) * _taxPercent / 100;
+  double get _grandTotal =>
+      (_subtotal - _discount + _taxAmount).clamp(0, double.infinity);
 
   Future<void> _openProductPicker() async {
     final selected = await showModalBottomSheet<Map<String, dynamic>>(
@@ -114,10 +119,13 @@ class _NewQuotationScreenState extends State<NewQuotationScreen> {
     final existingIndex = _cart.indexWhere((c) => c.productId == productId);
 
     final retailPrice = (selected['retail_price'] as num).toDouble();
-    final wholesalePrice = (selected['wholesale_price'] as num?)?.toDouble() ?? retailPrice;
-    
-    final isWholesale = _selectedCustomerId != null && 
-        _customers.any((c) => c['id'] == _selectedCustomerId && c['customer_type'] == 'Wholesale');
+    final wholesalePrice =
+        (selected['wholesale_price'] as num?)?.toDouble() ?? retailPrice;
+
+    final isWholesale = _selectedCustomerId != null &&
+        _customers.any((c) =>
+            c['id'] == _selectedCustomerId &&
+            c['customer_type'] == 'Wholesale');
 
     setState(() {
       if (existingIndex >= 0) {
@@ -135,7 +143,8 @@ class _NewQuotationScreenState extends State<NewQuotationScreen> {
           packing: selected['packing'] as String?,
           baseUnit: selected['base_unit'] as String? ?? 'Pc',
           secondaryUnit: selected['secondary_unit'] as String?,
-          conversionFactor: (selected['conversion_factor'] as num?)?.toDouble() ?? 1,
+          conversionFactor:
+              (selected['conversion_factor'] as num?)?.toDouble() ?? 1,
         ));
       }
     });
@@ -161,7 +170,8 @@ class _NewQuotationScreenState extends State<NewQuotationScreen> {
 
     setState(() => _saving = true);
 
-    final quoteNumber = await DBHelper.instance.generateQuoteNumber(widget.companyId);
+    final quoteNumber =
+        await DBHelper.instance.generateQuoteNumber(widget.companyId);
     String? customerName;
     if (_selectedCustomerId != null) {
       final c = _customers.firstWhere((c) => c['id'] == _selectedCustomerId);
@@ -183,15 +193,17 @@ class _NewQuotationScreenState extends State<NewQuotationScreen> {
       'created_at': DateTime.now().toIso8601String(),
     };
 
-    final itemsData = _cart.map((c) => {
-      'product_id': c.productId,
-      'product_name': c.name,
-      'quantity': c.baseQty,
-      'unit_price': c.unitPrice,
-      'purchase_price': c.purchasePrice,
-      'packing': c.isSecondary ? c.secondaryUnit : c.baseUnit,
-      'total': c.total,
-    }).toList();
+    final itemsData = _cart
+        .map((c) => {
+              'product_id': c.productId,
+              'product_name': c.name,
+              'quantity': c.baseQty,
+              'unit_price': c.unitPrice,
+              'purchase_price': c.purchasePrice,
+              'packing': c.isSecondary ? c.secondaryUnit : c.baseUnit,
+              'total': c.total,
+            })
+        .toList();
 
     try {
       await DBHelper.instance.insertQuotationWithItems(
@@ -207,7 +219,8 @@ class _NewQuotationScreenState extends State<NewQuotationScreen> {
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -231,102 +244,128 @@ class _NewQuotationScreenState extends State<NewQuotationScreen> {
       body: Column(
         children: [
           Expanded(
-            child: _cart.isEmpty 
-              ? const Center(child: Text('Cart khali hai — product add karein'))
-              : ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: _cart.length,
-              itemBuilder: (ctx, i) {
-                final item = _cart[i];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(item.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.close, size: 18, color: Colors.red),
-                              onPressed: () => _removeItem(i),
-                            ),
-                          ],
+            child: _cart.isEmpty
+                ? const Center(
+                    child: Text('Cart khali hai — product add karein'))
+                : ListView.builder(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: _cart.length,
+                    itemBuilder: (ctx, i) {
+                      final item = _cart[i];
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(item.name,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold)),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.close,
+                                        size: 18, color: Colors.red),
+                                    onPressed: () => _removeItem(i),
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  const Text('Rate: ',
+                                      style: TextStyle(fontSize: 12)),
+                                  SizedBox(
+                                    width: 80,
+                                    child: TextField(
+                                      keyboardType:
+                                          const TextInputType.numberWithOptions(
+                                              decimal: true),
+                                      decoration: const InputDecoration(
+                                          isDense: true,
+                                          contentPadding: EdgeInsets.symmetric(
+                                              vertical: 8)),
+                                      style: const TextStyle(fontSize: 13),
+                                      controller: item.priceController,
+                                      onChanged: (v) {
+                                        final val = double.tryParse(v) ?? 0;
+                                        setState(() {
+                                          if (item.isSecondary) {
+                                            item.unitPrice =
+                                                val / item.conversionFactor;
+                                          } else {
+                                            item.unitPrice = val;
+                                          }
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                  if (item.secondaryUnit != null &&
+                                      item.secondaryUnit!.isNotEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 8.0),
+                                      child: FilterChip(
+                                        label: Text(
+                                            item.isSecondary
+                                                ? item.secondaryUnit!
+                                                : item.baseUnit,
+                                            style:
+                                                const TextStyle(fontSize: 10)),
+                                        selected: item.isSecondary,
+                                        onSelected: (v) => setState(() {
+                                          item.isSecondary = v;
+                                          item.updateControllers();
+                                        }),
+                                        padding: EdgeInsets.zero,
+                                        visualDensity: VisualDensity.compact,
+                                      ),
+                                    ),
+                                  const Spacer(),
+                                  IconButton(
+                                    icon: const Icon(
+                                        Icons.remove_circle_outline,
+                                        size: 20),
+                                    onPressed: () => _changeQty(i, -1),
+                                  ),
+                                  SizedBox(
+                                    width: 60,
+                                    child: TextField(
+                                      textAlign: TextAlign.center,
+                                      keyboardType:
+                                          const TextInputType.numberWithOptions(
+                                              decimal: true),
+                                      decoration: const InputDecoration(
+                                          isDense: true,
+                                          contentPadding: EdgeInsets.symmetric(
+                                              vertical: 8)),
+                                      style: const TextStyle(fontSize: 13),
+                                      controller: item.qtyController,
+                                      onChanged: (v) {
+                                        final val = double.tryParse(v) ?? 0;
+                                        setState(() => item.qty = val);
+                                      },
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.add_circle_outline,
+                                        size: 20),
+                                    onPressed: () => _changeQty(i, 1),
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    'Rs. ${item.total.toStringAsFixed(0)}',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                        Row(
-                          children: [
-                            const Text('Rate: ', style: TextStyle(fontSize: 12)),
-                            SizedBox(
-                              width: 80,
-                              child: TextField(
-                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(vertical: 8)),
-                                style: const TextStyle(fontSize: 13),
-                                controller: item.priceController,
-                                onChanged: (v) {
-                                  final val = double.tryParse(v) ?? 0;
-                                  setState(() {
-                                    if (item.isSecondary) {
-                                      item.unitPrice = val / item.conversionFactor;
-                                    } else {
-                                      item.unitPrice = val;
-                                    }
-                                  });
-                                },
-                              ),
-                            ),
-                            if (item.secondaryUnit != null && item.secondaryUnit!.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(left: 8.0),
-                                child: FilterChip(
-                                  label: Text(item.isSecondary ? item.secondaryUnit! : item.baseUnit, style: const TextStyle(fontSize: 10)),
-                                  selected: item.isSecondary,
-                                  onSelected: (v) => setState(() {
-                                    item.isSecondary = v;
-                                    item.updateControllers();
-                                  }),
-                                  padding: EdgeInsets.zero,
-                                  visualDensity: VisualDensity.compact,
-                                ),
-                              ),
-                            const Spacer(),
-                            IconButton(
-                              icon: const Icon(Icons.remove_circle_outline, size: 20),
-                              onPressed: () => _changeQty(i, -1),
-                            ),
-                            SizedBox(
-                              width: 60,
-                              child: TextField(
-                                textAlign: TextAlign.center,
-                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(vertical: 8)),
-                                style: const TextStyle(fontSize: 13),
-                                controller: item.qtyController,
-                                onChanged: (v) {
-                                  final val = double.tryParse(v) ?? 0;
-                                  setState(() => item.qty = val);
-                                },
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.add_circle_outline, size: 20),
-                              onPressed: () => _changeQty(i, 1),
-                            ),
-                            const Spacer(),
-                            Text(
-                              'Rs. ${item.total.toStringAsFixed(0)}',
-                              style: const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
           SafeArea(
             child: Material(
@@ -357,10 +396,13 @@ class _NewQuotationScreenState extends State<NewQuotationScreen> {
                                   firstDate: DateTime(2020),
                                   lastDate: DateTime(2100),
                                 );
-                                if (picked != null) setState(() => _quoteDate = picked);
+                                if (picked != null)
+                                  setState(() => _quoteDate = picked);
                               },
                               icon: const Icon(Icons.calendar_today, size: 16),
-                              label: Text(_quoteDate.toIso8601String().substring(0, 10)),
+                              label: Text(_quoteDate
+                                  .toIso8601String()
+                                  .substring(0, 10)),
                             ),
                           ),
                         ],
@@ -368,15 +410,18 @@ class _NewQuotationScreenState extends State<NewQuotationScreen> {
                       const SizedBox(height: 10),
                       DropdownButtonFormField<int?>(
                         value: _selectedCustomerId,
-                        decoration: const InputDecoration(labelText: 'Customer (optional)', isDense: true),
+                        decoration: const InputDecoration(
+                            labelText: 'Customer (optional)', isDense: true),
                         items: [
-                          const DropdownMenuItem<int?>(value: null, child: Text('Walk-in Customer')),
+                          const DropdownMenuItem<int?>(
+                              value: null, child: Text('Walk-in Customer')),
                           ..._customers.map((c) => DropdownMenuItem<int?>(
-                            value: c['id'] as int,
-                            child: Text(c['name'] as String),
-                          )),
+                                value: c['id'] as int,
+                                child: Text(c['name'] as String),
+                              )),
                         ],
-                        onChanged: (v) => setState(() => _selectedCustomerId = v),
+                        onChanged: (v) =>
+                            setState(() => _selectedCustomerId = v),
                       ),
                       const SizedBox(height: 10),
                       Row(
@@ -384,8 +429,11 @@ class _NewQuotationScreenState extends State<NewQuotationScreen> {
                           Expanded(
                             child: TextField(
                               controller: _discountCtrl,
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              decoration: const InputDecoration(labelText: 'Discount', isDense: true),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                      decimal: true),
+                              decoration: const InputDecoration(
+                                  labelText: 'Discount', isDense: true),
                               onChanged: (_) => setState(() {}),
                             ),
                           ),
@@ -393,8 +441,11 @@ class _NewQuotationScreenState extends State<NewQuotationScreen> {
                           Expanded(
                             child: TextField(
                               controller: _taxPercentCtrl,
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              decoration: const InputDecoration(labelText: 'Tax %', isDense: true),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                      decimal: true),
+                              decoration: const InputDecoration(
+                                  labelText: 'Tax %', isDense: true),
                               onChanged: (_) => setState(() {}),
                             ),
                           ),
@@ -407,7 +458,8 @@ class _NewQuotationScreenState extends State<NewQuotationScreen> {
                           const Text('Total', style: TextStyle(fontSize: 16)),
                           Text(
                             'Rs. ${_grandTotal.toStringAsFixed(0)}',
-                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -415,7 +467,11 @@ class _NewQuotationScreenState extends State<NewQuotationScreen> {
                       ElevatedButton(
                         onPressed: _saving ? null : _saveQuote,
                         child: _saving
-                            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2, color: Colors.white))
                             : const Text('Save Quotation'),
                       ),
                     ],
@@ -450,7 +506,8 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
   }
 
   Future<void> _load() async {
-    final rows = await DBHelper.instance.getProducts(widget.companyId, searchQuery: _query);
+    final rows = await DBHelper.instance
+        .getProducts(widget.companyId, searchQuery: _query);
     setState(() {
       _products = rows;
       _loading = false;
@@ -468,10 +525,12 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Text('Product Select Karein', style: Theme.of(context).textTheme.titleMedium),
+            Text('Product Select Karein',
+                style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 10),
             TextField(
-              decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Search karein'),
+              decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.search), hintText: 'Search karein'),
               onChanged: (v) {
                 _query = v;
                 _load();
@@ -490,7 +549,8 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                             final p = _products[i];
                             return ListTile(
                               title: Text(p['name'] as String),
-                              subtitle: Text('Stock: ${p['current_stock']}  •  Rs. ${p['retail_price']}'),
+                              subtitle: Text(
+                                  'Stock: ${p['current_stock']}  •  Rs. ${p['retail_price']}'),
                               onTap: () => Navigator.of(context).pop(p),
                             );
                           },

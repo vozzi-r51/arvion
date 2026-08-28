@@ -27,7 +27,8 @@ class SupplierRepository extends BaseRepository {
     List<dynamic> args = [companyId];
 
     if (searchQuery != null && searchQuery.trim().isNotEmpty) {
-      where += ' AND (company_name LIKE ? OR contact_person LIKE ? OR phone LIKE ?)';
+      where +=
+          ' AND (company_name LIKE ? OR contact_person LIKE ? OR phone LIKE ?)';
       final q = '%${searchQuery.trim()}%';
       args.addAll([q, q, q]);
     }
@@ -44,7 +45,8 @@ class SupplierRepository extends BaseRepository {
 
   /// Get supplier by ID.
   Future<Map<String, dynamic>?> getSupplierById(int id) async {
-    final rows = await db.query('suppliers', where: 'id = ?', whereArgs: [id], limit: 1);
+    final rows =
+        await db.query('suppliers', where: 'id = ?', whereArgs: [id], limit: 1);
     return rows.isEmpty ? null : rows.first;
   }
 

@@ -13,8 +13,10 @@ class _TrialBalanceTabState extends State<TrialBalanceTab> {
   List<Map<String, dynamic>> _rows = [];
   bool _loading = true;
 
-  double get _totalDebit => _rows.fold(0.0, (s, r) => s + (r['total_debit'] as num));
-  double get _totalCredit => _rows.fold(0.0, (s, r) => s + (r['total_credit'] as num));
+  double get _totalDebit =>
+      _rows.fold(0.0, (s, r) => s + (r['total_debit'] as num));
+  double get _totalCredit =>
+      _rows.fold(0.0, (s, r) => s + (r['total_credit'] as num));
 
   @override
   void initState() {
@@ -44,9 +46,16 @@ class _TrialBalanceTabState extends State<TrialBalanceTab> {
         children: [
           Row(
             children: const [
-              Expanded(flex: 3, child: Text('Account', style: TextStyle(fontWeight: FontWeight.bold))),
-              Expanded(child: Text('Debit', style: TextStyle(fontWeight: FontWeight.bold))),
-              Expanded(child: Text('Credit', style: TextStyle(fontWeight: FontWeight.bold))),
+              Expanded(
+                  flex: 3,
+                  child: Text('Account',
+                      style: TextStyle(fontWeight: FontWeight.bold))),
+              Expanded(
+                  child: Text('Debit',
+                      style: TextStyle(fontWeight: FontWeight.bold))),
+              Expanded(
+                  child: Text('Credit',
+                      style: TextStyle(fontWeight: FontWeight.bold))),
             ],
           ),
           const Divider(),
@@ -55,23 +64,38 @@ class _TrialBalanceTabState extends State<TrialBalanceTab> {
                 child: Row(
                   children: [
                     Expanded(flex: 3, child: Text(r['name'] as String)),
-                    Expanded(child: Text((r['total_debit'] as num).toStringAsFixed(0))),
-                    Expanded(child: Text((r['total_credit'] as num).toStringAsFixed(0))),
+                    Expanded(
+                        child:
+                            Text((r['total_debit'] as num).toStringAsFixed(0))),
+                    Expanded(
+                        child: Text(
+                            (r['total_credit'] as num).toStringAsFixed(0))),
                   ],
                 ),
               )),
           const Divider(thickness: 2),
           Row(
             children: [
-              const Expanded(flex: 3, child: Text('Total', style: TextStyle(fontWeight: FontWeight.bold))),
-              Expanded(child: Text(_totalDebit.toStringAsFixed(0), style: const TextStyle(fontWeight: FontWeight.bold))),
-              Expanded(child: Text(_totalCredit.toStringAsFixed(0), style: const TextStyle(fontWeight: FontWeight.bold))),
+              const Expanded(
+                  flex: 3,
+                  child: Text('Total',
+                      style: TextStyle(fontWeight: FontWeight.bold))),
+              Expanded(
+                  child: Text(_totalDebit.toStringAsFixed(0),
+                      style: const TextStyle(fontWeight: FontWeight.bold))),
+              Expanded(
+                  child: Text(_totalCredit.toStringAsFixed(0),
+                      style: const TextStyle(fontWeight: FontWeight.bold))),
             ],
           ),
           const SizedBox(height: 12),
           Text(
-            balanced ? 'Trial Balance balanced hai ✓' : 'Balanced nahi hai — check karein',
-            style: TextStyle(color: balanced ? Colors.green : Colors.red, fontWeight: FontWeight.bold),
+            balanced
+                ? 'Trial Balance balanced hai ✓'
+                : 'Balanced nahi hai — check karein',
+            style: TextStyle(
+                color: balanced ? Colors.green : Colors.red,
+                fontWeight: FontWeight.bold),
           ),
         ],
       ),

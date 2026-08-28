@@ -33,7 +33,7 @@ void main() {
           ChangeNotifierProvider(create: (_) => TerminologyProvider()),
           ChangeNotifierProvider(create: (_) => BrandingProvider()),
         ],
-        child: const DukanEdgeApp(),
+        child: const BizManagerApp(),
       ),
     );
 

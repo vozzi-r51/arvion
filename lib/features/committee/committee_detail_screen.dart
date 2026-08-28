@@ -78,7 +78,8 @@ class _CommitteeDetailScreenState extends State<CommitteeDetailScreen> {
                   children: [
                     _summaryItem('Collected', _totalCollected, Colors.green),
                     _summaryItem('Drawn', _totalDrawn, Colors.red),
-                    _summaryItem('Balance', _totalCollected - _totalDrawn, Colors.blue),
+                    _summaryItem(
+                        'Balance', _totalCollected - _totalDrawn, Colors.blue),
                   ],
                 ),
               ),
@@ -90,7 +91,8 @@ class _CommitteeDetailScreenState extends State<CommitteeDetailScreen> {
                   CommitteeInstallmentsTab(
                     companyId: widget.companyId,
                     committeeId: _committeeId,
-                    defaultAmount: (committee['monthly_installment'] as num).toDouble(),
+                    defaultAmount:
+                        (committee['monthly_installment'] as num).toDouble(),
                   ),
                   CommitteeDrawsTab(
                     companyId: widget.companyId,
@@ -112,7 +114,8 @@ class _CommitteeDetailScreenState extends State<CommitteeDetailScreen> {
         Text(label, style: const TextStyle(fontSize: 11)),
         const SizedBox(height: 2),
         Text('Rs. ${value.toStringAsFixed(0)}',
-            style: TextStyle(fontWeight: FontWeight.bold, color: color, fontSize: 14)),
+            style: TextStyle(
+                fontWeight: FontWeight.bold, color: color, fontSize: 14)),
       ],
     );
   }

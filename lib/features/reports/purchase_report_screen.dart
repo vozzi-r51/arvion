@@ -48,7 +48,10 @@ class _PurchaseReportScreenState extends State<PurchaseReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Purchase Report'), actions: [IconButton(icon: const Icon(Icons.ios_share), onPressed: _showExportMenu)]),
+      appBar: AppBar(title: const Text('Purchase Report'), actions: [
+        IconButton(
+            icon: const Icon(Icons.ios_share), onPressed: _showExportMenu)
+      ]),
       body: Column(
         children: [
           DateRangeBar(
@@ -68,15 +71,16 @@ class _PurchaseReportScreenState extends State<PurchaseReportScreen> {
             child: Row(
               children: [
                 Expanded(
-                    child: _summaryCard(
-                        'Total Purchase', _totalPurchases, Colors.indigo, _currency)),
-                const SizedBox(width: 10),
-                Expanded(
-                    child: _summaryCard('Total Due', _totalDue, Colors.red, _currency)),
+                    child: _summaryCard('Total Purchase', _totalPurchases,
+                        Colors.indigo, _currency)),
                 const SizedBox(width: 10),
                 Expanded(
                     child: _summaryCard(
-                        'Invoices', _purchases.length.toDouble(), Colors.blue, _currency,
+                        'Total Due', _totalDue, Colors.red, _currency)),
+                const SizedBox(width: 10),
+                Expanded(
+                    child: _summaryCard('Invoices',
+                        _purchases.length.toDouble(), Colors.blue, _currency,
                         isCount: true)),
               ],
             ),
@@ -85,7 +89,8 @@ class _PurchaseReportScreenState extends State<PurchaseReportScreen> {
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
                 : _purchases.isEmpty
-                    ? const Center(child: Text('Is range mein koi purchase nahi hui'))
+                    ? const Center(
+                        child: Text('Is range mein koi purchase nahi hui'))
                     : ListView.builder(
                         padding: const EdgeInsets.all(12),
                         itemCount: _purchases.length,
@@ -99,7 +104,8 @@ class _PurchaseReportScreenState extends State<PurchaseReportScreen> {
                                   '${(p['purchase_date'] as String).substring(0, 10)}  •  ${p['supplier_name'] ?? 'Not Selected'}'),
                               trailing: Text(
                                 '$_currency ${(p['total_amount'] as num).toStringAsFixed(0)}',
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
                               ),
                             ),
                           );
@@ -111,7 +117,8 @@ class _PurchaseReportScreenState extends State<PurchaseReportScreen> {
     );
   }
 
-  Widget _summaryCard(String label, double value, Color color, String currency, {bool isCount = false}) {
+  Widget _summaryCard(String label, double value, Color color, String currency,
+      {bool isCount = false}) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -120,15 +127,17 @@ class _PurchaseReportScreenState extends State<PurchaseReportScreen> {
             Text(label, style: const TextStyle(fontSize: 11)),
             const SizedBox(height: 4),
             Text(
-              isCount ? value.toStringAsFixed(0) : '$currency ${value.toStringAsFixed(0)}',
-              style: TextStyle(fontWeight: FontWeight.bold, color: color, fontSize: 14),
+              isCount
+                  ? value.toStringAsFixed(0)
+                  : '$currency ${value.toStringAsFixed(0)}',
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, color: color, fontSize: 14),
             ),
           ],
         ),
       ),
     );
   }
-
 
   Future<void> _showExportMenu() async {
     final choice = await showModalBottomSheet<String>(
@@ -161,8 +170,13 @@ class _PurchaseReportScreenState extends State<PurchaseReportScreen> {
       fileName: 'Purchase_Report',
       headers: ['Invoice', 'Date', 'Supplier', 'Total', 'Due'],
       rows: _purchases
-          .map((p) => [p['invoice_number'], (p['purchase_date'] as String).substring(0, 10),
-                p['supplier_name'] ?? 'Not Selected', p['total_amount'], p['due_amount']])
+          .map((p) => [
+                p['invoice_number'],
+                (p['purchase_date'] as String).substring(0, 10),
+                p['supplier_name'] ?? 'Not Selected',
+                p['total_amount'],
+                p['due_amount']
+              ])
           .toList(),
     );
   }
@@ -172,12 +186,14 @@ class _PurchaseReportScreenState extends State<PurchaseReportScreen> {
     if (company == null) return;
 
     final columns = ['Invoice', 'Date', 'Supplier', 'Total'];
-    final rows = _purchases.map((p) => [
-      p['invoice_number'].toString(),
-      (p['purchase_date'] as String).substring(0, 10),
-      p['supplier_name'] ?? 'Not Selected',
-      '$_currency ${p['total_amount']}',
-    ]).toList();
+    final rows = _purchases
+        .map((p) => [
+              p['invoice_number'].toString(),
+              (p['purchase_date'] as String).substring(0, 10),
+              p['supplier_name'] ?? 'Not Selected',
+              '$_currency ${p['total_amount']}',
+            ])
+        .toList();
 
     final pdfBytes = await PdfReportService.generateReport(
       company: company,

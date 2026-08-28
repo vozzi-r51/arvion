@@ -18,7 +18,9 @@ void main() {
     await databaseFactory.deleteDatabase(path);
   });
 
-  test('manufacturing module complete lifecycle: BOM, Production Order, Stock & Accounting', () async {
+  test(
+      'manufacturing module complete lifecycle: BOM, Production Order, Stock & Accounting',
+      () async {
     final db = DBHelper.instance;
     final companyId = await db.insertCompany({
       'name': 'Manufacturing Test Company',
@@ -69,9 +71,21 @@ void main() {
         'created_at': DateTime.now().toIso8601String(),
       },
       items: [
-        {'raw_material_product_id': rm1Id, 'quantity_required': 2.0, 'unit': 'Meter'},
-        {'raw_material_product_id': rm2Id, 'quantity_required': 6.0, 'unit': 'Piece'},
-        {'raw_material_product_id': rm3Id, 'quantity_required': 1.0, 'unit': 'Piece'},
+        {
+          'raw_material_product_id': rm1Id,
+          'quantity_required': 2.0,
+          'unit': 'Meter'
+        },
+        {
+          'raw_material_product_id': rm2Id,
+          'quantity_required': 6.0,
+          'unit': 'Piece'
+        },
+        {
+          'raw_material_product_id': rm3Id,
+          'quantity_required': 1.0,
+          'unit': 'Piece'
+        },
       ],
     );
 
@@ -98,9 +112,12 @@ void main() {
     await db.startProductionOrder(poId);
 
     // Verify Stock Reduction
-    final rm1 = (await db.getProducts(companyId)).firstWhere((p) => p['id'] == rm1Id);
-    final rm2 = (await db.getProducts(companyId)).firstWhere((p) => p['id'] == rm2Id);
-    final rm3 = (await db.getProducts(companyId)).firstWhere((p) => p['id'] == rm3Id);
+    final rm1 =
+        (await db.getProducts(companyId)).firstWhere((p) => p['id'] == rm1Id);
+    final rm2 =
+        (await db.getProducts(companyId)).firstWhere((p) => p['id'] == rm2Id);
+    final rm3 =
+        (await db.getProducts(companyId)).firstWhere((p) => p['id'] == rm3Id);
 
     expect(rm1['current_stock'], 30.0); // 50 - (2 * 10)
     expect(rm2['current_stock'], 140.0); // 200 - (6 * 10)
@@ -108,11 +125,14 @@ void main() {
 
     // Verify Accounting Entry for Production Start
     final journals = await db.getJournalEntries(companyId);
-    final startJournal = journals.firstWhere((j) => j['source_type'] == 'production_start' && j['source_id'] == poId);
+    final startJournal = journals.firstWhere((j) =>
+        j['source_type'] == 'production_start' && j['source_id'] == poId);
     final startLines = await db.getJournalEntryLines(startJournal['id'] as int);
 
-    final totalDebit = startLines.fold<double>(0, (sum, l) => sum + (l['debit'] as num));
-    final totalCredit = startLines.fold<double>(0, (sum, l) => sum + (l['credit'] as num));
+    final totalDebit =
+        startLines.fold<double>(0, (sum, l) => sum + (l['debit'] as num));
+    final totalCredit =
+        startLines.fold<double>(0, (sum, l) => sum + (l['credit'] as num));
 
     expect(totalDebit, 2500.0);
     expect(totalCredit, 2500.0);
@@ -123,17 +143,22 @@ void main() {
     // Verify Finished Product Stock and Average Cost
     // Total Production Cost = 2500 (material) + 500 (labor) + 200 (overhead) = 3200
     // Unit Cost = 3200 / 10 = 320
-    final fg = (await db.getProducts(companyId)).firstWhere((p) => p['id'] == fgId);
+    final fg =
+        (await db.getProducts(companyId)).firstWhere((p) => p['id'] == fgId);
     expect(fg['current_stock'], 10.0);
     expect(fg['purchase_price'], 320.0);
 
     // Verify Accounting Entry for Production Completion
     final updatedJournals = await db.getJournalEntries(companyId);
-    final completeJournal = updatedJournals.firstWhere((j) => j['source_type'] == 'production_complete' && j['source_id'] == poId);
-    final completeLines = await db.getJournalEntryLines(completeJournal['id'] as int);
+    final completeJournal = updatedJournals.firstWhere((j) =>
+        j['source_type'] == 'production_complete' && j['source_id'] == poId);
+    final completeLines =
+        await db.getJournalEntryLines(completeJournal['id'] as int);
 
-    final completeDebit = completeLines.fold<double>(0, (sum, l) => sum + (l['debit'] as num));
-    final completeCredit = completeLines.fold<double>(0, (sum, l) => sum + (l['credit'] as num));
+    final completeDebit =
+        completeLines.fold<double>(0, (sum, l) => sum + (l['debit'] as num));
+    final completeCredit =
+        completeLines.fold<double>(0, (sum, l) => sum + (l['credit'] as num));
 
     expect(completeDebit, 3200.0);
     expect(completeCredit, 3200.0);

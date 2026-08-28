@@ -9,7 +9,8 @@ class FbrInvoicingService {
   /// Format: [POS_ID (6 digits)] + [YYYYMMDD] + [Random/Seq (4 digits)]
   static String generateFbrInvoiceNumber({required String posId}) {
     final now = DateTime.now();
-    final dateStr = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
+    final dateStr =
+        '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
     final randomDigits = (1000 + Random().nextInt(9000)).toString();
     final cleanPosId = posId.padLeft(6, '0').substring(0, 6);
     return '$cleanPosId$dateStr$randomDigits';

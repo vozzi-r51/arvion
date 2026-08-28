@@ -6,95 +6,164 @@ class SmartColumnMapper {
 
   static const Map<String, List<String>> _productAliases = {
     'name': [
-      'product name', 'item name', 'product/service name', 'stock item name',
-      'item', 'product', 'title', 'item_name', 'product_name', 'description'
+      'product name',
+      'item name',
+      'product/service name',
+      'stock item name',
+      'item',
+      'product',
+      'title',
+      'item_name',
+      'product_name',
+      'description'
     ],
     'product_code': [
-      'product code', 'item code', 'code', 'sku', 'sku_code', 'item_code'
+      'product code',
+      'item code',
+      'code',
+      'sku',
+      'sku_code',
+      'item_code'
     ],
-    'barcode': [
-      'barcode', 'upc', 'ean', 'isbn', 'barcode_number'
-    ],
+    'barcode': ['barcode', 'upc', 'ean', 'isbn', 'barcode_number'],
     'category_name': [
-      'category', 'category name', 'product category', 'item category', 'group'
+      'category',
+      'category name',
+      'product category',
+      'item category',
+      'group'
     ],
-    'brand_name': [
-      'brand', 'brand name', 'manufacturer', 'make'
-    ],
+    'brand_name': ['brand', 'brand name', 'manufacturer', 'make'],
     'purchase_price': [
-      'purchase price', 'purchase cost', 'buy price', 'cost price', 'cost',
-      'unit cost', 'rate', 'purchase_rate'
+      'purchase price',
+      'purchase cost',
+      'buy price',
+      'cost price',
+      'cost',
+      'unit cost',
+      'rate',
+      'purchase_rate'
     ],
     'retail_price': [
-      'selling price', 'sales price', 'retail price', 'sell price', 'price',
-      'unit price', 'mrp', 'sale_price', 'sale rate'
+      'selling price',
+      'sales price',
+      'retail price',
+      'sell price',
+      'price',
+      'unit price',
+      'mrp',
+      'sale_price',
+      'sale rate'
     ],
     'wholesale_price': [
-      'wholesale price', 'trade price', 'dealer price', 'wholesale_rate'
+      'wholesale price',
+      'trade price',
+      'dealer price',
+      'wholesale_rate'
     ],
     'current_stock': [
-      'current stock', 'stock quantity', 'qty on hand', 'quantity', 'stock',
-      'closing balance', 'available qty', 'on hand', 'opening stock', 'qty'
+      'current stock',
+      'stock quantity',
+      'qty on hand',
+      'quantity',
+      'stock',
+      'closing balance',
+      'available qty',
+      'on hand',
+      'opening stock',
+      'qty'
     ],
     'low_stock_level': [
-      'minimum stock', 'min stock', 'reorder level', 'reorder point', 'low stock level'
+      'minimum stock',
+      'min stock',
+      'reorder level',
+      'reorder point',
+      'low stock level'
     ],
   };
 
   static const Map<String, List<String>> _customerAliases = {
     'name': [
-      'customer name', 'party name', 'customer', 'party', 'contact name',
-      'name', 'full name', 'client name', 'ledger name'
+      'customer name',
+      'party name',
+      'customer',
+      'party',
+      'contact name',
+      'name',
+      'full name',
+      'client name',
+      'ledger name'
     ],
     'mobile': [
-      'mobile', 'phone', 'mobile number', 'phone number', 'contact', 'cell', 'mobile_no'
+      'mobile',
+      'phone',
+      'mobile number',
+      'phone number',
+      'contact',
+      'cell',
+      'mobile_no'
     ],
-    'email': [
-      'email', 'email address', 'e-mail'
-    ],
+    'email': ['email', 'email address', 'e-mail'],
     'address': [
-      'address', 'street address', 'billing address', 'location', 'city'
+      'address',
+      'street address',
+      'billing address',
+      'location',
+      'city'
     ],
     'current_balance': [
-      'opening balance', 'balance', 'closing balance', 'receivable', 'amount'
+      'opening balance',
+      'balance',
+      'closing balance',
+      'receivable',
+      'amount'
     ],
-    'credit_limit': [
-      'credit limit', 'max credit'
-    ],
+    'credit_limit': ['credit limit', 'max credit'],
   };
 
   static const Map<String, List<String>> _supplierAliases = {
     'company_name': [
-      'company name', 'supplier name', 'vendor name', 'vendor', 'supplier',
-      'party name', 'ledger name', 'party', 'name'
+      'company name',
+      'supplier name',
+      'vendor name',
+      'vendor',
+      'supplier',
+      'party name',
+      'ledger name',
+      'party',
+      'name'
     ],
-    'contact_person': [
-      'contact person', 'contact name', 'person'
-    ],
-    'phone': [
-      'phone', 'mobile', 'phone number', 'mobile number', 'contact'
-    ],
-    'email': [
-      'email', 'email address'
-    ],
-    'address': [
-      'address', 'office address', 'billing address', 'city'
-    ],
+    'contact_person': ['contact person', 'contact name', 'person'],
+    'phone': ['phone', 'mobile', 'phone number', 'mobile number', 'contact'],
+    'email': ['email', 'email address'],
+    'address': ['address', 'office address', 'billing address', 'city'],
     'current_balance': [
-      'opening balance', 'balance', 'closing balance', 'payable', 'amount'
+      'opening balance',
+      'balance',
+      'closing balance',
+      'payable',
+      'amount'
     ],
   };
 
   static const Map<String, List<String>> _openingBalanceAliases = {
     'account_or_name': [
-      'party name', 'customer', 'supplier', 'account name', 'ledger name', 'name', 'account'
+      'party name',
+      'customer',
+      'supplier',
+      'account name',
+      'ledger name',
+      'name',
+      'account'
     ],
     'amount': [
-      'opening balance', 'amount', 'balance', 'closing balance', 'value'
+      'opening balance',
+      'amount',
+      'balance',
+      'closing balance',
+      'value'
     ],
-    'type': [
-      'type', 'debit/credit', 'dr/cr', 'direction'
-    ],
+    'type': ['type', 'debit/credit', 'dr/cr', 'direction'],
   };
 
   /// Auto-maps a list of file headers to target fields based on entity type and source.
@@ -127,7 +196,8 @@ class SmartColumnMapper {
             matchedField = targetField;
             confidence = ImportConfidence.high;
             break;
-          } else if (normalizedHeader.contains(normalizedAlias) || normalizedAlias.contains(normalizedHeader)) {
+          } else if (normalizedHeader.contains(normalizedAlias) ||
+              normalizedAlias.contains(normalizedHeader)) {
             if (confidence != ImportConfidence.high) {
               matchedField = targetField;
               confidence = ImportConfidence.medium;
@@ -162,9 +232,6 @@ class SmartColumnMapper {
   }
 
   static String _normalizeString(String str) {
-    return str
-        .toLowerCase()
-        .replaceAll(RegExp(r'[^a-z0-9]'), '')
-        .trim();
+    return str.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '').trim();
   }
 }

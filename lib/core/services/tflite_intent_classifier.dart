@@ -180,7 +180,8 @@ class TFLiteIntentClassifier {
 
       // Check confidence threshold
       if (maxScore < CONFIDENCE_THRESHOLD) {
-        print('⚠️  Low confidence (${(maxScore * 100).toStringAsFixed(1)}%) for intent $maxIndex');
+        print(
+            '⚠️  Low confidence (${(maxScore * 100).toStringAsFixed(1)}%) for intent $maxIndex');
         return (AIIntentType.unknown, maxScore);
       }
 

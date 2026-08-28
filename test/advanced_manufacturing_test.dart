@@ -2,7 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('1. Multi-Level BOM & Circular Dependency Tests', () {
-    test('Calculates recursive material requirements for 2-level sub-assemblies (10 T-Shirts -> 10 Bodies -> 20 Fabric)', () {
+    test(
+        'Calculates recursive material requirements for 2-level sub-assemblies (10 T-Shirts -> 10 Bodies -> 20 Fabric)',
+        () {
       final finishedQty = 10.0;
       final semiQtyPerFinished = 1.0;
       final rawQtyPerSemi = 2.0;
@@ -21,21 +23,25 @@ void main() {
   });
 
   group('2. Work Centers & Production Routing Step Enforcement Tests', () {
-    test('Enforces all routing steps completion before completing production order', () {
+    test(
+        'Enforces all routing steps completion before completing production order',
+        () {
       final routingSteps = [
         {'id': 1, 'name': 'Cutting', 'status': 'completed'},
         {'id': 2, 'name': 'Stitching', 'status': 'completed'},
         {'id': 3, 'name': 'Packing', 'status': 'pending'},
       ];
 
-      final incompleteSteps = routingSteps.where((s) => s['status'] != 'completed').toList();
+      final incompleteSteps =
+          routingSteps.where((s) => s['status'] != 'completed').toList();
       expect(incompleteSteps.length, equals(1));
       expect(incompleteSteps.first['name'], equals('Packing'));
 
       // Mark packing step as completed
       routingSteps.last['status'] = 'completed';
 
-      final remainingIncomplete = routingSteps.where((s) => s['status'] != 'completed').toList();
+      final remainingIncomplete =
+          routingSteps.where((s) => s['status'] != 'completed').toList();
       expect(remainingIncomplete.isEmpty, isTrue); // All completed
     });
   });
@@ -53,7 +59,9 @@ void main() {
       expect(wastage, equals(4.0));
     });
 
-    test('Overproduction (actual 105 vs expected 100) records 0 wastage without negative adjustments', () {
+    test(
+        'Overproduction (actual 105 vs expected 100) records 0 wastage without negative adjustments',
+        () {
       final expectedQty = 100.0;
       final actualQty = 105.0;
 

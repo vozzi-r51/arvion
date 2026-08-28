@@ -27,7 +27,8 @@ class _StockReportScreenState extends State<StockReportScreen> {
   Future<void> _load() async {
     setState(() => _loading = true);
     final products = await DBHelper.instance.getProducts(widget.companyId);
-    final valuation = await DBHelper.instance.getStockValuation(widget.companyId);
+    final valuation =
+        await DBHelper.instance.getStockValuation(widget.companyId);
     final company = await DBHelper.instance.getCompanyById(widget.companyId);
     products.sort((a, b) =>
         (a['current_stock'] as num).compareTo(b['current_stock'] as num));
@@ -42,7 +43,10 @@ class _StockReportScreenState extends State<StockReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Stock Report'), actions: [IconButton(icon: const Icon(Icons.ios_share), onPressed: _showExportMenu)]),
+      appBar: AppBar(title: const Text('Stock Report'), actions: [
+        IconButton(
+            icon: const Icon(Icons.ios_share), onPressed: _showExportMenu)
+      ]),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : Column(
@@ -60,7 +64,9 @@ class _StockReportScreenState extends State<StockReportScreen> {
                           Text(
                             '$_currency ${_valuation.toStringAsFixed(0)}',
                             style: const TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.bold, color: Colors.brown),
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.brown),
                           ),
                         ],
                       ),
@@ -76,21 +82,25 @@ class _StockReportScreenState extends State<StockReportScreen> {
                           itemBuilder: (ctx, i) {
                             final p = _products[i];
                             final stock = (p['current_stock'] as num);
-                            final lowStock = stock <= (p['low_stock_level'] as num);
-                            final value =
-                                stock * (p['purchase_price'] as num);
+                            final lowStock =
+                                stock <= (p['low_stock_level'] as num);
+                            final value = stock * (p['purchase_price'] as num);
                             return Card(
                               margin: const EdgeInsets.only(bottom: 8),
                               child: ListTile(
                                 leading: Icon(
-                                  lowStock ? Icons.warning_amber : Icons.inventory_2_outlined,
+                                  lowStock
+                                      ? Icons.warning_amber
+                                      : Icons.inventory_2_outlined,
                                   color: lowStock ? Colors.red : Colors.grey,
                                 ),
                                 title: Text(p['name'] as String),
-                                subtitle: Text('Stock: $stock  •  Value: $_currency ${value.toStringAsFixed(0)}'),
+                                subtitle: Text(
+                                    'Stock: $stock  •  Value: $_currency ${value.toStringAsFixed(0)}'),
                                 trailing: lowStock
                                     ? const Text('Low Stock',
-                                        style: TextStyle(color: Colors.red, fontSize: 12))
+                                        style: TextStyle(
+                                            color: Colors.red, fontSize: 12))
                                     : null,
                               ),
                             );
@@ -101,7 +111,6 @@ class _StockReportScreenState extends State<StockReportScreen> {
             ),
     );
   }
-
 
   Future<void> _showExportMenu() async {
     final choice = await showModalBottomSheet<String>(
@@ -154,7 +163,8 @@ class _StockReportScreenState extends State<StockReportScreen> {
               p['name'].toString(),
               p['current_stock'].toString(),
               p['purchase_price'].toString(),
-              ((p['current_stock'] as num) * (p['purchase_price'] as num)).toStringAsFixed(0),
+              ((p['current_stock'] as num) * (p['purchase_price'] as num))
+                  .toStringAsFixed(0),
             ])
         .toList();
 

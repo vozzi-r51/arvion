@@ -28,14 +28,16 @@ class _BrandListScreenState extends State<BrandListScreen> {
   }
 
   void _showForm({Map<String, dynamic>? existing}) {
-    final nameCtrl = TextEditingController(text: existing?['name'] as String? ?? '');
+    final nameCtrl =
+        TextEditingController(text: existing?['name'] as String? ?? '');
     final urduCtrl =
         TextEditingController(text: existing?['urdu_name'] as String? ?? '');
     final companyCtrl =
         TextEditingController(text: existing?['company_name'] as String? ?? '');
     final countryCtrl =
         TextEditingController(text: existing?['country'] as String? ?? '');
-    final phoneCtrl = TextEditingController(text: existing?['phone'] as String? ?? '');
+    final phoneCtrl =
+        TextEditingController(text: existing?['phone'] as String? ?? '');
     bool featured = (existing?['featured'] as int? ?? 0) == 1;
 
     showDialog(
@@ -82,7 +84,8 @@ class _BrandListScreenState extends State<BrandListScreen> {
           ),
           actions: [
             TextButton(
-                onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
                 if (nameCtrl.text.trim().isEmpty) return;
@@ -100,7 +103,8 @@ class _BrandListScreenState extends State<BrandListScreen> {
                 if (existing == null) {
                   await DBHelper.instance.insertBrand(data);
                 } else {
-                  await DBHelper.instance.updateBrand(existing['id'] as int, data);
+                  await DBHelper.instance
+                      .updateBrand(existing['id'] as int, data);
                 }
                 if (!ctx.mounted) return;
                 Navigator.pop(ctx);
@@ -156,7 +160,8 @@ class _BrandListScreenState extends State<BrandListScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             if ((b['featured'] as int) == 1)
-                              const Icon(Icons.star, color: Colors.amber, size: 18),
+                              const Icon(Icons.star,
+                                  color: Colors.amber, size: 18),
                             IconButton(
                               icon: const Icon(Icons.edit_outlined, size: 20),
                               onPressed: () => _showForm(existing: b),

@@ -17,7 +17,7 @@ class AppSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Shimmer.fromColors(
       baseColor: isDark ? Colors.grey[800]! : Colors.grey[300]!,
       highlightColor: isDark ? Colors.grey[700]! : Colors.grey[100]!,
@@ -34,7 +34,8 @@ class AppSkeleton extends StatelessWidget {
 
   static Widget listTile() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.s, horizontal: AppSpacing.l),
+      padding: const EdgeInsets.symmetric(
+          vertical: AppSpacing.s, horizontal: AppSpacing.l),
       child: Row(
         children: [
           const AppSkeleton(width: 48, height: 48, borderRadius: 24),

@@ -4,7 +4,8 @@ import '../../core/database/db_helper.dart';
 class ChequeListScreen extends StatefulWidget {
   final int companyId;
   final String type; // 'received' or 'issued'
-  const ChequeListScreen({super.key, required this.companyId, required this.type});
+  const ChequeListScreen(
+      {super.key, required this.companyId, required this.type});
 
   @override
   State<ChequeListScreen> createState() => _ChequeListScreenState();
@@ -42,7 +43,9 @@ class _ChequeListScreenState extends State<ChequeListScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(widget.type == 'received' ? 'Cheque Wasool Karein' : 'Cheque Issue Karein'),
+          title: Text(widget.type == 'received'
+              ? 'Cheque Wasool Karein'
+              : 'Cheque Issue Karein'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -50,7 +53,9 @@ class _ChequeListScreenState extends State<ChequeListScreen> {
                 TextField(
                   controller: partyCtrl,
                   decoration: InputDecoration(
-                      labelText: widget.type == 'received' ? 'Customer/Party Naam *' : 'Payee Naam *'),
+                      labelText: widget.type == 'received'
+                          ? 'Customer/Party Naam *'
+                          : 'Payee Naam *'),
                 ),
                 const SizedBox(height: 8),
                 TextField(
@@ -65,13 +70,16 @@ class _ChequeListScreenState extends State<ChequeListScreen> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: amountCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Amount (Rs.) *'),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration:
+                      const InputDecoration(labelText: 'Amount (Rs.) *'),
                 ),
                 const SizedBox(height: 8),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text('Cheque Date: ${chequeDate.toIso8601String().substring(0, 10)}'),
+                  title: Text(
+                      'Cheque Date: ${chequeDate.toIso8601String().substring(0, 10)}'),
                   trailing: const Icon(Icons.calendar_today, size: 18),
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -80,7 +88,8 @@ class _ChequeListScreenState extends State<ChequeListScreen> {
                       firstDate: DateTime(2020),
                       lastDate: DateTime(2100),
                     );
-                    if (picked != null) setDialogState(() => chequeDate = picked);
+                    if (picked != null)
+                      setDialogState(() => chequeDate = picked);
                   },
                 ),
                 TextField(
@@ -91,11 +100,15 @@ class _ChequeListScreenState extends State<ChequeListScreen> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
                 final amount = double.tryParse(amountCtrl.text.trim());
-                if (partyCtrl.text.trim().isEmpty || amount == null || amount <= 0) return;
+                if (partyCtrl.text.trim().isEmpty ||
+                    amount == null ||
+                    amount <= 0) return;
                 await DBHelper.instance.insertCheque({
                   'company_id': widget.companyId,
                   'type': widget.type,
@@ -132,7 +145,8 @@ class _ChequeListScreenState extends State<ChequeListScreen> {
               leading: const Icon(Icons.schedule, color: Colors.orange),
               title: const Text('Pending'),
               onTap: () async {
-                await DBHelper.instance.updateChequeStatus(cheque['id'] as int, 'pending');
+                await DBHelper.instance
+                    .updateChequeStatus(cheque['id'] as int, 'pending');
                 if (!ctx.mounted) return;
                 Navigator.pop(ctx);
                 _load();
@@ -142,7 +156,8 @@ class _ChequeListScreenState extends State<ChequeListScreen> {
               leading: const Icon(Icons.check_circle, color: Colors.green),
               title: const Text('Cleared'),
               onTap: () async {
-                await DBHelper.instance.updateChequeStatus(cheque['id'] as int, 'cleared');
+                await DBHelper.instance
+                    .updateChequeStatus(cheque['id'] as int, 'cleared');
                 if (!ctx.mounted) return;
                 Navigator.pop(ctx);
                 _load();
@@ -152,7 +167,8 @@ class _ChequeListScreenState extends State<ChequeListScreen> {
               leading: const Icon(Icons.cancel, color: Colors.red),
               title: const Text('Bounced'),
               onTap: () async {
-                await DBHelper.instance.updateChequeStatus(cheque['id'] as int, 'bounced');
+                await DBHelper.instance
+                    .updateChequeStatus(cheque['id'] as int, 'bounced');
                 if (!ctx.mounted) return;
                 Navigator.pop(ctx);
                 _load();
@@ -170,7 +186,9 @@ class _ChequeListScreenState extends State<ChequeListScreen> {
       builder: (ctx) => AlertDialog(
         title: const Text('Cheque Delete Karein?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
           TextButton(
               onPressed: () => Navigator.pop(ctx, true),
               child: const Text('Delete', style: TextStyle(color: Colors.red))),
@@ -222,8 +240,10 @@ class _ChequeListScreenState extends State<ChequeListScreen> {
                       margin: const EdgeInsets.only(bottom: 8),
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: _statusColor(status).withOpacity(0.15),
-                          child: Icon(Icons.receipt_long, color: _statusColor(status), size: 18),
+                          backgroundColor:
+                              _statusColor(status).withOpacity(0.15),
+                          child: Icon(Icons.receipt_long,
+                              color: _statusColor(status), size: 18),
                         ),
                         title: Text(c['party_name'] as String),
                         subtitle: Text(
@@ -233,16 +253,22 @@ class _ChequeListScreenState extends State<ChequeListScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text('Rs. ${(c['amount'] as num).toStringAsFixed(0)}',
-                                style: const TextStyle(fontWeight: FontWeight.bold)),
+                            Text(
+                                'Rs. ${(c['amount'] as num).toStringAsFixed(0)}',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold)),
                             GestureDetector(
                               onTap: () => _showStatusDialog(c),
                               child: Chip(
-                                label: Text(_statusLabel(status), style: const TextStyle(fontSize: 11)),
-                                backgroundColor: _statusColor(status).withOpacity(0.15),
-                                labelStyle: TextStyle(color: _statusColor(status)),
+                                label: Text(_statusLabel(status),
+                                    style: const TextStyle(fontSize: 11)),
+                                backgroundColor:
+                                    _statusColor(status).withOpacity(0.15),
+                                labelStyle:
+                                    TextStyle(color: _statusColor(status)),
                                 visualDensity: VisualDensity.compact,
-                                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
                               ),
                             ),
                           ],

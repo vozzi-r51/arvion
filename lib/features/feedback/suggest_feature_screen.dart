@@ -84,7 +84,8 @@ class _SuggestFeatureScreenState extends State<SuggestFeatureScreen> {
                 padding: EdgeInsets.all(16.0),
                 child: Row(
                   children: [
-                    Icon(Icons.lightbulb_outline, color: Colors.indigo, size: 28),
+                    Icon(Icons.lightbulb_outline,
+                        color: Colors.indigo, size: 28),
                     SizedBox(width: 12),
                     Expanded(
                       child: Text(
@@ -123,7 +124,8 @@ class _SuggestFeatureScreenState extends State<SuggestFeatureScreen> {
               controller: _descCtrl,
               maxLines: 4,
               decoration: const InputDecoration(
-                labelText: 'Detail Description (Kaise kaam kare aur kyun faida hoga?)',
+                labelText:
+                    'Detail Description (Kaise kaam kare aur kyun faida hoga?)',
                 border: OutlineInputBorder(),
               ),
             ),

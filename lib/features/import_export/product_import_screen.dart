@@ -19,9 +19,16 @@ class _ProductImportScreenState extends State<ProductImportScreen> {
   String? _resultMessage;
 
   static const _headers = [
-    'name', 'product_code', 'barcode', 'category', 'brand',
-    'purchase_price', 'retail_price', 'wholesale_price',
-    'current_stock', 'low_stock_level',
+    'name',
+    'product_code',
+    'barcode',
+    'category',
+    'brand',
+    'purchase_price',
+    'retail_price',
+    'wholesale_price',
+    'current_stock',
+    'low_stock_level',
   ];
 
   Future<void> _downloadTemplate() async {
@@ -29,7 +36,18 @@ class _ProductImportScreenState extends State<ProductImportScreen> {
       fileName: 'BizManager_Product_Import_Template',
       headers: _headers,
       rows: [
-        ['Sample Plate Set', 'P001', '1234567890', 'Melamine', 'ABC Brand', '200', '350', '300', '50', '10'],
+        [
+          'Sample Plate Set',
+          'P001',
+          '1234567890',
+          'Melamine',
+          'ABC Brand',
+          '200',
+          '350',
+          '300',
+          '50',
+          '10'
+        ],
       ],
     );
   }
@@ -75,7 +93,8 @@ class _ProductImportScreenState extends State<ProductImportScreen> {
 
     try {
       final content = await File(path).readAsString();
-      final lines = content.split('\n').where((l) => l.trim().isNotEmpty).toList();
+      final lines =
+          content.split('\n').where((l) => l.trim().isNotEmpty).toList();
       if (lines.length < 2) {
         setState(() {
           _busy = false;
@@ -84,13 +103,22 @@ class _ProductImportScreenState extends State<ProductImportScreen> {
         return;
       }
 
-      final header = _splitCsvLine(lines.first).map((h) => h.trim().toLowerCase()).toList();
+      final header = _splitCsvLine(lines.first)
+          .map((h) => h.trim().toLowerCase())
+          .toList();
       int colIndex(String name) => header.indexOf(name);
 
-      final categories = await DBHelper.instance.getCategories(widget.companyId);
+      final categories =
+          await DBHelper.instance.getCategories(widget.companyId);
       final brands = await DBHelper.instance.getBrands(widget.companyId);
-      final categoryMap = {for (final c in categories) (c['name'] as String).toLowerCase(): c['id'] as int};
-      final brandMap = {for (final b in brands) (b['name'] as String).toLowerCase(): b['id'] as int};
+      final categoryMap = {
+        for (final c in categories)
+          (c['name'] as String).toLowerCase(): c['id'] as int
+      };
+      final brandMap = {
+        for (final b in brands)
+          (b['name'] as String).toLowerCase(): b['id'] as int
+      };
 
       int imported = 0;
       int skipped = 0;
@@ -209,7 +237,8 @@ class _ProductImportScreenState extends State<ProductImportScreen> {
                 );
               },
               icon: const Icon(Icons.auto_awesome_outlined),
-              label: const Text('Universal Importer (QuickBooks / Tally / Vyapar / Excel)'),
+              label: const Text(
+                  'Universal Importer (QuickBooks / Tally / Vyapar / Excel)'),
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(
@@ -218,13 +247,15 @@ class _ProductImportScreenState extends State<ProductImportScreen> {
                   ? const SizedBox(
                       height: 16,
                       width: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
                   : const Icon(Icons.upload_file_outlined),
               label: const Text('Quick CSV Template Import'),
             ),
             if (_resultMessage != null) ...[
               const SizedBox(height: 16),
-              Text(_resultMessage!, style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text(_resultMessage!,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
             ],
           ],
         ),

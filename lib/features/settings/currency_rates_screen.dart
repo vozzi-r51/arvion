@@ -33,43 +33,55 @@ class _CurrencyRatesScreenState extends State<CurrencyRatesScreen> {
   }
 
   void _showAddCurrencyDialog([Map<String, dynamic>? existing]) {
-    final codeCtrl = TextEditingController(text: existing?['currency_code'] ?? 'USD');
-    final symbolCtrl = TextEditingController(text: existing?['currency_symbol'] ?? '\$');
-    final rateCtrl = TextEditingController(text: existing != null ? (existing['exchange_rate_to_base'] as num).toString() : '278.5');
+    final codeCtrl =
+        TextEditingController(text: existing?['currency_code'] ?? 'USD');
+    final symbolCtrl =
+        TextEditingController(text: existing?['currency_symbol'] ?? '\$');
+    final rateCtrl = TextEditingController(
+        text: existing != null
+            ? (existing['exchange_rate_to_base'] as num).toString()
+            : '278.5');
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(existing != null ? 'Exchange Rate Edit Karein' : 'Nayi Currency Add Karein'),
+        title: Text(existing != null
+            ? 'Exchange Rate Edit Karein'
+            : 'Nayi Currency Add Karein'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: codeCtrl,
-              decoration: const InputDecoration(labelText: 'Currency Code (e.g. USD, EUR, AED) *'),
+              decoration: const InputDecoration(
+                  labelText: 'Currency Code (e.g. USD, EUR, AED) *'),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: symbolCtrl,
-              decoration: const InputDecoration(labelText: 'Symbol (e.g. \$, €, SR) *'),
+              decoration:
+                  const InputDecoration(labelText: 'Symbol (e.g. \$, €, SR) *'),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: rateCtrl,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Exchange Rate to PKR (Base) *'),
+              decoration: const InputDecoration(
+                  labelText: 'Exchange Rate to PKR (Base) *'),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           FilledButton(
             onPressed: () async {
               final code = codeCtrl.text.trim();
               final symbol = symbolCtrl.text.trim();
               final rate = double.tryParse(rateCtrl.text.trim());
 
-              if (code.isEmpty || symbol.isEmpty || rate == null || rate <= 0) return;
+              if (code.isEmpty || symbol.isEmpty || rate == null || rate <= 0)
+                return;
 
               await sl<CurrencyRepository>().setCurrencyRate(
                 companyId: widget.companyId,
@@ -99,7 +111,8 @@ class _CurrencyRatesScreenState extends State<CurrencyRatesScreen> {
               ? AppEmptyState(
                   icon: Icons.currency_exchange,
                   title: 'Koi Currency Configured Nahi',
-                  message: 'Import/Export supplier invoices ke liye USD, EUR, AED, SAR jaise foreign currencies add karein.',
+                  message:
+                      'Import/Export supplier invoices ke liye USD, EUR, AED, SAR jaise foreign currencies add karein.',
                   actionLabel: 'Currency Add Karein',
                   onAction: () => _showAddCurrencyDialog(),
                 )
@@ -114,10 +127,17 @@ class _CurrencyRatesScreenState extends State<CurrencyRatesScreen> {
                       child: ListTile(
                         leading: CircleAvatar(
                           backgroundColor: Colors.teal.shade50,
-                          child: Text(c['currency_symbol'] as String, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.teal.shade800)),
+                          child: Text(c['currency_symbol'] as String,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.teal.shade800)),
                         ),
-                        title: Text('${c['currency_code']} (${c['currency_symbol']})', style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text('1 ${c['currency_code']} = Rs. $rate PKR'),
+                        title: Text(
+                            '${c['currency_code']} (${c['currency_symbol']})',
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle:
+                            Text('1 ${c['currency_code']} = Rs. $rate PKR'),
                         trailing: IconButton(
                           icon: const Icon(Icons.edit_outlined, size: 20),
                           onPressed: () => _showAddCurrencyDialog(c),

@@ -12,7 +12,8 @@ void main() {
   });
 
   group('1. Config-Driven White-Label Branding Engine Tests', () {
-    test('BrandedThemeEngine builds Light and Dark ThemeData from BrandConfig', () {
+    test('BrandedThemeEngine builds Light and Dark ThemeData from BrandConfig',
+        () {
       const customConfig = BrandConfig(
         appName: 'Acme Enterprise ERP',
         logoAsset: 'assets/acme_logo.png',
@@ -26,22 +27,29 @@ void main() {
       final lightTheme = engine.buildLightTheme();
       final darkTheme = engine.buildDarkTheme();
 
-      expect(lightTheme.colorScheme.primary.value, equals(customConfig.primaryColor.value));
-      expect(darkTheme.colorScheme.primary.value, equals(customConfig.primaryColor.value));
+      expect(lightTheme.colorScheme.primary.value,
+          equals(customConfig.primaryColor.value));
+      expect(darkTheme.colorScheme.primary.value,
+          equals(customConfig.primaryColor.value));
       expect(lightTheme.cardTheme.shape, isA<RoundedRectangleBorder>());
     });
   });
 
   group('2. Monetization & Subscription Entitlements Architecture Tests', () {
-    test('SubscriptionService defaults to Pro for offline users and grants feature entitlements', () async {
+    test(
+        'SubscriptionService defaults to Pro for offline users and grants feature entitlements',
+        () async {
       final subService = SubscriptionService.instance;
       final plan = await subService.getCurrentPlan(1);
 
       expect(plan, equals(SubscriptionPlan.pro));
 
-      final hasFullExport = await subService.hasEntitlement(FeatureEntitlement.fullExport, 1);
-      final hasFbrInvoicing = await subService.hasEntitlement(FeatureEntitlement.fbrInvoicing, 1);
-      final hasUnlimitedProducts = await subService.hasEntitlement(FeatureEntitlement.productsUnlimited, 1);
+      final hasFullExport =
+          await subService.hasEntitlement(FeatureEntitlement.fullExport, 1);
+      final hasFbrInvoicing =
+          await subService.hasEntitlement(FeatureEntitlement.fbrInvoicing, 1);
+      final hasUnlimitedProducts = await subService.hasEntitlement(
+          FeatureEntitlement.productsUnlimited, 1);
 
       expect(hasFullExport, isTrue);
       expect(hasFbrInvoicing, isTrue);
@@ -51,7 +59,8 @@ void main() {
       expect(maxProducts, isNull); // Unlimited for Pro
     });
 
-    test('Plan tier modification never deletes user data or database records', () async {
+    test('Plan tier modification never deletes user data or database records',
+        () async {
       final subService = SubscriptionService.instance;
 
       await subService.setPlan(1, SubscriptionPlan.free);

@@ -23,7 +23,8 @@ class RecurringInvoicesDueDialog extends StatefulWidget {
     required String currencyCode,
     required String currencySymbol,
   }) async {
-    final due = await RecurringSalesService.getDueRecurringSaleTemplates(companyId);
+    final due =
+        await RecurringSalesService.getDueRecurringSaleTemplates(companyId);
     if (due.isEmpty || !context.mounted) return;
 
     showDialog(
@@ -39,10 +40,12 @@ class RecurringInvoicesDueDialog extends StatefulWidget {
   }
 
   @override
-  State<RecurringInvoicesDueDialog> createState() => _RecurringInvoicesDueDialogState();
+  State<RecurringInvoicesDueDialog> createState() =>
+      _RecurringInvoicesDueDialogState();
 }
 
-class _RecurringInvoicesDueDialogState extends State<RecurringInvoicesDueDialog> {
+class _RecurringInvoicesDueDialogState
+    extends State<RecurringInvoicesDueDialog> {
   bool _generating = false;
   String? _errorMessage;
 
@@ -73,14 +76,16 @@ class _RecurringInvoicesDueDialogState extends State<RecurringInvoicesDueDialog>
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('$successCount Recurring Invoices successfully generated!'),
+          content:
+              Text('$successCount Recurring Invoices successfully generated!'),
           backgroundColor: Colors.green,
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('$successCount generated, $failCount failed: $_errorMessage'),
+          content: Text(
+              '$successCount generated, $failCount failed: $_errorMessage'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -103,7 +108,8 @@ class _RecurringInvoicesDueDialogState extends State<RecurringInvoicesDueDialog>
     return AlertDialog(
       title: Row(
         children: [
-          Icon(Icons.event_repeat, color: Theme.of(context).colorScheme.primary),
+          Icon(Icons.event_repeat,
+              color: Theme.of(context).colorScheme.primary),
           const SizedBox(width: 8),
           const Text('Recurring Invoices Due'),
         ],
@@ -114,7 +120,8 @@ class _RecurringInvoicesDueDialogState extends State<RecurringInvoicesDueDialog>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${widget.dueTemplates.length} recurring invoices are ready to generate:'),
+            Text(
+                '${widget.dueTemplates.length} recurring invoices are ready to generate:'),
             const SizedBox(height: 12),
             Flexible(
               child: ListView.builder(
@@ -129,9 +136,12 @@ class _RecurringInvoicesDueDialogState extends State<RecurringInvoicesDueDialog>
                   );
                   return ListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: Text(t['category'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    title: Text(t['category'] as String,
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
                     subtitle: Text('Due Date: ${t['next_due_date']}'),
-                    trailing: Text(amt, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+                    trailing: Text(amt,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.green)),
                   );
                 },
               ),
@@ -140,13 +150,19 @@ class _RecurringInvoicesDueDialogState extends State<RecurringInvoicesDueDialog>
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Total Due Amount:', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(formattedTotal, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 16)),
+                const Text('Total Due Amount:',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(formattedTotal,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                        fontSize: 16)),
               ],
             ),
             if (_errorMessage != null) ...[
               const SizedBox(height: 8),
-              Text(_errorMessage!, style: const TextStyle(color: Colors.red, fontSize: 12)),
+              Text(_errorMessage!,
+                  style: const TextStyle(color: Colors.red, fontSize: 12)),
             ],
           ],
         ),
@@ -159,7 +175,11 @@ class _RecurringInvoicesDueDialogState extends State<RecurringInvoicesDueDialog>
         ElevatedButton(
           onPressed: _generating ? null : _generateAll,
           child: _generating
-              ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              ? const SizedBox(
+                  height: 18,
+                  width: 18,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: Colors.white))
               : const Text('Generate Invoices'),
         ),
       ],

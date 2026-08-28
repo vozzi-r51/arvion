@@ -14,8 +14,12 @@ void main() {
     });
   });
 
-  group('1. Large Dataset Stock Valuation Isolate Benchmark Tests (5,000+ Products)', () {
-    test('Calculates total stock valuation across 5,000 products on background Isolate worker', () async {
+  group(
+      '1. Large Dataset Stock Valuation Isolate Benchmark Tests (5,000+ Products)',
+      () {
+    test(
+        'Calculates total stock valuation across 5,000 products on background Isolate worker',
+        () async {
       // Generate 5,000 product records
       final products = List<Map<String, dynamic>>.generate(5000, (i) {
         return {
@@ -28,7 +32,8 @@ void main() {
       });
 
       final stopwatch = Stopwatch()..start();
-      final valuation = await ReportComputeService.computeStockValuation(products);
+      final valuation =
+          await ReportComputeService.computeStockValuation(products);
       stopwatch.stop();
 
       expect(valuation['totalQty'], equals(50000.0)); // 5000 * 10
@@ -40,7 +45,9 @@ void main() {
       expect(stopwatch.elapsedMilliseconds, lessThan(1000));
     });
 
-    test('Computes Trial Balance Debit/Credit Totals across journal lines on Isolate thread', () async {
+    test(
+        'Computes Trial Balance Debit/Credit Totals across journal lines on Isolate thread',
+        () async {
       final lines = List<Map<String, dynamic>>.generate(2000, (i) {
         final isEven = i % 2 == 0;
         return {
@@ -60,7 +67,9 @@ void main() {
   });
 
   group('2. 5-Minute TTL Query Cache & Event-Driven Invalidation Tests', () {
-    test('QueryCacheService caches query results and invalidates on prefix event', () {
+    test(
+        'QueryCacheService caches query results and invalidates on prefix event',
+        () {
       final cache = QueryCacheService.instance;
       cache.clear();
 
@@ -83,7 +92,9 @@ void main() {
   });
 
   group('3. Database Composite Index Audit Tests', () {
-    test('Composite index SQL statements generated for company-scoped high-frequency queries', () {
+    test(
+        'Composite index SQL statements generated for company-scoped high-frequency queries',
+        () {
       final indexStatements = [
         'CREATE INDEX IF NOT EXISTS idx_products_company_status ON products(company_id, status)',
         'CREATE INDEX IF NOT EXISTS idx_sales_company_date ON sales(company_id, sale_date)',

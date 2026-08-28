@@ -57,7 +57,10 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
     final saleLabel = term.get('sale');
 
     return Scaffold(
-      appBar: AppBar(title: Text('$saleLabel Report'), actions: [IconButton(icon: const Icon(Icons.ios_share), onPressed: _showExportMenu)]),
+      appBar: AppBar(title: Text('$saleLabel Report'), actions: [
+        IconButton(
+            icon: const Icon(Icons.ios_share), onPressed: _showExportMenu)
+      ]),
       body: Column(
         children: [
           DateRangeBar(
@@ -82,7 +85,8 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                     ? AppEmptyState(
                         icon: Icons.receipt_long_outlined,
                         title: 'Koi $saleLabel nahi mili',
-                        message: 'Is range mein abhi tak koi $saleLabel record nahi hui.',
+                        message:
+                            'Is range mein abhi tak koi $saleLabel record nahi hui.',
                       )
                     : Column(
                         children: [
@@ -91,44 +95,54 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                             child: Row(
                               children: [
                                 Expanded(
-                                    child: _summaryCard(
-                                        'Total ${saleLabel}s', _totalSales, Colors.teal, _currency)),
+                                    child: _summaryCard('Total ${saleLabel}s',
+                                        _totalSales, Colors.teal, _currency)),
+                                const SizedBox(width: AppSpacing.s),
+                                Expanded(
+                                    child: _summaryCard('Total Due', _totalDue,
+                                        Colors.red, _currency)),
                                 const SizedBox(width: AppSpacing.s),
                                 Expanded(
                                     child: _summaryCard(
-                                        'Total Due', _totalDue, Colors.red, _currency)),
-                                const SizedBox(width: AppSpacing.s),
-                                Expanded(
-                                    child: _summaryCard(
-                                        'Invoices', _sales.length.toDouble(), Colors.blue, _currency,
+                                        'Invoices',
+                                        _sales.length.toDouble(),
+                                        Colors.blue,
+                                        _currency,
                                         isCount: true)),
                               ],
                             ),
                           ),
                           Expanded(
                             child: ListView.builder(
-                              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.l),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.l),
                               itemCount: _sales.length,
                               itemBuilder: (ctx, i) {
                                 final s = _sales[i];
                                 return Card(
                                   elevation: 0,
-                                  margin: const EdgeInsets.only(bottom: AppSpacing.s),
+                                  margin: const EdgeInsets.only(
+                                      bottom: AppSpacing.s),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: AppRadius.medium,
-                                    side: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+                                    side: BorderSide(
+                                        color: Theme.of(context)
+                                            .dividerColor
+                                            .withValues(alpha: 0.1)),
                                   ),
                                   child: ListTile(
                                     title: Text(
                                       '$saleLabel ${s['invoice_number']}',
-                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold),
                                     ),
                                     subtitle: Text(
                                       '${(s['sale_date'] as String).substring(0, 10)}  •  ${s['customer_name'] ?? 'Walk-in'}',
                                     ),
                                     trailing: Text(
                                       '$_currency ${(s['total_amount'] as num).toStringAsFixed(0)}',
-                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold),
                                     ),
                                     onTap: () => Navigator.of(context).push(
                                       MaterialPageRoute(
@@ -150,7 +164,8 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
     );
   }
 
-  Widget _summaryCard(String label, double value, Color color, String currency, {bool isCount = false}) {
+  Widget _summaryCard(String label, double value, Color color, String currency,
+      {bool isCount = false}) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -159,15 +174,17 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
             Text(label, style: const TextStyle(fontSize: 11)),
             const SizedBox(height: 4),
             Text(
-              isCount ? value.toStringAsFixed(0) : '$currency ${value.toStringAsFixed(0)}',
-              style: TextStyle(fontWeight: FontWeight.bold, color: color, fontSize: 14),
+              isCount
+                  ? value.toStringAsFixed(0)
+                  : '$currency ${value.toStringAsFixed(0)}',
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, color: color, fontSize: 14),
             ),
           ],
         ),
       ),
     );
   }
-
 
   Future<void> _showExportMenu() async {
     final choice = await showModalBottomSheet<String>(
@@ -200,8 +217,13 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
       fileName: 'Sales_Report',
       headers: ['Invoice', 'Date', 'Customer', 'Total', 'Due'],
       rows: _sales
-          .map((s) => [s['invoice_number'], (s['sale_date'] as String).substring(0, 10),
-                s['customer_name'] ?? 'Walk-in', s['total_amount'], s['due_amount']])
+          .map((s) => [
+                s['invoice_number'],
+                (s['sale_date'] as String).substring(0, 10),
+                s['customer_name'] ?? 'Walk-in',
+                s['total_amount'],
+                s['due_amount']
+              ])
           .toList(),
     );
   }
@@ -211,12 +233,14 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
     if (company == null) return;
 
     final columns = ['Invoice', 'Date', 'Customer', 'Total'];
-    final rows = _sales.map((s) => [
-      s['invoice_number'].toString(),
-      (s['sale_date'] as String).substring(0, 10),
-      s['customer_name'] ?? 'Walk-in',
-      '$_currency ${s['total_amount']}',
-    ]).toList();
+    final rows = _sales
+        .map((s) => [
+              s['invoice_number'].toString(),
+              (s['sale_date'] as String).substring(0, 10),
+              s['customer_name'] ?? 'Walk-in',
+              '$_currency ${s['total_amount']}',
+            ])
+        .toList();
 
     final pdfBytes = await PdfReportService.generateReport(
       company: company,

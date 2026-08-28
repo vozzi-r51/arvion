@@ -43,23 +43,37 @@ class _RestaurantTableScreenState extends State<RestaurantTableScreen> {
 
   void _showAddEditDialog({Map<String, dynamic>? existing}) {
     final nameCtrl = TextEditingController(text: existing?['table_name'] ?? '');
-    final numCtrl = TextEditingController(text: existing?['table_number'] ?? '');
-    final capCtrl = TextEditingController(text: existing?['capacity']?.toString() ?? '4');
+    final numCtrl =
+        TextEditingController(text: existing?['table_number'] ?? '');
+    final capCtrl =
+        TextEditingController(text: existing?['capacity']?.toString() ?? '4');
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(existing == null ? 'Nayi Table Add Karein' : 'Table Edit Karein'),
+        title: Text(
+            existing == null ? 'Nayi Table Add Karein' : 'Table Edit Karein'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Table Name (e.g. Table 01 / Family Hall)')),
-            TextField(controller: numCtrl, decoration: const InputDecoration(labelText: 'Table Number (e.g. T-01)')),
-            TextField(controller: capCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Seating Capacity')),
+            TextField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(
+                    labelText: 'Table Name (e.g. Table 01 / Family Hall)')),
+            TextField(
+                controller: numCtrl,
+                decoration: const InputDecoration(
+                    labelText: 'Table Number (e.g. T-01)')),
+            TextField(
+                controller: capCtrl,
+                keyboardType: TextInputType.number,
+                decoration:
+                    const InputDecoration(labelText: 'Seating Capacity')),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
               final name = nameCtrl.text.trim();
@@ -77,7 +91,8 @@ class _RestaurantTableScreenState extends State<RestaurantTableScreen> {
               };
 
               if (existing != null) {
-                await db.update('restaurant_tables', data, where: 'id = ?', whereArgs: [existing['id']]);
+                await db.update('restaurant_tables', data,
+                    where: 'id = ?', whereArgs: [existing['id']]);
               } else {
                 await db.insert('restaurant_tables', data);
               }
@@ -116,7 +131,8 @@ class _RestaurantTableScreenState extends State<RestaurantTableScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.table_restaurant, size: 64, color: Colors.grey),
+                      const Icon(Icons.table_restaurant,
+                          size: 64, color: Colors.grey),
                       const SizedBox(height: 16),
                       const Text('Koi Restaurant Table nahi mila.'),
                       const SizedBox(height: 16),
@@ -151,10 +167,14 @@ class _RestaurantTableScreenState extends State<RestaurantTableScreen> {
                         }
                       },
                       child: Card(
-                        color: isOccupied ? Colors.orange.shade50 : Colors.green.shade50,
+                        color: isOccupied
+                            ? Colors.orange.shade50
+                            : Colors.green.shade50,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(color: isOccupied ? Colors.orange : Colors.green, width: 2),
+                          side: BorderSide(
+                              color: isOccupied ? Colors.orange : Colors.green,
+                              width: 2),
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(12),
@@ -164,21 +184,33 @@ class _RestaurantTableScreenState extends State<RestaurantTableScreen> {
                               Icon(
                                 Icons.table_restaurant,
                                 size: 36,
-                                color: isOccupied ? Colors.orange.shade800 : Colors.green.shade800,
+                                color: isOccupied
+                                    ? Colors.orange.shade800
+                                    : Colors.green.shade800,
                               ),
                               const SizedBox(height: 8),
-                              Text(t['table_name'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                              Text('Capacity: ${t['capacity']} persons', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                              Text(t['table_name'] as String,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16)),
+                              Text('Capacity: ${t['capacity']} persons',
+                                  style: const TextStyle(
+                                      fontSize: 12, color: Colors.grey)),
                               const SizedBox(height: 6),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: isOccupied ? Colors.orange : Colors.green,
+                                  color:
+                                      isOccupied ? Colors.orange : Colors.green,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
                                   isOccupied ? 'OCCUPIED' : 'AVAILABLE',
-                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10),
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 10),
                                 ),
                               ),
                             ],

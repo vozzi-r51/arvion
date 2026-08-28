@@ -24,7 +24,7 @@ class _CartItem {
   String? secondaryUnit;
   double conversionFactor;
   bool isSecondary;
-  
+
   String? promoLabel;
   double promoDiscount = 0;
 
@@ -48,8 +48,10 @@ class _CartItem {
     this.conversionFactor = 1,
     this.isSecondary = false,
   }) {
-    priceController = TextEditingController(text: displayPrice.toStringAsFixed(0));
-    qtyController = TextEditingController(text: qty.toStringAsFixed(qty % 1 == 0 ? 0 : 1));
+    priceController =
+        TextEditingController(text: displayPrice.toStringAsFixed(0));
+    qtyController =
+        TextEditingController(text: qty.toStringAsFixed(qty % 1 == 0 ? 0 : 1));
   }
 
   void updateControllers() {
@@ -68,7 +70,8 @@ class _CartItem {
     qtyController.dispose();
   }
 
-  double get displayPrice => isSecondary ? unitPrice * conversionFactor : unitPrice;
+  double get displayPrice =>
+      isSecondary ? unitPrice * conversionFactor : unitPrice;
   double get total => displayPrice * qty;
   double get baseQty => isSecondary ? qty * conversionFactor : qty;
 }
@@ -91,15 +94,15 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
   final _taxPercentCtrl = TextEditingController(text: '0');
   final _paidCtrl = TextEditingController(text: '0');
   final _redeemPointsCtrl = TextEditingController(text: '0');
-  
+
   double _customerPoints = 0;
   double _pointValue = 1.0;
   String _currency = 'Rs.';
-  
+
   Map<String, dynamic>? _company;
   String? _templateFamily;
   String? _selectedTable; // e.g. "Table 4" or "Takeaway"
-  
+
   DateTime _saleDate = DateTime.now();
   bool _saving = false;
 
@@ -111,7 +114,8 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
   }
 
   Future<void> _loadPromotions() async {
-    final promos = await DBHelper.instance.getActivePromotions(widget.companyId);
+    final promos =
+        await DBHelper.instance.getActivePromotions(widget.companyId);
     setState(() => _activePromos = promos);
   }
 
@@ -141,15 +145,22 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
 
   double get _subtotal => _cart.fold(0, (sum, item) => sum + item.total);
   double get _discount => double.tryParse(_discountCtrl.text.trim()) ?? 0;
-  double get _redeemedPoints => double.tryParse(_redeemPointsCtrl.text.trim()) ?? 0;
+  double get _redeemedPoints =>
+      double.tryParse(_redeemPointsCtrl.text.trim()) ?? 0;
   double get _pointsDiscount => _redeemedPoints * _pointValue;
   double get _taxPercent => double.tryParse(_taxPercentCtrl.text.trim()) ?? 0;
-  double get _taxAmount => ((_subtotal - _discount - _pointsDiscount).clamp(0, double.infinity)) * _taxPercent / 100;
-  double get _grandTotal => (_subtotal - _discount - _pointsDiscount + _taxAmount).clamp(0, double.infinity);
+  double get _taxAmount =>
+      ((_subtotal - _discount - _pointsDiscount).clamp(0, double.infinity)) *
+      _taxPercent /
+      100;
+  double get _grandTotal =>
+      (_subtotal - _discount - _pointsDiscount + _taxAmount)
+          .clamp(0, double.infinity);
 
   void _openKOTDialog() {
     if (_cart.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cart khali hai')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Cart khali hai')));
       return;
     }
 
@@ -167,26 +178,33 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Time: ${DateTime.now().toIso8601String().substring(11, 16)}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            Text('Time: ${DateTime.now().toIso8601String().substring(11, 16)}',
+                style: const TextStyle(fontSize: 12, color: Colors.grey)),
             const Divider(),
             ..._cart.map((item) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
-              child: Row(
-                children: [
-                  Text('${item.qty.toStringAsFixed(0)}x', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  const SizedBox(width: 12),
-                  Expanded(child: Text(item.name, style: const TextStyle(fontSize: 16))),
-                ],
-              ),
-            )),
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                  child: Row(
+                    children: [
+                      Text('${item.qty.toStringAsFixed(0)}x',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 16)),
+                      const SizedBox(width: 12),
+                      Expanded(
+                          child: Text(item.name,
+                              style: const TextStyle(fontSize: 16))),
+                    ],
+                  ),
+                )),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
           ElevatedButton.icon(
             onPressed: () {
               Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('KOT sent to kitchen!')));
+              ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('KOT sent to kitchen!')));
             },
             icon: const Icon(Icons.print),
             label: const Text('Print KOT'),
@@ -197,7 +215,8 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
   }
 
   Future<void> _selectTable() async {
-    final tables = await DBHelper.instance.getRestaurantTables(widget.companyId);
+    final tables =
+        await DBHelper.instance.getRestaurantTables(widget.companyId);
     if (!mounted) return;
 
     final selected = await showModalBottomSheet<String>(
@@ -207,7 +226,8 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Select Table / Order Mode', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const Text('Select Table / Order Mode',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             const SizedBox(height: 12),
             ListTile(
               leading: const Icon(Icons.takeout_dining),
@@ -218,7 +238,8 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
             if (tables.isEmpty)
               const Padding(
                 padding: EdgeInsets.all(8.0),
-                child: Text('No tables added. Add tables from Restaurant Settings.'),
+                child: Text(
+                    'No tables added. Add tables from Restaurant Settings.'),
               )
             else
               GridView.builder(
@@ -241,7 +262,8 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       alignment: Alignment.center,
-                      child: Text(t['table_number'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      child: Text(t['table_number'] as String,
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
                     ),
                   );
                 },
@@ -282,7 +304,9 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Quick Variant Grid', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const Text('Quick Variant Grid',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 12),
                 GridView.builder(
                   shrinkWrap: true,
@@ -300,16 +324,27 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                       onTap: () => Navigator.pop(c, v),
                       child: Container(
                         decoration: BoxDecoration(
-                          color: stock > 0 ? Colors.teal.shade50 : Colors.red.shade50,
-                          border: Border.all(color: stock > 0 ? Colors.teal : Colors.red),
+                          color: stock > 0
+                              ? Colors.teal.shade50
+                              : Colors.red.shade50,
+                          border: Border.all(
+                              color: stock > 0 ? Colors.teal : Colors.red),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         padding: const EdgeInsets.all(4),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(v['attribute_combo'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11), textAlign: TextAlign.center),
-                            Text('Stock: ${stock.toStringAsFixed(0)}', style: TextStyle(fontSize: 9, color: stock > 0 ? Colors.teal.shade900 : Colors.red.shade900)),
+                            Text(v['attribute_combo'] as String,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 11),
+                                textAlign: TextAlign.center),
+                            Text('Stock: ${stock.toStringAsFixed(0)}',
+                                style: TextStyle(
+                                    fontSize: 9,
+                                    color: stock > 0
+                                        ? Colors.teal.shade900
+                                        : Colors.red.shade900)),
                           ],
                         ),
                       ),
@@ -330,14 +365,18 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
       }
     }
 
-    final existingIndex = _cart.indexWhere((c) => c.productId == productId && c.variantId == selectedVariantId);
+    final existingIndex = _cart.indexWhere(
+        (c) => c.productId == productId && c.variantId == selectedVariantId);
     final stock = variantStock;
 
     final retailPrice = variantPrice;
-    final wholesalePrice = (selected['wholesale_price'] as num?)?.toDouble() ?? retailPrice;
-    
-    final isWholesale = _selectedCustomerId != null && 
-        _customers.any((c) => c['id'] == _selectedCustomerId && c['customer_type'] == 'Wholesale');
+    final wholesalePrice =
+        (selected['wholesale_price'] as num?)?.toDouble() ?? retailPrice;
+
+    final isWholesale = _selectedCustomerId != null &&
+        _customers.any((c) =>
+            c['id'] == _selectedCustomerId &&
+            c['customer_type'] == 'Wholesale');
 
     setState(() {
       if (existingIndex >= 0) {
@@ -358,7 +397,8 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
           categoryId: selected['category_id'] as int?,
           baseUnit: selected['base_unit'] as String? ?? 'Pc',
           secondaryUnit: selected['secondary_unit'] as String?,
-          conversionFactor: (selected['conversion_factor'] as num?)?.toDouble() ?? 1,
+          conversionFactor:
+              (selected['conversion_factor'] as num?)?.toDouble() ?? 1,
         );
         _applyPromoToItem(newItem);
         _cart.add(newItem);
@@ -414,7 +454,9 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
 
     if (_saleType == 'due' && _selectedCustomerId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Due sale ke liye customer select karna zaroori hai')),
+        const SnackBar(
+            content:
+                Text('Due sale ke liye customer select karna zaroori hai')),
       );
       return;
     }
@@ -488,7 +530,8 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
         companyId: widget.companyId,
         module: 'Sale',
         action: AuditLogger.create,
-        description: 'Sale banayi: $invoiceNumber (Rs. ${_grandTotal.toStringAsFixed(0)})',
+        description:
+            'Sale banayi: $invoiceNumber (Rs. ${_grandTotal.toStringAsFixed(0)})',
       );
     } catch (_) {
       // The sale is already committed; audit logging must not block checkout.
@@ -518,15 +561,17 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
             ElevatedButton.icon(
               onPressed: () {
                 Navigator.pop(ctx);
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => InvoicePreviewScreen(
-                      company: company,
-                      sale: {...saleData, 'id': saleId},
-                      items: itemsData,
-                    ),
-                  ),
-                ).then((_) => Navigator.pop(context, true));
+                Navigator.of(context)
+                    .push(
+                      MaterialPageRoute(
+                        builder: (_) => InvoicePreviewScreen(
+                          company: company,
+                          sale: {...saleData, 'id': saleId},
+                          items: itemsData,
+                        ),
+                      ),
+                    )
+                    .then((_) => Navigator.pop(context, true));
               },
               icon: const Icon(Icons.print),
               label: const Text('Preview / Print'),
@@ -553,7 +598,9 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isRestaurant ? 'Order / Billing (${_selectedTable ?? "Takeaway"})' : 'New Sale'),
+        title: Text(isRestaurant
+            ? 'Order / Billing (${_selectedTable ?? "Takeaway"})'
+            : 'New Sale'),
         actions: [
           if (isRestaurant) ...[
             IconButton(
@@ -573,7 +620,8 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
         children: [
           Expanded(
             child: _cart.isEmpty
-                ? const Center(child: Text('Cart khali hai — product add karein'))
+                ? const Center(
+                    child: Text('Cart khali hai — product add karein'))
                 : ListView.builder(
                     padding: const EdgeInsets.all(12),
                     itemCount: _cart.length,
@@ -589,40 +637,62 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                                 children: [
                                   Expanded(
                                     child: Text(item.name,
-                                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold)),
                                   ),
-                                  if (item.packing != null && item.packing!.isNotEmpty)
+                                  if (item.packing != null &&
+                                      item.packing!.isNotEmpty)
                                     Padding(
-                                      padding: const EdgeInsets.only(right: 8.0),
-                                      child: Text('(${item.packing})', style: const TextStyle(fontSize: 12, color: Colors.blueGrey)),
+                                      padding:
+                                          const EdgeInsets.only(right: 8.0),
+                                      child: Text('(${item.packing})',
+                                          style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.blueGrey)),
                                     ),
                                   if (item.promoLabel != null)
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(4)),
-                                      child: Text(item.promoLabel!, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                          color: Colors.green,
+                                          borderRadius:
+                                              BorderRadius.circular(4)),
+                                      child: Text(item.promoLabel!,
+                                          style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold)),
                                     ),
                                   IconButton(
-                                    icon: const Icon(Icons.close, size: 18, color: Colors.red),
+                                    icon: const Icon(Icons.close,
+                                        size: 18, color: Colors.red),
                                     onPressed: () => _removeItem(i),
                                   ),
                                 ],
                               ),
                               Row(
                                 children: [
-                                  const Text('Rate: ', style: TextStyle(fontSize: 12)),
+                                  const Text('Rate: ',
+                                      style: TextStyle(fontSize: 12)),
                                   SizedBox(
                                     width: 80,
                                     child: TextField(
-                                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                      decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(vertical: 8)),
+                                      keyboardType:
+                                          const TextInputType.numberWithOptions(
+                                              decimal: true),
+                                      decoration: const InputDecoration(
+                                          isDense: true,
+                                          contentPadding: EdgeInsets.symmetric(
+                                              vertical: 8)),
                                       style: const TextStyle(fontSize: 13),
                                       controller: item.priceController,
                                       onChanged: (v) {
                                         final val = double.tryParse(v) ?? 0;
                                         setState(() {
                                           if (item.isSecondary) {
-                                            item.unitPrice = val / item.conversionFactor;
+                                            item.unitPrice =
+                                                val / item.conversionFactor;
                                           } else {
                                             item.unitPrice = val;
                                           }
@@ -630,11 +700,17 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                                       },
                                     ),
                                   ),
-                                  if (item.secondaryUnit != null && item.secondaryUnit!.isNotEmpty)
+                                  if (item.secondaryUnit != null &&
+                                      item.secondaryUnit!.isNotEmpty)
                                     Padding(
                                       padding: const EdgeInsets.only(left: 8.0),
                                       child: FilterChip(
-                                        label: Text(item.isSecondary ? item.secondaryUnit! : item.baseUnit, style: const TextStyle(fontSize: 10)),
+                                        label: Text(
+                                            item.isSecondary
+                                                ? item.secondaryUnit!
+                                                : item.baseUnit,
+                                            style:
+                                                const TextStyle(fontSize: 10)),
                                         selected: item.isSecondary,
                                         onSelected: (v) => setState(() {
                                           item.isSecondary = v;
@@ -647,19 +723,29 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                                   else
                                     Padding(
                                       padding: const EdgeInsets.only(left: 8.0),
-                                      child: Text(item.baseUnit, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                                      child: Text(item.baseUnit,
+                                          style: const TextStyle(
+                                              fontSize: 10,
+                                              color: Colors.grey)),
                                     ),
                                   const Spacer(),
                                   IconButton(
-                                    icon: const Icon(Icons.remove_circle_outline, size: 20),
+                                    icon: const Icon(
+                                        Icons.remove_circle_outline,
+                                        size: 20),
                                     onPressed: () => _changeQty(i, -1),
                                   ),
                                   SizedBox(
                                     width: 60,
                                     child: TextField(
                                       textAlign: TextAlign.center,
-                                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                      decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(vertical: 8)),
+                                      keyboardType:
+                                          const TextInputType.numberWithOptions(
+                                              decimal: true),
+                                      decoration: const InputDecoration(
+                                          isDense: true,
+                                          contentPadding: EdgeInsets.symmetric(
+                                              vertical: 8)),
                                       style: const TextStyle(fontSize: 13),
                                       controller: item.qtyController,
                                       onChanged: (v) {
@@ -669,13 +755,15 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                                     ),
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.add_circle_outline, size: 20),
+                                    icon: const Icon(Icons.add_circle_outline,
+                                        size: 20),
                                     onPressed: () => _changeQty(i, 1),
                                   ),
                                   const Spacer(),
                                   Text(
                                     'Rs. ${item.total.toStringAsFixed(0)}',
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold),
                                   ),
                                 ],
                               ),
@@ -717,10 +805,12 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                                   firstDate: DateTime(2020),
                                   lastDate: DateTime(2100),
                                 );
-                                if (picked != null) setState(() => _saleDate = picked);
+                                if (picked != null)
+                                  setState(() => _saleDate = picked);
                               },
                               icon: const Icon(Icons.calendar_today, size: 16),
-                              label: Text(_saleDate.toIso8601String().substring(0, 10)),
+                              label: Text(
+                                  _saleDate.toIso8601String().substring(0, 10)),
                             ),
                           ),
                         ],
@@ -728,7 +818,8 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                       const SizedBox(height: 10),
                       DropdownButtonFormField<int?>(
                         value: _selectedCustomerId,
-                        decoration: const InputDecoration(labelText: 'Customer (optional)', isDense: true),
+                        decoration: const InputDecoration(
+                            labelText: 'Customer (optional)', isDense: true),
                         items: [
                           const DropdownMenuItem<int?>(
                               value: null, child: Text('Walk-in Customer')),
@@ -741,34 +832,48 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                           setState(() {
                             _selectedCustomerId = v;
                             if (v != null) {
-                              final customer = _customers.firstWhere((c) => c['id'] == v);
-                              _customerPoints = (customer['loyalty_points'] as num?)?.toDouble() ?? 0;
+                              final customer =
+                                  _customers.firstWhere((c) => c['id'] == v);
+                              _customerPoints =
+                                  (customer['loyalty_points'] as num?)
+                                          ?.toDouble() ??
+                                      0;
                             } else {
                               _customerPoints = 0;
                               _redeemPointsCtrl.text = '0';
                             }
                           });
-                          
+
                           if (v != null && _cart.isNotEmpty) {
-                            final customer = _customers.firstWhere((c) => c['id'] == v);
-                            final isWholesale = customer['customer_type'] == 'Wholesale';
-                            
+                            final customer =
+                                _customers.firstWhere((c) => c['id'] == v);
+                            final isWholesale =
+                                customer['customer_type'] == 'Wholesale';
+
                             final confirm = await showDialog<bool>(
                               context: context,
                               builder: (ctx) => AlertDialog(
                                 title: const Text('Prices Update Karein?'),
-                                content: Text('Aapne ${isWholesale ? "Wholesale" : "Retail"} customer select kiya hai. Kya cart mein mojood products ki prices is ke mutabiq set kar di jayain?'),
+                                content: Text(
+                                    'Aapne ${isWholesale ? "Wholesale" : "Retail"} customer select kiya hai. Kya cart mein mojood products ki prices is ke mutabiq set kar di jayain?'),
                                 actions: [
-                                  TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Nahi')),
-                                  TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Haan')),
+                                  TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(ctx, false),
+                                      child: const Text('Nahi')),
+                                  TextButton(
+                                      onPressed: () => Navigator.pop(ctx, true),
+                                      child: const Text('Haan')),
                                 ],
                               ),
                             );
-                            
+
                             if (confirm == true) {
                               setState(() {
                                 for (var item in _cart) {
-                                  item.unitPrice = isWholesale ? item.wholesalePrice : item.retailPrice;
+                                  item.unitPrice = isWholesale
+                                      ? item.wholesalePrice
+                                      : item.retailPrice;
                                   item.updateControllers();
                                 }
                               });
@@ -781,16 +886,23 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                           padding: const EdgeInsets.only(top: 8.0),
                           child: Row(
                             children: [
-                              Icon(Icons.star, size: 16, color: Colors.amber.shade700),
+                              Icon(Icons.star,
+                                  size: 16, color: Colors.amber.shade700),
                               const SizedBox(width: 4),
-                              Text('Points: ${_customerPoints.toStringAsFixed(1)} (Value: $_currency ${(_customerPoints * _pointValue).toStringAsFixed(0)})',
-                                style: TextStyle(fontSize: 12, color: Colors.amber.shade900, fontWeight: FontWeight.bold)),
+                              Text(
+                                  'Points: ${_customerPoints.toStringAsFixed(1)} (Value: $_currency ${(_customerPoints * _pointValue).toStringAsFixed(0)})',
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.amber.shade900,
+                                      fontWeight: FontWeight.bold)),
                               const Spacer(),
                               TextButton(
                                 onPressed: () {
-                                  setState(() => _redeemPointsCtrl.text = _customerPoints.toStringAsFixed(0));
+                                  setState(() => _redeemPointsCtrl.text =
+                                      _customerPoints.toStringAsFixed(0));
                                 },
-                                child: const Text('Redeem All', style: TextStyle(fontSize: 11)),
+                                child: const Text('Redeem All',
+                                    style: TextStyle(fontSize: 11)),
                               ),
                             ],
                           ),
@@ -801,7 +913,8 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                           Expanded(
                             child: RadioListTile<String>(
                               contentPadding: EdgeInsets.zero,
-                              title: const Text('Cash', style: TextStyle(fontSize: 13)),
+                              title: const Text('Cash',
+                                  style: TextStyle(fontSize: 13)),
                               value: 'cash',
                               groupValue: _saleType,
                               onChanged: (v) => setState(() => _saleType = v!),
@@ -810,7 +923,8 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                           Expanded(
                             child: RadioListTile<String>(
                               contentPadding: EdgeInsets.zero,
-                              title: const Text('Due', style: TextStyle(fontSize: 13)),
+                              title: const Text('Due',
+                                  style: TextStyle(fontSize: 13)),
                               value: 'due',
                               groupValue: _saleType,
                               onChanged: (v) => setState(() => _saleType = v!),
@@ -823,8 +937,11 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                           Expanded(
                             child: TextField(
                               controller: _discountCtrl,
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              decoration: const InputDecoration(labelText: 'Discount', isDense: true),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                      decimal: true),
+                              decoration: const InputDecoration(
+                                  labelText: 'Discount', isDense: true),
                               onChanged: (_) => setState(() {}),
                             ),
                           ),
@@ -832,22 +949,30 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                           Expanded(
                             child: TextField(
                               controller: _taxPercentCtrl,
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              decoration: const InputDecoration(labelText: 'Tax %', isDense: true),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                      decimal: true),
+                              decoration: const InputDecoration(
+                                  labelText: 'Tax %', isDense: true),
                               onChanged: (_) => setState(() {}),
                             ),
                           ),
-                          if (_selectedCustomerId != null && _customerPoints > 0) ...[
+                          if (_selectedCustomerId != null &&
+                              _customerPoints > 0) ...[
                             const SizedBox(width: 10),
                             Expanded(
                               child: TextField(
                                 controller: _redeemPointsCtrl,
-                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                decoration: const InputDecoration(labelText: 'Redeem Pts', isDense: true),
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                        decimal: true),
+                                decoration: const InputDecoration(
+                                    labelText: 'Redeem Pts', isDense: true),
                                 onChanged: (v) {
                                   final val = double.tryParse(v) ?? 0;
                                   if (val > _customerPoints) {
-                                    _redeemPointsCtrl.text = _customerPoints.toStringAsFixed(0);
+                                    _redeemPointsCtrl.text =
+                                        _customerPoints.toStringAsFixed(0);
                                   }
                                   setState(() {});
                                 },
@@ -859,8 +984,11 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                             Expanded(
                               child: TextField(
                                 controller: _paidCtrl,
-                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                decoration: const InputDecoration(labelText: 'Paid', isDense: true),
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                        decimal: true),
+                                decoration: const InputDecoration(
+                                    labelText: 'Paid', isDense: true),
                                 onChanged: (_) => setState(() {}),
                               ),
                             ),
@@ -874,7 +1002,8 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                           const Text('Total', style: TextStyle(fontSize: 16)),
                           Text(
                             '$_currency ${_grandTotal.toStringAsFixed(0)}',
-                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -885,7 +1014,8 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2, color: Colors.white),
                               )
                             : const Text('Sale Complete Karein'),
                       ),
@@ -994,7 +1124,9 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                             bool isExpiringSoon = false;
                             if (expiryStr != null) {
                               expiry = DateTime.tryParse(expiryStr);
-                              if (expiry != null && expiry.difference(DateTime.now()).inDays <= 30) {
+                              if (expiry != null &&
+                                  expiry.difference(DateTime.now()).inDays <=
+                                      30) {
                                 isExpiringSoon = true;
                               }
                             }
@@ -1005,9 +1137,17 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                                   Expanded(child: Text(p['name'] as String)),
                                   if (isExpiringSoon)
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(color: Colors.red.shade100, borderRadius: BorderRadius.circular(4)),
-                                      child: const Text('Expiring Soon!', style: TextStyle(color: Colors.red, fontSize: 10, fontWeight: FontWeight.bold)),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                          color: Colors.red.shade100,
+                                          borderRadius:
+                                              BorderRadius.circular(4)),
+                                      child: const Text('Expiring Soon!',
+                                          style: TextStyle(
+                                              color: Colors.red,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold)),
                                     ),
                                 ],
                               ),

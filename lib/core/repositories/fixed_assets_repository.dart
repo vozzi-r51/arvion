@@ -45,7 +45,8 @@ class FixedAssetsRepository extends BaseRepository {
         final cost = (asset['purchase_cost'] as num).toDouble();
         final salvage = (asset['salvage_value'] as num?)?.toDouble() ?? 0.0;
         final lifeYears = (asset['useful_life_years'] as num?)?.toInt() ?? 5;
-        final currentAccum = (asset['accumulated_depreciation'] as num?)?.toDouble() ?? 0.0;
+        final currentAccum =
+            (asset['accumulated_depreciation'] as num?)?.toDouble() ?? 0.0;
         final currentBook = (asset['book_value'] as num?)?.toDouble() ?? cost;
 
         if (currentBook <= salvage || lifeYears <= 0) continue;
@@ -94,9 +95,11 @@ class FixedAssetsRepository extends BaseRepository {
     });
 
     // Auto-post GL Journal Entry for total depreciation if > 0
-    if (totalDepreciationForMonth > 0 && sl.isRegistered<AccountingRepository>()) {
+    if (totalDepreciationForMonth > 0 &&
+        sl.isRegistered<AccountingRepository>()) {
       try {
-        final accounts = await sl<AccountingRepository>().getAccounts(companyId);
+        final accounts =
+            await sl<AccountingRepository>().getAccounts(companyId);
         int? depExpenseAccountId;
         int? accumDepAccountId;
 
@@ -104,7 +107,8 @@ class FixedAssetsRepository extends BaseRepository {
           final name = (acc['name'] as String).toLowerCase();
           if (name.contains('depreciation') && name.contains('expense')) {
             depExpenseAccountId = acc['id'] as int;
-          } else if (name.contains('accumulated') || name.contains('depreciation')) {
+          } else if (name.contains('accumulated') ||
+              name.contains('depreciation')) {
             accumDepAccountId = acc['id'] as int;
           }
         }
@@ -114,10 +118,19 @@ class FixedAssetsRepository extends BaseRepository {
             companyId: companyId,
             date: periodDate,
             reference: 'DEP-$periodDate',
-            description: 'Auto-posted monthly straight-line fixed asset depreciation',
+            description:
+                'Auto-posted monthly straight-line fixed asset depreciation',
             lines: [
-              {'account_id': depExpenseAccountId, 'debit': totalDepreciationForMonth, 'credit': 0.0},
-              {'account_id': accumDepAccountId, 'debit': 0.0, 'credit': totalDepreciationForMonth},
+              {
+                'account_id': depExpenseAccountId,
+                'debit': totalDepreciationForMonth,
+                'credit': 0.0
+              },
+              {
+                'account_id': accumDepAccountId,
+                'debit': 0.0,
+                'credit': totalDepreciationForMonth
+              },
             ],
           );
         }

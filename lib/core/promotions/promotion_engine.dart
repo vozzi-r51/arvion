@@ -37,7 +37,8 @@ class PromotionEngine {
   }) {
     final active = (promotion['active'] as num?)?.toInt() ?? 1;
     if (active != 1) {
-      return const PromotionEvaluationResult(isEligible: false, reason: 'Promotion is inactive');
+      return const PromotionEvaluationResult(
+          isEligible: false, reason: 'Promotion is inactive');
     }
 
     // Date validity
@@ -49,18 +50,22 @@ class PromotionEngine {
     final endDate = rawEnd.length >= 10 ? rawEnd.substring(0, 10) : '';
 
     if (startDate.isNotEmpty && todayStr.compareTo(startDate) < 0) {
-      return const PromotionEvaluationResult(isEligible: false, reason: 'Promotion has not started yet');
+      return const PromotionEvaluationResult(
+          isEligible: false, reason: 'Promotion has not started yet');
     }
     if (endDate.isNotEmpty && todayStr.compareTo(endDate) > 0) {
-      return const PromotionEvaluationResult(isEligible: false, reason: 'Promotion has expired');
+      return const PromotionEvaluationResult(
+          isEligible: false, reason: 'Promotion has expired');
     }
 
     // Coupon Code Match
-    final requiredCoupon = (promotion['coupon_code'] as String? ?? '').trim().toLowerCase();
+    final requiredCoupon =
+        (promotion['coupon_code'] as String? ?? '').trim().toLowerCase();
     if (requiredCoupon.isNotEmpty) {
       final userCoupon = (enteredCouponCode ?? '').trim().toLowerCase();
       if (userCoupon.isEmpty || userCoupon != requiredCoupon) {
-        return const PromotionEvaluationResult(isEligible: false, reason: 'Invalid or missing coupon code');
+        return const PromotionEvaluationResult(
+            isEligible: false, reason: 'Invalid or missing coupon code');
       }
     }
 
@@ -68,13 +73,16 @@ class PromotionEngine {
     final maxTotal = promotion['max_uses_total'] as int?;
     final currentCount = (promotion['current_use_count'] as num?)?.toInt() ?? 0;
     if (maxTotal != null && currentCount >= maxTotal) {
-      return const PromotionEvaluationResult(isEligible: false, reason: 'Promotion maximum usage limit reached');
+      return const PromotionEvaluationResult(
+          isEligible: false, reason: 'Promotion maximum usage limit reached');
     }
 
     // Per-Customer Usage Limit
     final maxPerCustomer = promotion['max_uses_per_customer'] as int?;
     if (maxPerCustomer != null && customerUsageCount >= maxPerCustomer) {
-      return const PromotionEvaluationResult(isEligible: false, reason: 'Customer usage limit reached for this promotion');
+      return const PromotionEvaluationResult(
+          isEligible: false,
+          reason: 'Customer usage limit reached for this promotion');
     }
 
     // Category Filtering
@@ -88,19 +96,25 @@ class PromotionEngine {
       for (final item in saleItems) {
         if (item['category_id'] == categoryId) {
           final qty = (item['quantity'] as num?)?.toInt() ?? 1;
-          final price = (item['unit_price'] as num?)?.toDouble() ?? (item['price'] as num?)?.toDouble() ?? 0.0;
+          final price = (item['unit_price'] as num?)?.toDouble() ??
+              (item['price'] as num?)?.toDouble() ??
+              0.0;
           qualifyingSubtotal += qty * price;
           qualifyingQty += qty;
           itemPrice = price;
         }
       }
       if (qualifyingQty == 0) {
-        return const PromotionEvaluationResult(isEligible: false, reason: 'No qualifying items for this category promotion');
+        return const PromotionEvaluationResult(
+            isEligible: false,
+            reason: 'No qualifying items for this category promotion');
       }
     } else {
       for (final item in saleItems) {
         final qty = (item['quantity'] as num?)?.toInt() ?? 1;
-        final price = (item['unit_price'] as num?)?.toDouble() ?? (item['price'] as num?)?.toDouble() ?? 0.0;
+        final price = (item['unit_price'] as num?)?.toDouble() ??
+            (item['price'] as num?)?.toDouble() ??
+            0.0;
         qualifyingQty += qty;
         if (price > 0) itemPrice = price;
       }
@@ -111,7 +125,8 @@ class PromotionEngine {
     if (minQty > 0 && qualifyingQty < minQty) {
       return PromotionEvaluationResult(
         isEligible: false,
-        reason: 'Minimum quantity of $minQty required (current: $qualifyingQty)',
+        reason:
+            'Minimum quantity of $minQty required (current: $qualifyingQty)',
       );
     }
 

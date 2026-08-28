@@ -7,7 +7,8 @@ class PurchaseReturnsListScreen extends StatefulWidget {
   const PurchaseReturnsListScreen({super.key, required this.companyId});
 
   @override
-  State<PurchaseReturnsListScreen> createState() => _PurchaseReturnsListScreenState();
+  State<PurchaseReturnsListScreen> createState() =>
+      _PurchaseReturnsListScreenState();
 }
 
 class _PurchaseReturnsListScreenState extends State<PurchaseReturnsListScreen> {
@@ -57,7 +58,8 @@ class _PurchaseReturnsListScreenState extends State<PurchaseReturnsListScreen> {
                         child: ListTile(
                           leading: const CircleAvatar(
                             backgroundColor: Colors.indigo,
-                            child: Icon(Icons.keyboard_return, color: Colors.white, size: 18),
+                            child: Icon(Icons.keyboard_return,
+                                color: Colors.white, size: 18),
                           ),
                           title: Text(r['return_number'] as String),
                           subtitle: Text(

@@ -19,7 +19,9 @@ void main() {
     await databaseFactory.deleteDatabase(path);
   });
 
-  test('quotation to sale conversion preserves data and updates stock/accounting', () async {
+  test(
+      'quotation to sale conversion preserves data and updates stock/accounting',
+      () async {
     final db = DBHelper.instance;
     final companyId = await db.insertCompany({
       'name': 'Quotation Test Company',
@@ -49,7 +51,8 @@ void main() {
       'customer_id': customerId,
       'customer_name': 'Test Customer',
       'quote_date': DateTime.now().toIso8601String(),
-      'valid_until': DateTime.now().add(const Duration(days: 7)).toIso8601String(),
+      'valid_until':
+          DateTime.now().add(const Duration(days: 7)).toIso8601String(),
       'subtotal': 100.0,
       'discount_amount': 0.0,
       'tax_amount': 0.0,
@@ -117,7 +120,10 @@ void main() {
 
     // Verify accounting (journal entries)
     final journals = await db.getJournalEntries(companyId);
-    expect(journals.any((j) => j['description'].contains('Converted from Quote $quoteId')), isTrue);
+    expect(
+        journals.any(
+            (j) => j['description'].contains('Converted from Quote $quoteId')),
+        isTrue);
 
     await db.deleteCompanyPermanently(companyId);
   });

@@ -73,24 +73,36 @@ class _BizManagerPainter extends CustomPainter {
     pathB.moveTo(w * 0.18, h * 0.08);
     pathB.lineTo(w * 0.55, h * 0.08);
     pathB.cubicTo(
-      w * 0.78, h * 0.08,
-      w * 0.88, h * 0.22,
-      w * 0.88, h * 0.36,
+      w * 0.78,
+      h * 0.08,
+      w * 0.88,
+      h * 0.22,
+      w * 0.88,
+      h * 0.36,
     );
     pathB.cubicTo(
-      w * 0.88, h * 0.46,
-      w * 0.82, h * 0.52,
-      w * 0.74, h * 0.54,
+      w * 0.88,
+      h * 0.46,
+      w * 0.82,
+      h * 0.52,
+      w * 0.74,
+      h * 0.54,
     );
     pathB.cubicTo(
-      w * 0.84, h * 0.56,
-      w * 0.92, h * 0.64,
-      w * 0.92, h * 0.74,
+      w * 0.84,
+      h * 0.56,
+      w * 0.92,
+      h * 0.64,
+      w * 0.92,
+      h * 0.74,
     );
     pathB.cubicTo(
-      w * 0.92, h * 0.88,
-      w * 0.80, h * 0.96,
-      w * 0.58, h * 0.96,
+      w * 0.92,
+      h * 0.88,
+      w * 0.80,
+      h * 0.96,
+      w * 0.58,
+      h * 0.96,
     );
     pathB.lineTo(w * 0.18, h * 0.96);
     pathB.close();
@@ -115,7 +127,8 @@ class _BizManagerPainter extends CustomPainter {
       Path(),
     );
     final punchedTop = Path.combine(PathOperation.difference, fullB, topHole);
-    final punched = Path.combine(PathOperation.difference, punchedTop, bottomHole);
+    final punched =
+        Path.combine(PathOperation.difference, punchedTop, bottomHole);
     canvas.drawPath(punched, letterPaint);
 
     // --- Growth-line accent ---

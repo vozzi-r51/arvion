@@ -104,10 +104,13 @@ class _RecycleTabState extends State<_RecycleTab> {
         title: const Text('Hamesha Ke Liye Delete Karein?'),
         content: const Text('Ye action wapis nahi ho sakta.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
           TextButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Delete Karein', style: TextStyle(color: Colors.red))),
+              child: const Text('Delete Karein',
+                  style: TextStyle(color: Colors.red))),
         ],
       ),
     );
@@ -120,7 +123,8 @@ class _RecycleTabState extends State<_RecycleTab> {
   @override
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator());
-    if (_items.isEmpty) return const Center(child: Text('Recycle bin khali hai'));
+    if (_items.isEmpty)
+      return const Center(child: Text('Recycle bin khali hai'));
 
     return ListView.builder(
       padding: const EdgeInsets.all(12),
@@ -131,7 +135,8 @@ class _RecycleTabState extends State<_RecycleTab> {
           margin: const EdgeInsets.only(bottom: 8),
           child: ListTile(
             title: Text(item[widget.nameKey] as String? ?? 'Unknown'),
-            subtitle: Text('Delete kiya: ${(item['deleted_at'] as String).substring(0, 10)}'),
+            subtitle: Text(
+                'Delete kiya: ${(item['deleted_at'] as String).substring(0, 10)}'),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -143,7 +148,8 @@ class _RecycleTabState extends State<_RecycleTab> {
                   child: const Text('Restore'),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete_forever, color: Colors.red, size: 20),
+                  icon: const Icon(Icons.delete_forever,
+                      color: Colors.red, size: 20),
                   onPressed: () => _confirmPermanentDelete(item),
                 ),
               ],

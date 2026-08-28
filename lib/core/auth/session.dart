@@ -11,9 +11,9 @@ class Session {
   Session._();
 
   // ---- Identity (set on PIN success) ----
-  static int? _staffId;            // null = owner (the PIN itself)
-  static String? _staffName;       // null for owner
-  static int? _activeCompanyId;    // for staff, locked to their company
+  static int? _staffId; // null = owner (the PIN itself)
+  static String? _staffName; // null for owner
+  static int? _activeCompanyId; // for staff, locked to their company
   static String _userIdentifier = 'Owner'; // shown in audit log entries
 
   // ---- RBAC ----

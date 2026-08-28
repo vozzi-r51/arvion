@@ -52,7 +52,7 @@ class BackupService {
   static Future<String?> saveBackupToDownloads() async {
     try {
       final zipPath = await createBackupZip();
-      
+
       Directory? downloadsDir;
       if (Platform.isAndroid) {
         downloadsDir = Directory('/storage/emulated/0/Download');
@@ -65,13 +65,14 @@ class BackupService {
 
       if (downloadsDir == null) return null;
 
-      final targetDir = Directory(p.join(downloadsDir.path, 'BizManager_Backups'));
+      final targetDir =
+          Directory(p.join(downloadsDir.path, 'BizManager_Backups'));
       if (!await targetDir.exists()) await targetDir.create(recursive: true);
 
       final fileName = p.basename(zipPath);
       final savedPath = p.join(targetDir.path, fileName);
       await File(zipPath).copy(savedPath);
-      
+
       return savedPath;
     } catch (e) {
       return null;
@@ -101,7 +102,8 @@ class BackupService {
 
     final dbDir = await getDatabasesPath();
     final docsDir = await getApplicationDocumentsDirectory();
-    final dbEntry = archive.where((entry) => entry.name == _dbFileName).firstOrNull;
+    final dbEntry =
+        archive.where((entry) => entry.name == _dbFileName).firstOrNull;
     if (dbEntry == null || !dbEntry.isFile) {
       throw const FormatException('Backup mein BizManager database nahi mila.');
     }
@@ -201,20 +203,20 @@ class BackupService {
       final zipPath = await createBackupZip();
       final docsDir = await getApplicationDocumentsDirectory();
       final autoBackupDir = Directory(p.join(docsDir.path, 'auto_backups'));
-      if (!await autoBackupDir.exists()) await autoBackupDir.create(recursive: true);
+      if (!await autoBackupDir.exists())
+        await autoBackupDir.create(recursive: true);
 
       final fileName = p.basename(zipPath);
       final savedPath = p.join(autoBackupDir.path, fileName);
       await File(zipPath).copy(savedPath);
 
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_prefLastAutoBackup, DateTime.now().toIso8601String());
+      await prefs.setString(
+          _prefLastAutoBackup, DateTime.now().toIso8601String());
 
-      final files = autoBackupDir
-          .listSync()
-          .whereType<File>()
-          .toList()
-        ..sort((a, b) => b.statSync().modified.compareTo(a.statSync().modified));
+      final files = autoBackupDir.listSync().whereType<File>().toList()
+        ..sort(
+            (a, b) => b.statSync().modified.compareTo(a.statSync().modified));
       for (final file in files.skip(_maxKeptAutoBackups)) {
         await file.delete();
       }

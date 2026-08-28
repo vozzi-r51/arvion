@@ -38,7 +38,8 @@ class GenericCsvExcelParser {
     }
 
     final content = await file.readAsString();
-    final lines = content.split('\n').where((l) => l.trim().isNotEmpty).toList();
+    final lines =
+        content.split('\n').where((l) => l.trim().isNotEmpty).toList();
 
     if (lines.isEmpty) {
       throw const FormatException('File is empty.');

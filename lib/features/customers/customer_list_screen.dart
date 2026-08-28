@@ -41,7 +41,8 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
       if (!_loadingMore && _hasMore) {
         _loadMore();
       }
@@ -94,7 +95,8 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
   Future<void> _openForm({Map<String, dynamic>? existing}) async {
     final result = await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => CustomerFormScreen(companyId: widget.companyId, existing: existing),
+        builder: (_) =>
+            CustomerFormScreen(companyId: widget.companyId, existing: existing),
       ),
     );
     if (result == true) _load();
@@ -117,9 +119,12 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Customer Delete Karein?'),
-        content: Text('"${c['name']}" delete ho jayega. Baad mein Recycle Bin se restore ho sakta hai.'),
+        content: Text(
+            '"${c['name']}" delete ho jayega. Baad mein Recycle Bin se restore ho sakta hai.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
@@ -159,7 +164,8 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                 hintText: 'Naam ya mobile se search karein',
                 border: OutlineInputBorder(borderRadius: AppRadius.medium),
                 filled: true,
-                contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.m),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: AppSpacing.m),
               ),
               onChanged: (v) {
                 _query = v;
@@ -185,7 +191,8 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                       )
                     : ListView.builder(
                         controller: _scrollController,
-                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.l),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.l),
                         itemCount: _customers.length + (_loadingMore ? 1 : 0),
                         itemBuilder: (ctx, i) {
                           if (i == _customers.length) {
@@ -195,29 +202,47 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                             );
                           }
                           final c = _customers[i];
-                          final balance = (c['current_balance'] as num).toDouble();
+                          final balance =
+                              (c['current_balance'] as num).toDouble();
                           return Card(
                             elevation: 0,
                             margin: const EdgeInsets.only(bottom: AppSpacing.m),
                             shape: RoundedRectangleBorder(
                               borderRadius: AppRadius.medium,
-                              side: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+                              side: BorderSide(
+                                  color: Theme.of(context)
+                                      .dividerColor
+                                      .withValues(alpha: 0.1)),
                             ),
                             child: ListTile(
                               leading: CircleAvatar(
-                                backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                                backgroundColor: Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withValues(alpha: 0.12),
                                 child: Text(
-                                  (c['name'] as String).isNotEmpty ? (c['name'] as String)[0].toUpperCase() : '?',
-                                  style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
+                                  (c['name'] as String).isNotEmpty
+                                      ? (c['name'] as String)[0].toUpperCase()
+                                      : '?',
+                                  style: TextStyle(
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                      fontWeight: FontWeight.bold),
                                 ),
                               ),
-                              title: Text(c['name'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
+                              title: Text(c['name'] as String,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold)),
                               subtitle: Text(
                                 '${c['mobile'] ?? ''}  •  ${c['customer_type'] ?? ''}\nBalance: ${balance.toStringAsFixed(0)}',
-                                style: TextStyle(color: balance > 0 ? Colors.red : Colors.green),
+                                style: TextStyle(
+                                    color: balance > 0
+                                        ? Colors.red
+                                        : Colors.green),
                               ),
                               isThreeLine: true,
-                              trailing: const Icon(Icons.chevron_right, size: 18),
+                              trailing:
+                                  const Icon(Icons.chevron_right, size: 18),
                               onTap: () => _openLedger(c),
                               onLongPress: () {
                                 showModalBottomSheet(
@@ -235,7 +260,8 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                                           },
                                         ),
                                         ListTile(
-                                          leading: const Icon(Icons.edit_outlined),
+                                          leading:
+                                              const Icon(Icons.edit_outlined),
                                           title: const Text('Edit Karein'),
                                           onTap: () {
                                             Navigator.pop(context);
@@ -243,8 +269,12 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                                           },
                                         ),
                                         ListTile(
-                                          leading: const Icon(Icons.delete_outline, color: Colors.red),
-                                          title: const Text('Delete Karein', style: TextStyle(color: Colors.red)),
+                                          leading: const Icon(
+                                              Icons.delete_outline,
+                                              color: Colors.red),
+                                          title: const Text('Delete Karein',
+                                              style:
+                                                  TextStyle(color: Colors.red)),
                                           onTap: () {
                                             Navigator.pop(context);
                                             _confirmDelete(c);

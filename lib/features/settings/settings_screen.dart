@@ -107,7 +107,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _lastAutoBackup = lastAutoBackup;
       _allowNegativeStock = prefs.getBool('allow_negative_stock') ?? false;
       _autoLockMinutes = prefs.getInt('auto_lock_minutes') ?? 2;
-      _sensitiveScreenLockSeconds = prefs.getInt('sensitive_screen_lock_seconds') ?? 30;
+      _sensitiveScreenLockSeconds =
+          prefs.getInt('sensitive_screen_lock_seconds') ?? 30;
       _crashReportingEnabled = prefs.getBool('crash_reporting_enabled') ?? true;
       final lockStr = prefs.getString('accounting_lock_date');
       if (lockStr != null) {
@@ -291,7 +292,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Connection error: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Connection error: $e')));
       }
     } finally {
       if (mounted) setState(() => _driveActionInProgress = false);
@@ -304,11 +306,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final zipPath = await BackupService.createBackupZip();
       await GoogleDriveService.instance.uploadBackup(zipPath);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Backup Google Drive par upload ho gaya.')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Backup Google Drive par upload ho gaya.')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Upload fail: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Upload fail: $e')));
       }
     } finally {
       if (mounted) setState(() => _driveActionInProgress = false);
@@ -320,9 +324,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       final backups = await GoogleDriveService.instance.listBackups();
       if (!mounted) return;
-      
+
       if (backups.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Drive par koi backup nahi mila.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Drive par koi backup nahi mila.')));
         return;
       }
 
@@ -337,7 +342,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               itemCount: backups.length,
               itemBuilder: (ctx, i) {
                 final b = backups[i];
-                final date = b.createdTime != null ? DateFormat('dd MMM yyyy, HH:mm').format(b.createdTime!.toLocal()) : 'Unknown';
+                final date = b.createdTime != null
+                    ? DateFormat('dd MMM yyyy, HH:mm')
+                        .format(b.createdTime!.toLocal())
+                    : 'Unknown';
                 return ListTile(
                   title: Text(b.name ?? 'Unknown'),
                   subtitle: Text(date),
@@ -356,25 +364,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // value" crash after the dialog was already dismissed.
       if (selected.id == null || selected.name == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Backup entry malformed hai, restore nahi ho saki.')),
+          const SnackBar(
+              content:
+                  Text('Backup entry malformed hai, restore nahi ho saki.')),
         );
         return;
       }
 
       final tempDir = await getTemporaryDirectory();
       final downloadPath = p.join(tempDir.path, selected.name!);
-      await GoogleDriveService.instance.downloadBackup(selected.id!, downloadPath);
-      
+      await GoogleDriveService.instance
+          .downloadBackup(selected.id!, downloadPath);
+
       if (!mounted) return;
 
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
           title: const Text('Backup Restore Karein?'),
-          content: Text('Kya aap "${selected.name}" se data restore karna chahte hain? Mojooda data delete ho jayega.'),
+          content: Text(
+              'Kya aap "${selected.name}" se data restore karna chahte hain? Mojooda data delete ho jayega.'),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-            ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Haan, Restore Karein')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel')),
+            ElevatedButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Haan, Restore Karein')),
           ],
         ),
       );
@@ -382,23 +398,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (confirmed != true) return;
 
       await BackupService.restoreFromZip(downloadPath);
-      
+
       if (!mounted) return;
       await showDialog<void>(
         context: context,
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
           title: const Text('Restore Mukammal'),
-          content: const Text('Naye data ke sath sahi tarah chalne ke liye app ko band karke dobara kholein.'),
+          content: const Text(
+              'Naye data ke sath sahi tarah chalne ke liye app ko band karke dobara kholein.'),
           actions: [
-            ElevatedButton(onPressed: () => SystemNavigator.pop(), child: const Text('App Band Karein')),
+            ElevatedButton(
+                onPressed: () => SystemNavigator.pop(),
+                child: const Text('App Band Karein')),
           ],
         ),
       );
-
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Restore fail: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Restore fail: $e')));
       }
     } finally {
       if (mounted) setState(() => _driveActionInProgress = false);
@@ -408,9 +427,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _checkForUpdates() async {
     setState(() => _loading = true);
     try {
-      final response = await http.get(
-        Uri.parse('https://api.github.com/repos/vozzi-r51/arvion/releases/latest'),
-      ).timeout(const Duration(seconds: 10));
+      final response = await http
+          .get(
+            Uri.parse(
+                'https://api.github.com/repos/vozzi-r51/arvion/releases/latest'),
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -423,14 +445,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
             context: context,
             builder: (ctx) => AlertDialog(
               title: const Text('Update Available!'),
-              content: Text('Naya version ($latestVersion) available hai. Aapka current version $_currentVersion hai.'),
+              content: Text(
+                  'Naya version ($latestVersion) available hai. Aapka current version $_currentVersion hai.'),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Baad Mein')),
+                TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text('Baad Mein')),
                 ElevatedButton(
                   onPressed: () async {
                     Navigator.pop(ctx);
                     if (await canLaunchUrl(Uri.parse(downloadUrl))) {
-                      await launchUrl(Uri.parse(downloadUrl), mode: LaunchMode.externalApplication);
+                      await launchUrl(Uri.parse(downloadUrl),
+                          mode: LaunchMode.externalApplication);
                     }
                   },
                   child: const Text('Download Karein'),
@@ -441,7 +467,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         } else {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Aap pehle se latest version use kar rahe hain.')),
+            const SnackBar(
+                content:
+                    Text('Aap pehle se latest version use kar rahe hain.')),
           );
         }
       } else {
@@ -468,9 +496,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         }
 
         final company = snapshot.data!;
-        final businessType = company['business_category'] as String? ?? 'Business';
+        final businessType =
+            company['business_category'] as String? ?? 'Business';
         final businessSubtype = company['business_subtype'] as String? ?? '';
-        final templateFamilyStr = company['template_family'] as String? ?? 'retailStandard';
+        final templateFamilyStr =
+            company['template_family'] as String? ?? 'retailStandard';
 
         // Parse template family
         TemplateFamily templateFamily = TemplateFamily.retailStandard;
@@ -480,17 +510,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
             orElse: () => TemplateFamily.retailStandard,
           );
         } catch (e) {
-          ErrorReporter.instance.swallow(e,
-              module: 'Company', action: 'decode_template_family');
+          ErrorReporter.instance
+              .swallow(e, module: 'Company', action: 'decode_template_family');
         }
 
         final template = BusinessTemplates.getByFamily(templateFamily);
-        final enabledFeatures = TemplateMessaging.getEnabledFeatures(templateFamily);
+        final enabledFeatures =
+            TemplateMessaging.getEnabledFeatures(templateFamily);
         final categoryIcon = _getCategoryIcon(templateFamily);
 
         return Card(
           margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5),
+          color: Theme.of(context)
+              .colorScheme
+              .primaryContainer
+              .withValues(alpha: 0.5),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -502,7 +536,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
@@ -518,25 +555,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         children: [
                           Text(
                             'YOUR BUSINESS SETUP',
-                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                              color: Colors.grey.shade600,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium
+                                ?.copyWith(
+                                  color: Colors.grey.shade600,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             businessType,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                           if (businessSubtype.isNotEmpty)
                             Text(
                               businessSubtype,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Colors.grey.shade600,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: Colors.grey.shade600,
+                                  ),
                             ),
                         ],
                       ),
@@ -549,8 +595,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Text(
                   'Enabled Features',
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const SizedBox(height: 8),
                 Wrap(
@@ -565,7 +611,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       backgroundColor: Colors.white,
                       side: BorderSide(
-                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.3),
                       ),
                     );
                   }).toList(),
@@ -628,6 +677,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return Icons.school;
       case TemplateFamily.nonprofit:
         return Icons.favorite;
+      case TemplateFamily.trading:
+        return Icons.local_shipping;
     }
   }
 
@@ -675,640 +726,702 @@ class _SettingsScreenState extends State<SettingsScreen> {
           leading: MainShell.getMenuButton(context),
           title: const Text('Settings'),
         ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              children: [
-                // Business Setup Showcase Section
-                _buildBusinessSetupSection(),
+        body: _loading
+            ? const Center(child: CircularProgressIndicator())
+            : ListView(
+                children: [
+                  // Business Setup Showcase Section
+                  _buildBusinessSetupSection(),
 
-                Card(
-                  margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        const BizManagerLogo(size: 48),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'BizManager',
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 1.2,
+                  Card(
+                    margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          const BizManagerLogo(size: 48),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'BizManager',
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 1.2,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 6),
-                              const Text(
-                                'Smart Business. Simple Control.',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey,
+                                const SizedBox(height: 6),
+                                const Text(
+                                  'Smart Business. Simple Control.',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                'v1.0.0',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
+                                const SizedBox(height: 6),
+                                Text(
+                                  'v1.0.0',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                              OutlinedButton.icon(
-                                onPressed: _checkForUpdates,
-                                icon: const Icon(Icons.update, size: 14),
-                                label: const Text('Check for Updates', style: TextStyle(fontSize: 10)),
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                                  visualDensity: VisualDensity.compact,
+                                const SizedBox(height: 8),
+                                OutlinedButton.icon(
+                                  onPressed: _checkForUpdates,
+                                  icon: const Icon(Icons.update, size: 14),
+                                  label: const Text('Check for Updates',
+                                      style: TextStyle(fontSize: 10)),
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8),
+                                    visualDensity: VisualDensity.compact,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                              const Text(
-                                'Developed by BizManager Technologies',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'Developed by BizManager Technologies',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
-                  child: Text('Security',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.grey)),
-                ),
-                if (_biometricSupported)
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+                    child: Text('Security',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.grey)),
+                  ),
+                  if (_biometricSupported)
+                    SwitchListTile(
+                      secondary: const Icon(Icons.fingerprint),
+                      title: const Text('Fingerprint Login'),
+                      subtitle:
+                          const Text('PIN ke sath fingerprint bhi use karein'),
+                      value: _biometricEnabled,
+                      onChanged: _toggleBiometric,
+                    )
+                  else
+                    const ListTile(
+                      leading: Icon(Icons.fingerprint, color: Colors.grey),
+                      title: Text('Fingerprint is device par available nahi'),
+                    ),
+                  const Divider(),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+                    child: Text('Appearance',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.grey)),
+                  ),
                   SwitchListTile(
-                    secondary: const Icon(Icons.fingerprint),
-                    title: const Text('Fingerprint Login'),
-                    subtitle:
-                        const Text('PIN ke sath fingerprint bhi use karein'),
-                    value: _biometricEnabled,
-                    onChanged: _toggleBiometric,
-                  )
-                else
-                  const ListTile(
-                    leading: Icon(Icons.fingerprint, color: Colors.grey),
-                    title: Text('Fingerprint is device par available nahi'),
+                    secondary: const Icon(Icons.dark_mode_outlined),
+                    title: const Text('Dark Mode'),
+                    value: themeProvider.themeMode == ThemeMode.dark,
+                    onChanged: (_) => themeProvider.toggle(),
                   ),
-                const Divider(),
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
-                  child: Text('Appearance',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.grey)),
-                ),
-                SwitchListTile(
-                  secondary: const Icon(Icons.dark_mode_outlined),
-                  title: const Text('Dark Mode'),
-                  value: themeProvider.themeMode == ThemeMode.dark,
-                  onChanged: (_) => themeProvider.toggle(),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.palette_outlined),
-                  title: const Text('Theme & Brand Color'),
-                  subtitle: const Text(
-                      'App ka color aur light/dark mode customize karein'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                        builder: (_) => const ThemeSettingsScreen()),
-                  ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.tune_outlined),
-                  title: const Text('UI Mode'),
-                  subtitle: Text(_appMode == UXMode.simple
-                      ? 'Simple Mode (Sada & Asaan)'
-                      : 'Advanced Mode (Full QuickBooks/Zoho Features)'),
-                  trailing: DropdownButton<UXMode>(
-                    value: _appMode,
-                    items: const [
-                      DropdownMenuItem(value: UXMode.simple, child: Text('Simple Mode')),
-                      DropdownMenuItem(value: UXMode.advanced, child: Text('Advanced Mode')),
-                    ],
-                    onChanged: (v) async {
-                      if (v == null) return;
-                      final active = await DBHelper.instance.getActiveCompany();
-                      if (active == null) return;
-                      await UXModeService.setMode(active['id'] as int, v);
-                      setState(() => _appMode = v);
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('UI Mode ${v == UXMode.simple ? "Simple" : "Advanced"} ho gaya.')),
-                        );
-                      }
-                    },
-                  ),
-                ),
-                const Divider(),
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
-                  child: Text('Company',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.grey)),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.edit_outlined),
-                  title: const Text('Company Profile Edit Karein'),
-                  onTap: () async {
-                    final active = await DBHelper.instance.getActiveCompany();
-                    if (active == null || !context.mounted) return;
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => CompanyProfileScreen(
-                          companyId: active['id'] as int,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                if (Session.isOwner)
                   ListTile(
-                    leading: const Icon(Icons.people_outline),
-                    title: const Text('Cashier / Staff PINs'),
+                    leading: const Icon(Icons.palette_outlined),
+                    title: const Text('Theme & Brand Color'),
+                    subtitle: const Text(
+                        'App ka color aur light/dark mode customize karein'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (_) => const ThemeSettingsScreen()),
+                    ),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.tune_outlined),
+                    title: const Text('UI Mode'),
+                    subtitle: Text(_appMode == UXMode.simple
+                        ? 'Simple Mode (Sada & Asaan)'
+                        : 'Advanced Mode (Full QuickBooks/Zoho Features)'),
+                    trailing: DropdownButton<UXMode>(
+                      value: _appMode,
+                      items: const [
+                        DropdownMenuItem(
+                            value: UXMode.simple, child: Text('Simple Mode')),
+                        DropdownMenuItem(
+                            value: UXMode.advanced,
+                            child: Text('Advanced Mode')),
+                      ],
+                      onChanged: (v) async {
+                        if (v == null) return;
+                        final active =
+                            await DBHelper.instance.getActiveCompany();
+                        if (active == null) return;
+                        await UXModeService.setMode(active['id'] as int, v);
+                        setState(() => _appMode = v);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text(
+                                    'UI Mode ${v == UXMode.simple ? "Simple" : "Advanced"} ho gaya.')),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                  const Divider(),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+                    child: Text('Company',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.grey)),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.edit_outlined),
+                    title: const Text('Company Profile Edit Karein'),
                     onTap: () async {
                       final active = await DBHelper.instance.getActiveCompany();
                       if (active == null || !context.mounted) return;
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) =>
-                              StaffUsersScreen(companyId: active['id'] as int),
+                          builder: (_) => CompanyProfileScreen(
+                            companyId: active['id'] as int,
+                          ),
                         ),
                       );
                     },
                   ),
-                ListTile(
-                  leading: const Icon(Icons.swap_horiz),
-                  title: const Text('Company Switch Karein'),
-                  onTap: () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (_) => const CompanySelectionScreen(),
-                      ),
-                    );
-                  },
-                ),
-                const Divider(),
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
-                  child: Text('Catalog & Inventory',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.grey)),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.language_outlined),
-                  title: const Text('Regional, Tax & Document Settings'),
-                  subtitle: const Text('Currency symbol, decimals, date format & invoice prefix'),
-                  onTap: () async {
-                    final active = await DBHelper.instance.getActiveCompany();
-                    if (active == null) return;
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => RegionalSettingsScreen(companyId: active['id'] as int)),
-                    ).then((_) => _load());
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.translate_outlined),
-                  title: const Text('App Language'),
-                  subtitle: Text(_languageName(_selectedLanguage)),
-                  trailing: DropdownButton<String>(
-                    value: _selectedLanguage,
-                    items: const [
-                      DropdownMenuItem(value: 'en', child: Text('English')),
-                      DropdownMenuItem(value: 'ur', child: Text('اردو')),
-                      DropdownMenuItem(value: 'ar', child: Text('العربية')),
-                    ],
-                    onChanged: (v) async {
-                      if (v == null) return;
-                      final prefs = await SharedPreferences.getInstance();
-                      await prefs.setString('selected_language', v);
-                      final locProvider = context.read<LocalizationProvider>();
-                      locProvider.setLocale(v);
-                      setState(() => _selectedLanguage = v);
-                    },
-                  ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.request_quote_outlined),
-                  title: const Text('Multi Tax Codes'),
-                  subtitle: const Text('GST, VAT, Sales Tax rates manage karein'),
-                  onTap: () async {
-                    final active = await DBHelper.instance.getActiveCompany();
-                    if (active == null) return;
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => TaxCodesScreen(companyId: active['id'] as int)),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.sell_outlined),
-                  title: const Text('Price Lists (VIP / Sale / Wholesale)'),
-                  subtitle: const Text('Retail, Wholesale & Custom Price lists set karein'),
-                  onTap: () async {
-                    final active = await DBHelper.instance.getActiveCompany();
-                    if (active == null) return;
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => PriceListsScreen(companyId: active['id'] as int)),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.straighten_outlined),
-                  title: const Text('Units of Measure (UOM)'),
-                  subtitle: const Text('Kg, Gram, Dozen aur conversion rules manage karein'),
-                  onTap: () async {
-                    final active = await DBHelper.instance.getActiveCompany();
-                    if (active == null) return;
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => UomListScreen(companyId: active['id'] as int)),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.dynamic_form_outlined),
-                  title: const Text('Custom Fields'),
-                  subtitle: const Text('Products aur Customers ke liye naye fields banayein'),
-                  onTap: () async {
-                    final active = await DBHelper.instance.getActiveCompany();
-                    if (active == null) return;
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => CustomFieldsScreen(companyId: active['id'] as int)),
-                    );
-                  },
-                ),
-                const Divider(),
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
-                  child: Text('Sales Rules',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.grey)),
-                ),
-                SwitchListTile(
-                  secondary: const Icon(Icons.inventory_2_outlined),
-                  title: const Text('Negative Stock Allow Karein'),
-                  subtitle: const Text(
-                      'On karne par available se zyada quantity bhi sell ho sakti hai'),
-                  value: _allowNegativeStock,
-                  onChanged: (v) async {
-                    final prefs = await SharedPreferences.getInstance();
-                    await prefs.setBool('allow_negative_stock', v);
-                    setState(() => _allowNegativeStock = v);
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.lock_clock_outlined),
-                  title: const Text('Auto-Lock Timeout'),
-                  subtitle: Text(_autoLockMinutes == 0
-                      ? 'Kabhi nahi (auto-lock band)'
-                      : '$_autoLockMinutes minute background mein rehne ke baad'),
-                  trailing: DropdownButton<int>(
-                    value: _autoLockMinutes,
-                    items: [
-                      const DropdownMenuItem(value: 0, child: Text('Kabhi nahi')),
-                      const DropdownMenuItem(value: 1, child: Text('1 min')),
-                      const DropdownMenuItem(value: 2, child: Text('2 min')),
-                      const DropdownMenuItem(value: 5, child: Text('5 min')),
-                    ],
-                    onChanged: (v) async {
-                      if (v == null) return;
-                      final prefs = await SharedPreferences.getInstance();
-                      await prefs.setInt('auto_lock_minutes', v);
-                      setState(() => _autoLockMinutes = v);
-                    },
-                  ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.timer_outlined),
-                  title: const Text('Sensitive Screens Auto-Lock'),
-                  subtitle: Text(_sensitiveScreenLockSeconds == 0
-                      ? 'Band (Screens auto-lock nahi hongi)'
-                      : 'Settings & Reports par $_sensitiveScreenLockSeconds sec inactivity ke baad lock'),
-                  trailing: DropdownButton<int>(
-                    value: _sensitiveScreenLockSeconds,
-                    items: const [
-                      DropdownMenuItem(value: 0, child: Text('Band')),
-                      DropdownMenuItem(value: 15, child: Text('15 sec')),
-                      DropdownMenuItem(value: 30, child: Text('30 sec')),
-                      DropdownMenuItem(value: 60, child: Text('60 sec')),
-                    ],
-                    onChanged: (v) async {
-                      if (v == null) return;
-                      final prefs = await SharedPreferences.getInstance();
-                      await prefs.setInt('sensitive_screen_lock_seconds', v);
-                      setState(() => _sensitiveScreenLockSeconds = v);
-                    },
-                  ),
-                ),
-                SwitchListTile(
-                  secondary: const Icon(Icons.bug_report_outlined),
-                  title: const Text('Crash Reports Bhejein'),
-                  subtitle: const Text('App crash hone par anonymous report bheji jayegi taake hum isay fix kar sakein'),
-                  value: _crashReportingEnabled,
-                  onChanged: (v) async {
-                    final prefs = await SharedPreferences.getInstance();
-                    await prefs.setBool('crash_reporting_enabled', v);
-                    setState(() => _crashReportingEnabled = v);
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Setting save ho gayi. App restart karein.')),
+                  if (Session.isOwner)
+                    ListTile(
+                      leading: const Icon(Icons.people_outline),
+                      title: const Text('Cashier / Staff PINs'),
+                      onTap: () async {
+                        final active =
+                            await DBHelper.instance.getActiveCompany();
+                        if (active == null || !context.mounted) return;
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => StaffUsersScreen(
+                                companyId: active['id'] as int),
+                          ),
+                        );
+                      },
+                    ),
+                  ListTile(
+                    leading: const Icon(Icons.swap_horiz),
+                    title: const Text('Company Switch Karein'),
+                    onTap: () {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (_) => const CompanySelectionScreen(),
+                        ),
                       );
-                    }
-                  },
-                ),
-                if (Session.isOwner) ...[
+                    },
+                  ),
                   const Divider(),
                   const Padding(
                     padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
-                    child: Text('Loyalty Program',
+                    child: Text('Catalog & Inventory',
                         style: TextStyle(
                             fontWeight: FontWeight.bold, color: Colors.grey)),
                   ),
                   ListTile(
-                    leading: const Icon(Icons.star_outline, color: Colors.amber),
-                    title: const Text('Points per Rs. 100 spent'),
-                    subtitle: Text('Abhi: $_loyaltyRate Rs. par 1 point'),
-                    trailing: SizedBox(
-                      width: 60,
-                      child: TextField(
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(isDense: true),
-                        onChanged: (v) async {
-                          final val = double.tryParse(v) ?? 100.0;
-                          final prefs = await SharedPreferences.getInstance();
-                          await prefs.setDouble('loyalty_points_rate', val);
-                          setState(() => _loyaltyRate = val);
-                        },
-                      ),
+                    leading: const Icon(Icons.language_outlined),
+                    title: const Text('Regional, Tax & Document Settings'),
+                    subtitle: const Text(
+                        'Currency symbol, decimals, date format & invoice prefix'),
+                    onTap: () async {
+                      final active = await DBHelper.instance.getActiveCompany();
+                      if (active == null) return;
+                      Navigator.of(context)
+                          .push(
+                            MaterialPageRoute(
+                                builder: (_) => RegionalSettingsScreen(
+                                    companyId: active['id'] as int)),
+                          )
+                          .then((_) => _load());
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.translate_outlined),
+                    title: const Text('App Language'),
+                    subtitle: Text(_languageName(_selectedLanguage)),
+                    trailing: DropdownButton<String>(
+                      value: _selectedLanguage,
+                      items: const [
+                        DropdownMenuItem(value: 'en', child: Text('English')),
+                        DropdownMenuItem(value: 'ur', child: Text('اردو')),
+                        DropdownMenuItem(value: 'ar', child: Text('العربية')),
+                      ],
+                      onChanged: (v) async {
+                        if (v == null) return;
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setString('selected_language', v);
+                        final locProvider =
+                            context.read<LocalizationProvider>();
+                        locProvider.setLocale(v);
+                        setState(() => _selectedLanguage = v);
+                      },
                     ),
                   ),
                   ListTile(
-                    leading: const Icon(Icons.money, color: Colors.green),
-                    title: const Text('1 Point Value (Rs.)'),
-                    subtitle: Text('Abhi: 1 point = Rs. $_pointValue'),
-                    trailing: SizedBox(
-                      width: 60,
-                      child: TextField(
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(isDense: true),
-                        onChanged: (v) async {
-                          final val = double.tryParse(v) ?? 1.0;
-                          final prefs = await SharedPreferences.getInstance();
-                          await prefs.setDouble('loyalty_point_value', val);
-                          setState(() => _pointValue = val);
-                        },
-                      ),
-                    ),
+                    leading: const Icon(Icons.request_quote_outlined),
+                    title: const Text('Multi Tax Codes'),
+                    subtitle:
+                        const Text('GST, VAT, Sales Tax rates manage karein'),
+                    onTap: () async {
+                      final active = await DBHelper.instance.getActiveCompany();
+                      if (active == null) return;
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                            builder: (_) =>
+                                TaxCodesScreen(companyId: active['id'] as int)),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.sell_outlined),
+                    title: const Text('Price Lists (VIP / Sale / Wholesale)'),
+                    subtitle: const Text(
+                        'Retail, Wholesale & Custom Price lists set karein'),
+                    onTap: () async {
+                      final active = await DBHelper.instance.getActiveCompany();
+                      if (active == null) return;
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                            builder: (_) => PriceListsScreen(
+                                companyId: active['id'] as int)),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.straighten_outlined),
+                    title: const Text('Units of Measure (UOM)'),
+                    subtitle: const Text(
+                        'Kg, Gram, Dozen aur conversion rules manage karein'),
+                    onTap: () async {
+                      final active = await DBHelper.instance.getActiveCompany();
+                      if (active == null) return;
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                            builder: (_) =>
+                                UomListScreen(companyId: active['id'] as int)),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.dynamic_form_outlined),
+                    title: const Text('Custom Fields'),
+                    subtitle: const Text(
+                        'Products aur Customers ke liye naye fields banayein'),
+                    onTap: () async {
+                      final active = await DBHelper.instance.getActiveCompany();
+                      if (active == null) return;
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                            builder: (_) => CustomFieldsScreen(
+                                companyId: active['id'] as int)),
+                      );
+                    },
                   ),
                   const Divider(),
                   const Padding(
                     padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
-                    child: Text('SMS Gateway (Optional)',
+                    child: Text('Sales Rules',
                         style: TextStyle(
                             fontWeight: FontWeight.bold, color: Colors.grey)),
                   ),
                   SwitchListTile(
-                    secondary: const Icon(Icons.sms_outlined),
-                    title: const Text('SMS Reminders Enable Karein'),
-                    value: _smsEnabled,
+                    secondary: const Icon(Icons.inventory_2_outlined),
+                    title: const Text('Negative Stock Allow Karein'),
+                    subtitle: const Text(
+                        'On karne par available se zyada quantity bhi sell ho sakti hai'),
+                    value: _allowNegativeStock,
                     onChanged: (v) async {
                       final prefs = await SharedPreferences.getInstance();
-                      await prefs.setBool('sms_enabled', v);
-                      setState(() => _smsEnabled = v);
+                      await prefs.setBool('allow_negative_stock', v);
+                      setState(() => _allowNegativeStock = v);
                     },
                   ),
-                  if (_smsEnabled) ...[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: TextField(
-                        controller: _smsUrlCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Gateway URL',
-                          hintText: 'https://api.com/s?k={key}&t={mobile}&m={message}',
-                          helperText: 'Use {key}, {mobile}, {message} placeholders',
+                  ListTile(
+                    leading: const Icon(Icons.lock_clock_outlined),
+                    title: const Text('Auto-Lock Timeout'),
+                    subtitle: Text(_autoLockMinutes == 0
+                        ? 'Kabhi nahi (auto-lock band)'
+                        : '$_autoLockMinutes minute background mein rehne ke baad'),
+                    trailing: DropdownButton<int>(
+                      value: _autoLockMinutes,
+                      items: [
+                        const DropdownMenuItem(
+                            value: 0, child: Text('Kabhi nahi')),
+                        const DropdownMenuItem(value: 1, child: Text('1 min')),
+                        const DropdownMenuItem(value: 2, child: Text('2 min')),
+                        const DropdownMenuItem(value: 5, child: Text('5 min')),
+                      ],
+                      onChanged: (v) async {
+                        if (v == null) return;
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setInt('auto_lock_minutes', v);
+                        setState(() => _autoLockMinutes = v);
+                      },
+                    ),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.timer_outlined),
+                    title: const Text('Sensitive Screens Auto-Lock'),
+                    subtitle: Text(_sensitiveScreenLockSeconds == 0
+                        ? 'Band (Screens auto-lock nahi hongi)'
+                        : 'Settings & Reports par $_sensitiveScreenLockSeconds sec inactivity ke baad lock'),
+                    trailing: DropdownButton<int>(
+                      value: _sensitiveScreenLockSeconds,
+                      items: const [
+                        DropdownMenuItem(value: 0, child: Text('Band')),
+                        DropdownMenuItem(value: 15, child: Text('15 sec')),
+                        DropdownMenuItem(value: 30, child: Text('30 sec')),
+                        DropdownMenuItem(value: 60, child: Text('60 sec')),
+                      ],
+                      onChanged: (v) async {
+                        if (v == null) return;
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setInt('sensitive_screen_lock_seconds', v);
+                        setState(() => _sensitiveScreenLockSeconds = v);
+                      },
+                    ),
+                  ),
+                  SwitchListTile(
+                    secondary: const Icon(Icons.bug_report_outlined),
+                    title: const Text('Crash Reports Bhejein'),
+                    subtitle: const Text(
+                        'App crash hone par anonymous report bheji jayegi taake hum isay fix kar sakein'),
+                    value: _crashReportingEnabled,
+                    onChanged: (v) async {
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setBool('crash_reporting_enabled', v);
+                      setState(() => _crashReportingEnabled = v);
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text(
+                                  'Setting save ho gayi. App restart karein.')),
+                        );
+                      }
+                    },
+                  ),
+                  if (Session.isOwner) ...[
+                    const Divider(),
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+                      child: Text('Loyalty Program',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, color: Colors.grey)),
+                    ),
+                    ListTile(
+                      leading:
+                          const Icon(Icons.star_outline, color: Colors.amber),
+                      title: const Text('Points per Rs. 100 spent'),
+                      subtitle: Text('Abhi: $_loyaltyRate Rs. par 1 point'),
+                      trailing: SizedBox(
+                        width: 60,
+                        child: TextField(
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(isDense: true),
+                          onChanged: (v) async {
+                            final val = double.tryParse(v) ?? 100.0;
+                            final prefs = await SharedPreferences.getInstance();
+                            await prefs.setDouble('loyalty_points_rate', val);
+                            setState(() => _loyaltyRate = val);
+                          },
                         ),
-                        onChanged: (v) async {
-                          final prefs = await SharedPreferences.getInstance();
-                          await prefs.setString('sms_gateway_url', v);
-                        },
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: TextField(
-                        controller: _smsKeyCtrl,
-                        decoration: const InputDecoration(labelText: 'API Key'),
-                        onChanged: (v) async {
-                          final prefs = await SharedPreferences.getInstance();
-                          await prefs.setString('sms_api_key', v);
-                        },
+                    ListTile(
+                      leading: const Icon(Icons.money, color: Colors.green),
+                      title: const Text('1 Point Value (Rs.)'),
+                      subtitle: Text('Abhi: 1 point = Rs. $_pointValue'),
+                      trailing: SizedBox(
+                        width: 60,
+                        child: TextField(
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(isDense: true),
+                          onChanged: (v) async {
+                            final val = double.tryParse(v) ?? 1.0;
+                            final prefs = await SharedPreferences.getInstance();
+                            await prefs.setDouble('loyalty_point_value', val);
+                            setState(() => _pointValue = val);
+                          },
+                        ),
                       ),
+                    ),
+                    const Divider(),
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+                      child: Text('SMS Gateway (Optional)',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, color: Colors.grey)),
+                    ),
+                    SwitchListTile(
+                      secondary: const Icon(Icons.sms_outlined),
+                      title: const Text('SMS Reminders Enable Karein'),
+                      value: _smsEnabled,
+                      onChanged: (v) async {
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setBool('sms_enabled', v);
+                        setState(() => _smsEnabled = v);
+                      },
+                    ),
+                    if (_smsEnabled) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: TextField(
+                          controller: _smsUrlCtrl,
+                          decoration: const InputDecoration(
+                            labelText: 'Gateway URL',
+                            hintText:
+                                'https://api.com/s?k={key}&t={mobile}&m={message}',
+                            helperText:
+                                'Use {key}, {mobile}, {message} placeholders',
+                          ),
+                          onChanged: (v) async {
+                            final prefs = await SharedPreferences.getInstance();
+                            await prefs.setString('sms_gateway_url', v);
+                          },
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        child: TextField(
+                          controller: _smsKeyCtrl,
+                          decoration:
+                              const InputDecoration(labelText: 'API Key'),
+                          onChanged: (v) async {
+                            final prefs = await SharedPreferences.getInstance();
+                            await prefs.setString('sms_api_key', v);
+                          },
+                        ),
+                      ),
+                    ],
+                  ],
+                  if (Session.isOwner) ...[
+                    const Divider(),
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+                      child: Text('Accounting Control',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, color: Colors.grey)),
+                    ),
+                    ListTile(
+                      leading:
+                          const Icon(Icons.lock_outline, color: Colors.orange),
+                      title: const Text('Accounting Period Lock'),
+                      subtitle: Text(_accountingLockDate == null
+                          ? 'Koi lock nahi laga. Sabi transactions open hain.'
+                          : 'Transactions before ${_accountingLockDate!.toIso8601String().substring(0, 10)} are LOCKED.'),
+                      trailing: TextButton(
+                        onPressed: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: _accountingLockDate ?? DateTime.now(),
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime.now(),
+                            helpText: 'Sabi purani transactions ko lock karein',
+                          );
+                          if (picked != null) {
+                            final prefs = await SharedPreferences.getInstance();
+                            await prefs.setString('accounting_lock_date',
+                                picked.toIso8601String());
+                            setState(() => _accountingLockDate = picked);
+                          }
+                        },
+                        child: Text(_accountingLockDate == null
+                            ? 'Set Lock'
+                            : 'Update'),
+                      ),
+                    ),
+                    if (_accountingLockDate != null)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: TextButton(
+                          onPressed: () async {
+                            final prefs = await SharedPreferences.getInstance();
+                            await prefs.remove('accounting_lock_date');
+                            setState(() => _accountingLockDate = null);
+                          },
+                          child: const Text('Remove Lock',
+                              style: TextStyle(color: Colors.red)),
+                        ),
+                      ),
+                  ],
+                  const Divider(),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+                    child: Text('Data',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.grey)),
+                  ),
+                  SwitchListTile(
+                    secondary: const Icon(Icons.schedule),
+                    title: const Text('Auto-Backup (har 7 din)'),
+                    subtitle: Text(_lastAutoBackup == null
+                        ? 'Abhi tak koi auto-backup nahi hua'
+                        : 'Last auto-backup: ${_lastAutoBackup!.toIso8601String().substring(0, 10)}'),
+                    value: _autoBackupEnabled,
+                    onChanged: (v) async {
+                      await BackupService.setAutoBackupEnabled(v);
+                      setState(() => _autoBackupEnabled = v);
+                    },
+                  ),
+                  ListTile(
+                    leading: _backupInProgress
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.backup_outlined),
+                    title: const Text('Backup Share Karein'),
+                    subtitle: const Text(
+                        'Data + images ka zip bhejain aur share karein'),
+                    onTap:
+                        _backupInProgress ? null : () => _createBackup(false),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.sd_storage_outlined),
+                    title: const Text('Backup Device Mein Save Karein'),
+                    subtitle: const Text(
+                        'Share ke bagair seedha kisi folder mein save karein'),
+                    onTap: _backupInProgress
+                        ? null
+                        : () async {
+                            setState(() => _backupInProgress = true);
+                            try {
+                              final path =
+                                  await BackupService.saveBackupToDevice();
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(path == null
+                                      ? 'Cancel kar diya gaya'
+                                      : 'Backup save ho gayi: $path'),
+                                ),
+                              );
+                            } catch (e) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content: Text('Backup fail ho gaya: $e')),
+                                );
+                              }
+                            } finally {
+                              if (mounted)
+                                setState(() => _backupInProgress = false);
+                            }
+                          },
+                  ),
+                  ListTile(
+                    leading: _restoreInProgress
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.restore_outlined),
+                    title: const Text('Backup Restore Karein'),
+                    subtitle:
+                        const Text('Pehle ki zip file se data wapis layein'),
+                    onTap: _restoreInProgress ? null : _restoreBackup,
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.table_view_outlined,
+                        color: Colors.teal),
+                    title: const Text('Full Data Export (CSV)'),
+                    subtitle: const Text(
+                        'Products, Customers aur Sales history Excel mein le jayein'),
+                    onTap: () async {
+                      final active = await DBHelper.instance.getActiveCompany();
+                      if (active == null) return;
+                      await FullDataExportService.exportFullBusinessData(
+                          active['id'] as int);
+                    },
+                  ),
+                  const Divider(),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+                    child: Text('Google Drive Cloud Backup',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.grey)),
+                  ),
+                  ListTile(
+                    leading: _driveActionInProgress
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2))
+                        : Icon(
+                            _driveUser == null
+                                ? Icons.cloud_off
+                                : Icons.cloud_done,
+                            color:
+                                _driveUser == null ? Colors.grey : Colors.blue),
+                    title: Text(_driveUser == null
+                        ? 'Google Drive Connect Karein'
+                        : 'Google Drive Se Connected'),
+                    subtitle: Text(_driveUser?.email ??
+                        'Cloud backup ke liye sign in karein'),
+                    trailing: TextButton(
+                      onPressed: _driveActionInProgress
+                          ? null
+                          : _toggleDriveConnection,
+                      child: Text(_driveUser == null ? 'Sign In' : 'Sign Out'),
+                    ),
+                  ),
+                  if (_driveUser != null) ...[
+                    ListTile(
+                      leading:
+                          const Icon(Icons.upload_file, color: Colors.blue),
+                      title: const Text('Drive Par Backup Upload Karein'),
+                      onTap: _driveActionInProgress ? null : _backupToDrive,
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.download_for_offline,
+                          color: Colors.green),
+                      title: const Text('Drive Se Restore Karein'),
+                      onTap: _driveActionInProgress ? null : _restoreFromDrive,
+                    ),
+                    SwitchListTile(
+                      secondary: const Icon(Icons.sync),
+                      title: const Text('Auto-upload to Drive'),
+                      subtitle: const Text(
+                          'Local backup ke baad automatically cloud par bhejain'),
+                      value: _autoUploadToDrive,
+                      onChanged: (v) async {
+                        await GoogleDriveService.setAutoUploadEnabled(v);
+                        setState(() => _autoUploadToDrive = v);
+                      },
+                    ),
+                  ],
+                  if (Session.isOwner) ...[
+                    const Divider(),
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+                      child: Text('Session',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, color: Colors.grey)),
+                    ),
+                    ListTile(
+                      leading:
+                          const Icon(Icons.logout, color: Colors.redAccent),
+                      title: const Text('Sign out'),
+                      subtitle: const Text(
+                          'App ko lock karke PIN screen par wapas jayein'),
+                      onTap: _signOut,
                     ),
                   ],
                 ],
-                if (Session.isOwner) ...[
-                  const Divider(),
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
-                    child: Text('Accounting Control',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.grey)),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.lock_outline, color: Colors.orange),
-                    title: const Text('Accounting Period Lock'),
-                    subtitle: Text(_accountingLockDate == null
-                        ? 'Koi lock nahi laga. Sabi transactions open hain.'
-                        : 'Transactions before ${_accountingLockDate!.toIso8601String().substring(0, 10)} are LOCKED.'),
-                    trailing: TextButton(
-                      onPressed: () async {
-                        final picked = await showDatePicker(
-                          context: context,
-                          initialDate: _accountingLockDate ?? DateTime.now(),
-                          firstDate: DateTime(2020),
-                          lastDate: DateTime.now(),
-                          helpText: 'Sabi purani transactions ko lock karein',
-                        );
-                        if (picked != null) {
-                          final prefs = await SharedPreferences.getInstance();
-                          await prefs.setString('accounting_lock_date', picked.toIso8601String());
-                          setState(() => _accountingLockDate = picked);
-                        }
-                      },
-                      child: Text(_accountingLockDate == null ? 'Set Lock' : 'Update'),
-                    ),
-                  ),
-                  if (_accountingLockDate != null)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: TextButton(
-                        onPressed: () async {
-                          final prefs = await SharedPreferences.getInstance();
-                          await prefs.remove('accounting_lock_date');
-                          setState(() => _accountingLockDate = null);
-                        },
-                        child: const Text('Remove Lock', style: TextStyle(color: Colors.red)),
-                      ),
-                    ),
-                ],
-                const Divider(),
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
-                  child: Text('Data',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.grey)),
-                ),
-                SwitchListTile(
-                  secondary: const Icon(Icons.schedule),
-                  title: const Text('Auto-Backup (har 7 din)'),
-                  subtitle: Text(_lastAutoBackup == null
-                      ? 'Abhi tak koi auto-backup nahi hua'
-                      : 'Last auto-backup: ${_lastAutoBackup!.toIso8601String().substring(0, 10)}'),
-                  value: _autoBackupEnabled,
-                  onChanged: (v) async {
-                    await BackupService.setAutoBackupEnabled(v);
-                    setState(() => _autoBackupEnabled = v);
-                  },
-                ),
-                ListTile(
-                  leading: _backupInProgress
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.backup_outlined),
-                  title: const Text('Backup Share Karein'),
-                  subtitle: const Text(
-                      'Data + images ka zip bhejain aur share karein'),
-                  onTap: _backupInProgress ? null : () => _createBackup(false),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.sd_storage_outlined),
-                  title: const Text('Backup Device Mein Save Karein'),
-                  subtitle: const Text(
-                      'Share ke bagair seedha kisi folder mein save karein'),
-                  onTap: _backupInProgress
-                      ? null
-                      : () async {
-                          setState(() => _backupInProgress = true);
-                          try {
-                            final path =
-                                await BackupService.saveBackupToDevice();
-                            if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(path == null
-                                    ? 'Cancel kar diya gaya'
-                                    : 'Backup save ho gayi: $path'),
-                              ),
-                            );
-                          } catch (e) {
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content: Text('Backup fail ho gaya: $e')),
-                              );
-                            }
-                          } finally {
-                            if (mounted)
-                              setState(() => _backupInProgress = false);
-                          }
-                        },
-                ),
-                ListTile(
-                  leading: _restoreInProgress
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.restore_outlined),
-                  title: const Text('Backup Restore Karein'),
-                  subtitle:
-                      const Text('Pehle ki zip file se data wapis layein'),
-                  onTap: _restoreInProgress ? null : _restoreBackup,
-                ),
-                ListTile(
-                  leading: const Icon(Icons.table_view_outlined, color: Colors.teal),
-                  title: const Text('Full Data Export (CSV)'),
-                  subtitle: const Text('Products, Customers aur Sales history Excel mein le jayein'),
-                  onTap: () async {
-                    final active = await DBHelper.instance.getActiveCompany();
-                    if (active == null) return;
-                    await FullDataExportService.exportFullBusinessData(active['id'] as int);
-                  },
-                ),
-                const Divider(),
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
-                  child: Text('Google Drive Cloud Backup',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.grey)),
-                ),
-                ListTile(
-                  leading: _driveActionInProgress 
-                      ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
-                      : Icon(_driveUser == null ? Icons.cloud_off : Icons.cloud_done, color: _driveUser == null ? Colors.grey : Colors.blue),
-                  title: Text(_driveUser == null ? 'Google Drive Connect Karein' : 'Google Drive Se Connected'),
-                  subtitle: Text(_driveUser?.email ?? 'Cloud backup ke liye sign in karein'),
-                  trailing: TextButton(
-                    onPressed: _driveActionInProgress ? null : _toggleDriveConnection,
-                    child: Text(_driveUser == null ? 'Sign In' : 'Sign Out'),
-                  ),
-                ),
-                if (_driveUser != null) ...[
-                  ListTile(
-                    leading: const Icon(Icons.upload_file, color: Colors.blue),
-                    title: const Text('Drive Par Backup Upload Karein'),
-                    onTap: _driveActionInProgress ? null : _backupToDrive,
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.download_for_offline, color: Colors.green),
-                    title: const Text('Drive Se Restore Karein'),
-                    onTap: _driveActionInProgress ? null : _restoreFromDrive,
-                  ),
-                  SwitchListTile(
-                    secondary: const Icon(Icons.sync),
-                    title: const Text('Auto-upload to Drive'),
-                    subtitle: const Text('Local backup ke baad automatically cloud par bhejain'),
-                    value: _autoUploadToDrive,
-                    onChanged: (v) async {
-                      await GoogleDriveService.setAutoUploadEnabled(v);
-                      setState(() => _autoUploadToDrive = v);
-                    },
-                  ),
-                ],
-                if (Session.isOwner) ...[
-                  const Divider(),
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
-                    child: Text('Session',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.grey)),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.logout, color: Colors.redAccent),
-                    title: const Text('Sign out'),
-                    subtitle: const Text(
-                        'App ko lock karke PIN screen par wapas jayein'),
-                    onTap: _signOut,
-                  ),
-                ],
-              ],
-            ),
+              ),
       ),
     );
   }

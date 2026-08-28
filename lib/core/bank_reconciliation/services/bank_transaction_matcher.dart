@@ -17,7 +17,8 @@ class BankTransactionMatcher {
     // Fetch candidate unreconciled bank transactions for this company and bank account
     final candidates = await db.query(
       'bank_transactions',
-      where: 'company_id = ? AND bank_account_id = ? AND (is_reconciled = 0 OR is_reconciled IS NULL)',
+      where:
+          'company_id = ? AND bank_account_id = ? AND (is_reconciled = 0 OR is_reconciled IS NULL)',
       whereArgs: [companyId, bankAccountId],
     );
 
@@ -42,7 +43,9 @@ class BankTransactionMatcher {
 
         final type = (candidate['type'] as String? ?? 'deposit').toLowerCase();
         final rawCandAmount = (candidate['amount'] as num?)?.toDouble() ?? 0.0;
-        final candAmount = (type == 'withdrawal' || type == 'out') ? -rawCandAmount.abs() : rawCandAmount.abs();
+        final candAmount = (type == 'withdrawal' || type == 'out')
+            ? -rawCandAmount.abs()
+            : rawCandAmount.abs();
 
         // 1. Amount Match Check (Primary Signal: exact signed amount within 0.01)
         if ((candAmount - rowAmount).abs() > 0.02) continue;
@@ -76,7 +79,10 @@ class BankTransactionMatcher {
       }
 
       // Enforce 1-to-1 matching: if ambiguous multiple candidates, flag for manual review
-      if (bestCandidate != null && matchCandidatesCount == 1 && (bestConfidence == MatchConfidence.exact || bestConfidence == MatchConfidence.high)) {
+      if (bestCandidate != null &&
+          matchCandidatesCount == 1 &&
+          (bestConfidence == MatchConfidence.exact ||
+              bestConfidence == MatchConfidence.high)) {
         row.matchedTransaction = bestCandidate;
         row.confidence = bestConfidence;
         row.matchScore = bestScore;
@@ -110,7 +116,19 @@ class BankTransactionMatcher {
   }
 
   static Set<String> _tokenize(String str) {
-    final stopWords = {'pos', 'purchase', 'trx', 'txn', 'pay', 'payment', 'transfer', 'val', 'card', 'pkr', 'rs'};
+    final stopWords = {
+      'pos',
+      'purchase',
+      'trx',
+      'txn',
+      'pay',
+      'payment',
+      'transfer',
+      'val',
+      'card',
+      'pkr',
+      'rs'
+    };
     return str
         .toLowerCase()
         .replaceAll(RegExp(r'[^a-z0-9\s]'), ' ')

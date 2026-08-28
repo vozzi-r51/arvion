@@ -10,7 +10,8 @@ class NewDeliveryChallanScreen extends StatefulWidget {
   const NewDeliveryChallanScreen({super.key, required this.companyId});
 
   @override
-  State<NewDeliveryChallanScreen> createState() => _NewDeliveryChallanScreenState();
+  State<NewDeliveryChallanScreen> createState() =>
+      _NewDeliveryChallanScreenState();
 }
 
 class _NewDeliveryChallanScreenState extends State<NewDeliveryChallanScreen> {
@@ -44,8 +45,8 @@ class _NewDeliveryChallanScreenState extends State<NewDeliveryChallanScreen> {
 
   Future<void> _save() async {
     if (_selectedSale == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Pehle sale select karein')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Pehle sale select karein')));
       return;
     }
 
@@ -63,7 +64,8 @@ class _NewDeliveryChallanScreenState extends State<NewDeliveryChallanScreen> {
       signaturePath = file.path;
     }
 
-    final challanNumber = await DBHelper.instance.generateChallanNumber(widget.companyId);
+    final challanNumber =
+        await DBHelper.instance.generateChallanNumber(widget.companyId);
 
     final challanData = {
       'company_id': widget.companyId,
@@ -87,13 +89,14 @@ class _NewDeliveryChallanScreenState extends State<NewDeliveryChallanScreen> {
             })
         .toList();
 
-    await DBHelper.instance.insertChallanWithItems(challan: challanData, items: itemsData);
+    await DBHelper.instance
+        .insertChallanWithItems(challan: challanData, items: itemsData);
 
     setState(() => _saving = false);
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text('Challan save ho gaya ($challanNumber)')));
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Challan save ho gaya ($challanNumber)')));
     Navigator.of(context).pop(true);
   }
 
@@ -118,10 +121,11 @@ class _NewDeliveryChallanScreenState extends State<NewDeliveryChallanScreen> {
                 ? 'Sale Select Karein'
                 : '${_selectedSale!['invoice_number']} — ${_selectedSale!['customer_name'] ?? 'Walk-in Customer'}'),
           ),
-          if (_loadingItems) const Padding(
-            padding: EdgeInsets.all(24),
-            child: Center(child: CircularProgressIndicator()),
-          ),
+          if (_loadingItems)
+            const Padding(
+              padding: EdgeInsets.all(24),
+              child: Center(child: CircularProgressIndicator()),
+            ),
           if (!_loadingItems && _items.isNotEmpty) ...[
             const SizedBox(height: 16),
             Text('Items', style: Theme.of(context).textTheme.titleMedium),
@@ -170,7 +174,8 @@ class _NewDeliveryChallanScreenState extends State<NewDeliveryChallanScreen> {
                   ? const SizedBox(
                       height: 20,
                       width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
                   : const Text('Challan Save Karein'),
             ),
           ],
@@ -230,7 +235,8 @@ class _SalePickerSheetState extends State<_SalePickerSheet> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Text('Sale Select Karein', style: Theme.of(context).textTheme.titleMedium),
+            Text('Sale Select Karein',
+                style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 10),
             TextField(
               decoration: const InputDecoration(

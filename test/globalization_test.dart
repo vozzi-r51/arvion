@@ -30,7 +30,9 @@ void main() {
       expect(formatted, contains('1,234,567.89'));
     });
 
-    test('Formats European EUR amount with period thousand separator and comma decimal', () {
+    test(
+        'Formats European EUR amount with period thousand separator and comma decimal',
+        () {
       final formatted = CurrencyFormatter.format(
         1234567.89,
         currencyCode: 'EUR',
@@ -60,23 +62,28 @@ void main() {
 
   group('Globalization - DateFormatter Multi-Format Tests', () {
     test('Formats ISO date string as DD/MM/YYYY', () {
-      final formatted = DateFormatter.format('2026-08-28', format: 'dd/MM/yyyy');
+      final formatted =
+          DateFormatter.format('2026-08-28', format: 'dd/MM/yyyy');
       expect(formatted, equals('28/08/2026'));
     });
 
     test('Formats ISO date string as MM/DD/YYYY', () {
-      final formatted = DateFormatter.format('2026-08-28', format: 'MM/dd/yyyy');
+      final formatted =
+          DateFormatter.format('2026-08-28', format: 'MM/dd/yyyy');
       expect(formatted, equals('08/28/2026'));
     });
 
     test('Formats ISO date string as YYYY-MM-DD', () {
-      final formatted = DateFormatter.format('2026-08-28', format: 'yyyy-MM-dd');
+      final formatted =
+          DateFormatter.format('2026-08-28', format: 'yyyy-MM-dd');
       expect(formatted, equals('2026-08-28'));
     });
   });
 
   group('Globalization - Multi-Company Isolation Tests', () {
-    test('Switching between Company A (PKR) and Company B (USD) isolates formatting', () {
+    test(
+        'Switching between Company A (PKR) and Company B (USD) isolates formatting',
+        () {
       final companyA = {
         'currency_code': 'PKR',
         'currency_symbol': 'Rs.',
@@ -102,7 +109,8 @@ void main() {
         symbol: companyA['currency_symbol'] as String,
       );
 
-      final dateA = DateFormatter.format('2026-08-28', format: companyA['date_format'] as String);
+      final dateA = DateFormatter.format('2026-08-28',
+          format: companyA['date_format'] as String);
 
       final formattedB = CurrencyFormatter.format(
         5000.0,
@@ -111,7 +119,8 @@ void main() {
         symbol: companyB['currency_symbol'] as String,
       );
 
-      final dateB = DateFormatter.format('2026-08-28', format: companyB['date_format'] as String);
+      final dateB = DateFormatter.format('2026-08-28',
+          format: companyB['date_format'] as String);
 
       expect(formattedA, contains('Rs.'));
       expect(dateA, equals('28/08/2026'));
