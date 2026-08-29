@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/utils/currency_formatter.dart';
 import 'bank_account_detail_screen.dart';
 
 class BankAccountsScreen extends StatefulWidget {
@@ -12,6 +13,7 @@ class BankAccountsScreen extends StatefulWidget {
 
 class _BankAccountsScreenState extends State<BankAccountsScreen> {
   List<Map<String, dynamic>> _accounts = [];
+  Map<String, dynamic>? _company;
   bool _loading = true;
 
   @override
@@ -22,8 +24,11 @@ class _BankAccountsScreenState extends State<BankAccountsScreen> {
 
   Future<void> _load() async {
     final rows = await DBHelper.instance.getBankAccounts(widget.companyId);
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
+    if (!mounted) return;
     setState(() {
       _accounts = rows;
+      _company = company;
       _loading = false;
     });
   }
@@ -142,7 +147,7 @@ class _BankAccountsScreenState extends State<BankAccountsScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              'Rs. ${(a['current_balance'] as num).toStringAsFixed(0)}',
+                              CurrencyFormatter.formatFromCompany(a['current_balance'] as num, _company, decimalPlaces: 0),
                               style:
                                   const TextStyle(fontWeight: FontWeight.bold),
                             ),

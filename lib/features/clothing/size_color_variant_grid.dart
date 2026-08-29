@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/utils/currency_formatter.dart';
 
 /// Size-Color Variant Quick Sale POS Grid for Clothing & Footwear businesses.
 /// Displays a Size (Rows) x Color (Columns) grid with live stock counts per cell.
@@ -7,12 +8,14 @@ class SizeColorVariantGrid extends StatelessWidget {
   final List<Map<String, dynamic>>
       variants; // [{'id': 1, 'size': 'M', 'color': 'Black', 'stock': 8, 'price': 1500}]
   final Function(Map<String, dynamic> selectedVariant) onVariantSelected;
+  final Map<String, dynamic>? company;
 
   const SizeColorVariantGrid({
     super.key,
     required this.productName,
     required this.variants,
     required this.onVariantSelected,
+    this.company,
   });
 
   @override
@@ -119,7 +122,7 @@ class SizeColorVariantGrid extends StatelessWidget {
                                     ),
                                   ),
                                   if (price > 0)
-                                    Text('Rs. ${price.toStringAsFixed(0)}',
+                                    Text(CurrencyFormatter.formatFromCompany(price, company, decimalPlaces: 0),
                                         style: const TextStyle(
                                             fontSize: 10, color: Colors.grey)),
                                 ],

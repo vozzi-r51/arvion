@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/utils/currency_formatter.dart';
 import '../shell/main_shell.dart';
 import 'new_quotation_screen.dart';
 import 'quotation_detail_screen.dart';
@@ -14,6 +15,7 @@ class QuotationListScreen extends StatefulWidget {
 
 class _QuotationListScreenState extends State<QuotationListScreen> {
   List<Map<String, dynamic>> _quotes = [];
+  Map<String, dynamic>? _company;
   bool _loading = true;
 
   @override
@@ -25,8 +27,11 @@ class _QuotationListScreenState extends State<QuotationListScreen> {
   Future<void> _load() async {
     setState(() => _loading = true);
     final rows = await DBHelper.instance.getQuotations(widget.companyId);
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
+    if (!mounted) return;
     setState(() {
       _quotes = rows;
+      _company = company;
       _loading = false;
     });
   }
@@ -56,7 +61,7 @@ class _QuotationListScreenState extends State<QuotationListScreen> {
                         subtitle: Text(
                             '${q['customer_name'] ?? 'Walk-in'} • ${q['status'].toUpperCase()}'),
                         trailing: Text(
-                            'Rs. ${(q['total_amount'] as num).toStringAsFixed(0)}'),
+                            CurrencyFormatter.formatFromCompany(q['total_amount'] as num, _company, decimalPlaces: 0)),
                         onTap: () async {
                           final result = await Navigator.push(
                             context,

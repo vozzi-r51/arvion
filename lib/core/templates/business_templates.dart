@@ -376,10 +376,6 @@ class BusinessTemplates {
             'product': 'Service'
           },
         );
-      default:
-        // Fallback to retail so we always have a working COA.
-        return getByFamily(TemplateFamily.retailStandard,
-            categoryTitle: categoryTitle, icon: icon);
     }
   }
 

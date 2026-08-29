@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../core/database/db_helper.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/repositories/fixed_assets_repository.dart';
 import '../../core/theme/design_tokens.dart';
+import '../../core/utils/currency_formatter.dart';
 import '../../core/widgets/app_empty_state.dart';
 import '../../core/widgets/app_skeleton.dart';
 
@@ -15,6 +17,7 @@ class FixedAssetsScreen extends StatefulWidget {
 
 class _FixedAssetsScreenState extends State<FixedAssetsScreen> {
   List<Map<String, dynamic>> _assets = [];
+  Map<String, dynamic>? _company;
   bool _loading = true;
 
   @override
@@ -27,8 +30,11 @@ class _FixedAssetsScreenState extends State<FixedAssetsScreen> {
     setState(() => _loading = true);
     final repo = sl<FixedAssetsRepository>();
     final list = await repo.listAssets(widget.companyId);
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
+    if (!mounted) return;
     setState(() {
       _assets = list;
+      _company = company;
       _loading = false;
     });
   }
@@ -257,7 +263,7 @@ class _FixedAssetsScreenState extends State<FixedAssetsScreen> {
                                           style: TextStyle(
                                               fontSize: 11,
                                               color: Colors.grey)),
-                                      Text('Rs. ${cost.toStringAsFixed(0)}',
+                                      Text(CurrencyFormatter.formatFromCompany(cost, _company, decimalPlaces: 0),
                                           style: const TextStyle(
                                               fontWeight: FontWeight.bold)),
                                     ]),
@@ -268,7 +274,7 @@ class _FixedAssetsScreenState extends State<FixedAssetsScreen> {
                                       const Text('Accumulated Dep.',
                                           style: TextStyle(
                                               fontSize: 11, color: Colors.red)),
-                                      Text('Rs. ${accum.toStringAsFixed(0)}',
+                                      Text(CurrencyFormatter.formatFromCompany(accum, _company, decimalPlaces: 0),
                                           style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                               color: Colors.red)),
@@ -281,7 +287,7 @@ class _FixedAssetsScreenState extends State<FixedAssetsScreen> {
                                           style: TextStyle(
                                               fontSize: 11,
                                               color: Colors.green)),
-                                      Text('Rs. ${book.toStringAsFixed(0)}',
+                                      Text(CurrencyFormatter.formatFromCompany(book, _company, decimalPlaces: 0),
                                           style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                               color: Colors.green)),

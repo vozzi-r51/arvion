@@ -1,8 +1,10 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'base_repository.dart';
+import '../database/db_helper.dart';
 import '../di/service_locator.dart';
 import 'accounting_repository.dart';
 import '../audit/audit_logger.dart';
+import '../utils/currency_formatter.dart';
 
 /// Formal Year-End Fiscal Closing Workflow.
 /// Closes Revenue & Expense accounts, transfers Net Profit to Retained Earnings,
@@ -113,12 +115,13 @@ class FiscalYearRepository extends BaseRepository {
     await prefs.setString('accounting_lock_date', endDate);
 
     // 5. Audit Log
+    final auditCompany = await DBHelper.instance.getCompanyById(companyId);
     await AuditLogger.log(
       companyId: companyId,
       module: 'Accounting',
       action: 'close_fiscal_year',
       description:
-          'Fiscal Year $fiscalYear closed (Net Profit: Rs. ${netProfit.toStringAsFixed(0)})',
+          'Fiscal Year $fiscalYear closed (Net Profit: ${CurrencyFormatter.formatFromCompany(netProfit, auditCompany, decimalPlaces: 0)})',
       userName: closedBy,
       afterValue: {
         'fiscal_year': fiscalYear,

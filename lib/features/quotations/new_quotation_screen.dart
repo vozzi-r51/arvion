@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
-import '../../core/scanner/barcode_scanner_screen.dart';
 import '../../core/audit/audit_logger.dart';
+import '../../core/utils/currency_formatter.dart';
 
 class _QuoteCartItem {
   final int productId;
@@ -16,7 +16,7 @@ class _QuoteCartItem {
   String baseUnit;
   String? secondaryUnit;
   double conversionFactor;
-  bool isSecondary;
+  bool isSecondary = false;
 
   late final TextEditingController priceController;
   late final TextEditingController qtyController;
@@ -33,7 +33,6 @@ class _QuoteCartItem {
     this.baseUnit = 'Pc',
     this.secondaryUnit,
     this.conversionFactor = 1,
-    this.isSecondary = false,
   }) {
     priceController =
         TextEditingController(text: displayPrice.toStringAsFixed(0));
@@ -74,6 +73,7 @@ class NewQuotationScreen extends StatefulWidget {
 class _NewQuotationScreenState extends State<NewQuotationScreen> {
   final List<_QuoteCartItem> _cart = [];
   List<Map<String, dynamic>> _customers = [];
+  Map<String, dynamic>? _company;
   int? _selectedCustomerId;
   final _discountCtrl = TextEditingController(text: '0');
   final _taxPercentCtrl = TextEditingController(text: '0');
@@ -93,6 +93,7 @@ class _NewQuotationScreenState extends State<NewQuotationScreen> {
     if (!mounted) return;
     setState(() {
       _customers = rows;
+      _company = company;
       if (company != null) {
         _taxPercentCtrl.text = '${company['default_tax_percent'] ?? 0}';
       }
@@ -354,7 +355,7 @@ class _NewQuotationScreenState extends State<NewQuotationScreen> {
                                   ),
                                   const Spacer(),
                                   Text(
-                                    'Rs. ${item.total.toStringAsFixed(0)}',
+                                    CurrencyFormatter.formatFromCompany(item.total, _company, decimalPlaces: 0),
                                     style: const TextStyle(
                                         fontWeight: FontWeight.bold),
                                   ),
@@ -457,7 +458,7 @@ class _NewQuotationScreenState extends State<NewQuotationScreen> {
                         children: [
                           const Text('Total', style: TextStyle(fontSize: 16)),
                           Text(
-                            'Rs. ${_grandTotal.toStringAsFixed(0)}',
+                            CurrencyFormatter.formatFromCompany(_grandTotal, _company, decimalPlaces: 0),
                             style: const TextStyle(
                                 fontSize: 20, fontWeight: FontWeight.bold),
                           ),

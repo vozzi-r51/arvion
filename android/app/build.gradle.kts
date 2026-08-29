@@ -40,17 +40,23 @@ android {
 
     signingConfigs {
         create("release") {
-            keyAlias = keystoreProperties["keyAlias"] as String?
-            keyPassword = keystoreProperties["keyPassword"] as String?
-            storeFile = (keystoreProperties["storeFile"] as String?)?.takeIf { it.isNotEmpty() }?.let { file(it) }
-            storePassword = keystoreProperties["storePassword"] as String?
+            val customStore = (keystoreProperties["storeFile"] as String?)?.takeIf { it.isNotEmpty() }
+            if (customStore != null) {
+                keyAlias = keystoreProperties["keyAlias"] as String?
+                keyPassword = keystoreProperties["keyPassword"] as String?
+                storeFile = file(customStore)
+                storePassword = keystoreProperties["storePassword"] as String?
+            } else {
+                keyAlias = "androiddebugkey"
+                keyPassword = "android"
+                storeFile = file("C:/Users/Abdul Rehman/.android/debug.keystore")
+                storePassword = "android"
+            }
         }
     }
 
     buildTypes {
         release {
-            // Minification and shrinking enabled for production.
-            // Proguard rules verified for core plugins (printer, scanner, notifications).
             isMinifyEnabled = true
             isShrinkResources = true
             
@@ -59,12 +65,7 @@ android {
                 "proguard-rules.pro"
             )
 
-            val releaseSigningConfig = signingConfigs.getByName("release")
-            if (releaseSigningConfig.storeFile != null) {
-                signingConfig = releaseSigningConfig
-            } else {
-                signingConfig = signingConfigs.getByName("debug")
-            }
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }

@@ -145,12 +145,15 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   icon: const Icon(Icons.print),
                   onPressed: _selectedIds.isEmpty
                       ? null
-                      : () {
+                      : () async {
                           final selectedProds = _products
                               .where((p) => _selectedIds.contains(p['id']))
                               .toList();
+                          final company =
+                              await DBHelper.instance.getCompanyById(widget.companyId);
+                          if (!context.mounted) return;
                           BarcodePdfService.printBarcodeLabels(
-                              products: selectedProds);
+                              products: selectedProds, company: company);
                         },
                   tooltip: 'Print Labels',
                 ),

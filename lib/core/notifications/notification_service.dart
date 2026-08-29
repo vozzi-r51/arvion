@@ -1,6 +1,7 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../database/db_helper.dart';
+import '../utils/currency_formatter.dart';
 
 /// Simple local (on-device) notifications — no server, no background
 /// service. Checked once per app open (see maybeNotify) and rate-limited
@@ -47,6 +48,7 @@ class NotificationService {
       final receivables = await DBHelper.instance.getReceivables(companyId);
       final totalReceivable = receivables.fold(
           0.0, (sum, c) => sum + (c['current_balance'] as num));
+      final company = await DBHelper.instance.getCompanyById(companyId);
 
       if (lowStockCount > 0) {
         await _show(
@@ -59,7 +61,7 @@ class NotificationService {
         await _show(
           1002,
           'Due Payments',
-          'Customers se total Rs. ${totalReceivable.toStringAsFixed(0)} lena baaki hai.',
+          'Customers se total ${CurrencyFormatter.formatFromCompany(totalReceivable, company, decimalPlaces: 0)} lena baaki hai.',
         );
       }
 

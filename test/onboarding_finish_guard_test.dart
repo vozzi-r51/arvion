@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter/material.dart';
 import 'package:bizmanager/features/company/onboarding_wizard_screen.dart';
 
 /// Source-level contracts enforced by Phase 3.

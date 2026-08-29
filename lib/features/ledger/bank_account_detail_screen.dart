@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/utils/currency_formatter.dart';
 import 'bank_statement_import_screen.dart';
 
 class BankAccountDetailScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class _BankAccountDetailScreenState extends State<BankAccountDetailScreen> {
   List<Map<String, dynamic>> _transactions = [];
   double _balance = 0;
   bool _loading = true;
+  Map<String, dynamic>? _company;
 
   bool _reconcileMode = false;
   final _statementCtrl = TextEditingController(text: '0');
@@ -33,9 +35,12 @@ class _BankAccountDetailScreenState extends State<BankAccountDetailScreen> {
   Future<void> _load() async {
     final rows = await DBHelper.instance.getBankTransactions(_accountId);
     final accounts = await DBHelper.instance.getBankAccounts(widget.companyId);
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
     final match = accounts.where((a) => a['id'] == _accountId).toList();
+    if (!mounted) return;
     setState(() {
       _transactions = rows;
+      _company = company;
       _balance = match.isNotEmpty
           ? (match.first['current_balance'] as num).toDouble()
           : (widget.account['current_balance'] as num).toDouble();
@@ -214,7 +219,7 @@ class _BankAccountDetailScreenState extends State<BankAccountDetailScreen> {
                         const Text('Current Book Balance',
                             style: TextStyle(fontSize: 13)),
                         Text(
-                          'Rs. ${_balance.toStringAsFixed(0)}',
+                          CurrencyFormatter.formatFromCompany(_balance, _company, decimalPlaces: 0),
                           style: const TextStyle(
                               fontSize: 24, fontWeight: FontWeight.bold),
                         ),
@@ -279,7 +284,7 @@ class _BankAccountDetailScreenState extends State<BankAccountDetailScreen> {
                                             size: 16, color: Colors.blue),
                                       ),
                                     Text(
-                                      'Rs. ${(t['amount'] as num).toStringAsFixed(0)}',
+                                      CurrencyFormatter.formatFromCompany(t['amount'] as num, _company, decimalPlaces: 0),
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         color: isDeposit
@@ -397,7 +402,7 @@ class _BankAccountDetailScreenState extends State<BankAccountDetailScreen> {
       children: [
         Text(label, style: const TextStyle(fontSize: 11)),
         Text(
-          'Rs. ${val.toStringAsFixed(0)}',
+          CurrencyFormatter.formatFromCompany(val, _company, decimalPlaces: 0),
           style: TextStyle(
               fontWeight: FontWeight.bold, fontSize: 16, color: color),
         ),

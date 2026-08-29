@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/services/recurring_sales_service.dart';
 import '../../core/utils/currency_formatter.dart';
-import '../../core/theme/design_tokens.dart';
 
 class RecurringInvoicesDueDialog extends StatefulWidget {
   final int companyId;

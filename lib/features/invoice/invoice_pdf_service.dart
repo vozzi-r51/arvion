@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import '../../core/utils/currency_formatter.dart';
 
 enum InvoicePaperSize { a4, thermal80mm }
 
@@ -163,7 +164,7 @@ class InvoicePdfService {
           ],
         ),
         pw.SizedBox(height: 16),
-        _itemsTable(items),
+        _itemsTable(items, company),
         pw.SizedBox(height: 16),
         pw.Align(
           alignment: pw.Alignment.centerRight,
@@ -283,7 +284,7 @@ class InvoicePdfService {
                       pw.Text('${item['quantity']} x ${item['unit_price']}',
                           style: const pw.TextStyle(fontSize: 7)),
                       pw.Text(
-                          'Rs. ${(item['total'] as num).toStringAsFixed(0)}',
+                          CurrencyFormatter.formatFromCompany(item['total'] as num, company, decimalPlaces: 0),
                           style: const pw.TextStyle(fontSize: 8)),
                     ],
                   ),
@@ -331,7 +332,8 @@ class InvoicePdfService {
     );
   }
 
-  static pw.Widget _itemsTable(List<Map<String, dynamic>> items) {
+  static pw.Widget _itemsTable(
+      List<Map<String, dynamic>> items, Map<String, dynamic> company) {
     return pw.Column(
       children: [
         pw.Container(
@@ -382,7 +384,7 @@ class InvoicePdfService {
                   pw.Expanded(
                       flex: 2,
                       child: pw.Text(
-                          'Rs. ${(item['total'] as num).toStringAsFixed(0)}')),
+                          CurrencyFormatter.formatFromCompany(item['total'] as num, company, decimalPlaces: 0))),
                 ],
               ),
             )),

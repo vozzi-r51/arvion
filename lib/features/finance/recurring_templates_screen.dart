@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/services/recurring_sales_service.dart';
 import '../../core/utils/currency_formatter.dart';
-import '../../core/theme/design_tokens.dart';
 
 class RecurringTemplatesScreen extends StatefulWidget {
   final int companyId;
@@ -24,6 +23,7 @@ class _RecurringTemplatesScreenState extends State<RecurringTemplatesScreen> {
   List<Map<String, dynamic>> _templates = [];
   List<Map<String, dynamic>> _customers = [];
   List<Map<String, dynamic>> _products = [];
+  Map<String, dynamic>? _company;
 
   bool _loading = true;
   String _currencyCode = 'PKR';
@@ -47,10 +47,12 @@ class _RecurringTemplatesScreenState extends State<RecurringTemplatesScreen> {
     final custs = await DBHelper.instance.getCustomers(widget.companyId);
     final prods = await DBHelper.instance.getProducts(widget.companyId);
 
+    if (!mounted) return;
     setState(() {
       _templates = rows;
       _customers = custs;
       _products = prods;
+      _company = company;
       _loading = false;
     });
 
@@ -245,7 +247,7 @@ class _RecurringTemplatesScreenState extends State<RecurringTemplatesScreen> {
                         children: [
                           const Text('Subtotal:',
                               style: TextStyle(fontWeight: FontWeight.bold)),
-                          Text('Rs. ${calculatedSubtotal.toStringAsFixed(2)}',
+                          Text(CurrencyFormatter.formatFromCompany(calculatedSubtotal, _company, decimalPlaces: 0),
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.green)),

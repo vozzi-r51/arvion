@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/utils/currency_formatter.dart';
 
 class CommitteeInstallmentsTab extends StatefulWidget {
   final int companyId;
@@ -20,6 +21,7 @@ class CommitteeInstallmentsTab extends StatefulWidget {
 class _CommitteeInstallmentsTabState extends State<CommitteeInstallmentsTab> {
   List<Map<String, dynamic>> _installments = [];
   List<Map<String, dynamic>> _members = [];
+  Map<String, dynamic>? _company;
   bool _loading = true;
 
   @override
@@ -34,9 +36,12 @@ class _CommitteeInstallmentsTabState extends State<CommitteeInstallmentsTab> {
         await DBHelper.instance.getCommitteeInstallments(widget.committeeId);
     final members =
         await DBHelper.instance.getCommitteeMembers(widget.committeeId);
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
+    if (!mounted) return;
     setState(() {
       _installments = installments;
       _members = members;
+      _company = company;
       _loading = false;
     });
   }
@@ -168,7 +173,7 @@ class _CommitteeInstallmentsTabState extends State<CommitteeInstallmentsTab> {
                     subtitle: Text(
                         'Month: ${inst['month']}  •  ${(inst['payment_date'] as String).substring(0, 10)}'),
                     trailing: Text(
-                      'Rs. ${(inst['amount'] as num).toStringAsFixed(0)}',
+                      CurrencyFormatter.formatFromCompany(inst['amount'] as num, _company, decimalPlaces: 0),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),

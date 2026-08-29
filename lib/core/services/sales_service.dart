@@ -9,16 +9,12 @@ import '../database/db_helper.dart';
 /// `createSaleWithItems()` and everything (stock, AR, events) happens.
 class SalesService {
   final SalesRepository _salesRepo;
-  final InventoryRepository _inventoryRepo;
-  final CustomerRepository _customerRepo;
 
   SalesService({
     required SalesRepository salesRepository,
-    required InventoryRepository inventoryRepository,
-    required CustomerRepository customerRepository,
-  })  : _salesRepo = salesRepository,
-        _inventoryRepo = inventoryRepository,
-        _customerRepo = customerRepository;
+    InventoryRepository? inventoryRepository,
+    CustomerRepository? customerRepository,
+  })  : _salesRepo = salesRepository;
 
   /// Create a sale with items, handle stock deductions, AR updates.
   /// This is the screen-friendly entry point — all complexity hidden inside.

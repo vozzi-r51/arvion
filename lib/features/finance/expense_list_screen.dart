@@ -3,6 +3,7 @@ import '../../core/database/db_helper.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/services/expense_service.dart';
 import '../../core/audit/audit_logger.dart';
+import '../../core/utils/currency_formatter.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/app_skeleton.dart';
 import '../../core/widgets/app_empty_state.dart';
@@ -28,6 +29,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
   ];
 
   List<Map<String, dynamic>> _expenses = [];
+  Map<String, dynamic>? _company;
   bool _loading = true;
 
   @override
@@ -38,8 +40,11 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
 
   Future<void> _load() async {
     final rows = await DBHelper.instance.getExpenses(widget.companyId);
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
+    if (!mounted) return;
     setState(() {
       _expenses = rows;
+      _company = company;
       _loading = false;
     });
   }
@@ -274,7 +279,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                                'Rs. ${(e['amount'] as num).toStringAsFixed(0)}',
+                                CurrencyFormatter.formatFromCompany(e['amount'] as num, _company, decimalPlaces: 0),
                                 style: const TextStyle(
                                     fontWeight: FontWeight.bold)),
                             const SizedBox(width: AppSpacing.s),

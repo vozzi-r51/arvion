@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/audit/audit_logger.dart';
+import '../../core/utils/currency_formatter.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/app_skeleton.dart';
 import '../../core/widgets/app_empty_state.dart';
@@ -24,6 +25,7 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
   ];
 
   List<Map<String, dynamic>> _income = [];
+  Map<String, dynamic>? _company;
   bool _loading = true;
 
   @override
@@ -34,8 +36,11 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
 
   Future<void> _load() async {
     final rows = await DBHelper.instance.getIncome(widget.companyId);
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
+    if (!mounted) return;
     setState(() {
       _income = rows;
+      _company = company;
       _loading = false;
     });
   }
@@ -246,7 +251,7 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                                'Rs. ${(inc['amount'] as num).toStringAsFixed(0)}',
+                                CurrencyFormatter.formatFromCompany(inc['amount'] as num, _company, decimalPlaces: 0),
                                 style: const TextStyle(
                                     fontWeight: FontWeight.bold)),
                             const SizedBox(width: AppSpacing.s),

@@ -7,16 +7,12 @@ import '../database/db_helper.dart';
 /// High-level service coordinating multi-repository operations for purchases.
 class PurchaseService {
   final PurchaseRepository _purchaseRepo;
-  final InventoryRepository _inventoryRepo;
-  final SupplierRepository _supplierRepo;
 
   PurchaseService({
     required PurchaseRepository purchaseRepository,
-    required InventoryRepository inventoryRepository,
-    required SupplierRepository supplierRepository,
-  })  : _purchaseRepo = purchaseRepository,
-        _inventoryRepo = inventoryRepository,
-        _supplierRepo = supplierRepository;
+    InventoryRepository? inventoryRepository,
+    SupplierRepository? supplierRepository,
+  })  : _purchaseRepo = purchaseRepository;
 
   /// Create a purchase with items, handle stock additions, AP updates.
   Future<int> createPurchaseWithItems({

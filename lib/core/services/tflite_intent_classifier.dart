@@ -1,6 +1,4 @@
 import 'package:tflite_flutter/tflite_flutter.dart' as tflite;
-import 'dart:typed_data';
-import '../database/db_helper.dart';
 
 /// Enum for AI intents (mirrors ai_engine.dart)
 enum AIIntentType {
@@ -64,7 +62,6 @@ class TFLiteIntentClassifier {
     'paisa': 23,
     'lena': 24,
     'kharcha': 25,
-    'aaj': 26,
     'expenses': 27,
     'kharchay': 28,
     'munafa': 29,

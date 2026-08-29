@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/utils/currency_formatter.dart';
 import 'committee_members_tab.dart';
 import 'committee_installments_tab.dart';
 import 'committee_draws_tab.dart';
@@ -17,6 +18,7 @@ class CommitteeDetailScreen extends StatefulWidget {
 class _CommitteeDetailScreenState extends State<CommitteeDetailScreen> {
   double _totalCollected = 0;
   double _totalDrawn = 0;
+  Map<String, dynamic>? _company;
   bool _loading = true;
 
   int get _committeeId => widget.committee['id'] as int;
@@ -32,10 +34,13 @@ class _CommitteeDetailScreenState extends State<CommitteeDetailScreen> {
     final installments =
         await DBHelper.instance.getCommitteeInstallments(_committeeId);
     final draws = await DBHelper.instance.getCommitteeDraws(_committeeId);
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
+    if (!mounted) return;
     setState(() {
       _totalCollected =
           installments.fold(0.0, (sum, i) => sum + (i['amount'] as num));
       _totalDrawn = draws.fold(0.0, (sum, d) => sum + (d['amount'] as num));
+      _company = company;
       _loading = false;
     });
   }
@@ -113,7 +118,7 @@ class _CommitteeDetailScreenState extends State<CommitteeDetailScreen> {
       children: [
         Text(label, style: const TextStyle(fontSize: 11)),
         const SizedBox(height: 2),
-        Text('Rs. ${value.toStringAsFixed(0)}',
+        Text(CurrencyFormatter.formatFromCompany(value, _company, decimalPlaces: 0),
             style: TextStyle(
                 fontWeight: FontWeight.bold, color: color, fontSize: 14)),
       ],

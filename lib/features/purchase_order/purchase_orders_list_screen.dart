@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/utils/currency_formatter.dart';
 import 'new_purchase_order_screen.dart';
 import 'purchase_order_detail_screen.dart';
 
@@ -14,6 +15,7 @@ class PurchaseOrdersListScreen extends StatefulWidget {
 
 class _PurchaseOrdersListScreenState extends State<PurchaseOrdersListScreen> {
   List<Map<String, dynamic>> _orders = [];
+  Map<String, dynamic>? _company;
   bool _loading = true;
 
   @override
@@ -25,8 +27,11 @@ class _PurchaseOrdersListScreenState extends State<PurchaseOrdersListScreen> {
   Future<void> _load() async {
     setState(() => _loading = true);
     final rows = await DBHelper.instance.getPurchaseOrders(widget.companyId);
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
+    if (!mounted) return;
     setState(() {
       _orders = rows;
+      _company = company;
       _loading = false;
     });
   }
@@ -108,7 +113,7 @@ class _PurchaseOrdersListScreenState extends State<PurchaseOrdersListScreen> {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                  'Rs. ${(po['total_amount'] as num).toStringAsFixed(0)}',
+                                  CurrencyFormatter.formatFromCompany(po['total_amount'] as num, _company, decimalPlaces: 0),
                                   style: const TextStyle(
                                       fontWeight: FontWeight.bold)),
                               Text(

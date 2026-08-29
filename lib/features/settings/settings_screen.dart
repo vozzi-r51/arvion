@@ -12,7 +12,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../core/auth/auth_service.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/theme/bizmanager_brand.dart';
 import '../../core/widgets/bizmanager_logo.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/backup/backup_service.dart';
@@ -39,7 +38,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:intl/intl.dart';
 import '../../core/templates/template_messaging.dart';
-import '../../core/templates/business_templates.dart';
 import '../../core/business_types/business_type_catalog.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -514,7 +512,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               .swallow(e, module: 'Company', action: 'decode_template_family');
         }
 
-        final template = BusinessTemplates.getByFamily(templateFamily);
         final enabledFeatures =
             TemplateMessaging.getEnabledFeatures(templateFamily);
         final categoryIcon = _getCategoryIcon(templateFamily);

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/export/csv_export_service.dart';
+import '../../core/utils/currency_formatter.dart';
 import '../../core/export/pdf_report_service.dart';
 import 'package:printing/printing.dart';
 
@@ -156,7 +157,7 @@ class _CustomerReportScreenState extends State<CustomerReportScreen> {
         .map((c) => [
               c['name'].toString(),
               c['mobile']?.toString() ?? '',
-              'Rs. ${c['current_balance']}',
+              CurrencyFormatter.formatFromCompany((c['current_balance'] as num?) ?? 0, company, decimalPlaces: 0),
             ])
         .toList();
 

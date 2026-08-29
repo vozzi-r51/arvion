@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/utils/currency_formatter.dart';
 
 class SalaryTab extends StatefulWidget {
   final int companyId;
@@ -12,6 +13,7 @@ class SalaryTab extends StatefulWidget {
 
 class _SalaryTabState extends State<SalaryTab> {
   List<Map<String, dynamic>> _payments = [];
+  Map<String, dynamic>? _company;
   bool _loading = true;
 
   int get _employeeId => widget.employee['id'] as int;
@@ -25,8 +27,11 @@ class _SalaryTabState extends State<SalaryTab> {
   Future<void> _load() async {
     setState(() => _loading = true);
     final rows = await DBHelper.instance.getSalaryPayments(_employeeId);
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
+    if (!mounted) return;
     setState(() {
       _payments = rows;
+      _company = company;
       _loading = false;
     });
   }
@@ -132,7 +137,7 @@ class _SalaryTabState extends State<SalaryTab> {
                 children: [
                   const Text('Monthly Salary', style: TextStyle(fontSize: 12)),
                   Text(
-                    'Rs. ${(widget.employee['monthly_salary'] as num).toStringAsFixed(0)}',
+                    CurrencyFormatter.formatFromCompany(widget.employee['monthly_salary'] as num, _company, decimalPlaces: 0),
                     style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -170,7 +175,7 @@ class _SalaryTabState extends State<SalaryTab> {
                         subtitle: Text(
                             (p['payment_date'] as String).substring(0, 10)),
                         trailing: Text(
-                          'Rs. ${(p['amount'] as num).toStringAsFixed(0)}',
+                          CurrencyFormatter.formatFromCompany(p['amount'] as num, _company, decimalPlaces: 0),
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),

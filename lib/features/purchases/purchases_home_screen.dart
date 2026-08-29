@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/audit/audit_logger.dart';
+import '../../core/utils/currency_formatter.dart';
 import 'new_purchase_screen.dart';
 import 'purchase_detail_screen.dart';
 import '../shell/main_shell.dart';
@@ -15,6 +16,7 @@ class PurchasesHomeScreen extends StatefulWidget {
 
 class _PurchasesHomeScreenState extends State<PurchasesHomeScreen> {
   List<Map<String, dynamic>> _purchases = [];
+  Map<String, dynamic>? _company;
   bool _loading = true;
   static const _pageSize = 50;
   bool _hasMore = true;
@@ -29,8 +31,11 @@ class _PurchasesHomeScreenState extends State<PurchasesHomeScreen> {
     setState(() => _loading = true);
     final rows = await DBHelper.instance
         .getPurchases(widget.companyId, limit: _pageSize, offset: 0);
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
+    if (!mounted) return;
     setState(() {
       _purchases = rows;
+      _company = company;
       _hasMore = rows.length == _pageSize;
       _loading = false;
     });
@@ -143,7 +148,7 @@ class _PurchasesHomeScreenState extends State<PurchasesHomeScreen> {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                'Rs. ${(purchase['total_amount'] as num).toStringAsFixed(0)}',
+                                CurrencyFormatter.formatFromCompany(purchase['total_amount'] as num, _company, decimalPlaces: 0),
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     decoration: isVoided

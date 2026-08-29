@@ -2251,18 +2251,7 @@ class DBHelper {
     return id;
   }
 
-  String _guessAccountType(String name) {
-    final n = name.toLowerCase();
-    if (n.contains('sale') || n.contains('income')) return 'Revenue';
-    if (n.contains('cost') || n.contains('expense') || n.contains('wage'))
-      return 'Expense';
-    if (n.contains('asset') ||
-        n.contains('inventory') ||
-        n.contains('cash') ||
-        n.contains('bank')) return 'Asset';
-    if (n.contains('payable') || n.contains('loan')) return 'Liability';
-    return 'Equity';
-  }
+
 
   Future<List<Map<String, dynamic>>> getAllCompanies() async {
     final db = await database;

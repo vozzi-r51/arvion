@@ -1,3 +1,5 @@
+import '../utils/currency_formatter.dart';
+
 /// Pakistan Mobile Wallet Payment Integration (JazzCash, EasyPaisa, Raast, NayaPay, SadaPay).
 class MobileWalletPaymentService {
   MobileWalletPaymentService._();
@@ -29,8 +31,9 @@ class MobileWalletPaymentService {
     required String tillCodeOrMobile,
     required double amount,
     required String invoiceNo,
+    Map<String, dynamic>? company,
   }) {
-    return 'JazzCash Mobile Account: *786# dial karein -> Pay Till / Merchant -> Code: $tillCodeOrMobile -> Amount: Rs. ${amount.toStringAsFixed(0)} -> Ref: $invoiceNo';
+    return 'JazzCash Mobile Account: *786# dial karein -> Pay Till / Merchant -> Code: $tillCodeOrMobile -> Amount: ${CurrencyFormatter.formatFromCompany(amount, company, decimalPlaces: 0)} -> Ref: $invoiceNo';
   }
 
   /// Generates EasyPaisa Merchant Payment Instructions.
@@ -38,7 +41,8 @@ class MobileWalletPaymentService {
     required String tillNumber,
     required double amount,
     required String invoiceNo,
+    Map<String, dynamic>? company,
   }) {
-    return 'EasyPaisa App kholain -> QR / Merchant Pay -> Till ID: $tillNumber -> Amount: Rs. ${amount.toStringAsFixed(0)} -> Ref: $invoiceNo';
+    return 'EasyPaisa App kholain -> QR / Merchant Pay -> Till ID: $tillNumber -> Amount: ${CurrencyFormatter.formatFromCompany(amount, company, decimalPlaces: 0)} -> Ref: $invoiceNo';
   }
 }

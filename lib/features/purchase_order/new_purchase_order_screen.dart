@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/utils/currency_formatter.dart';
 
 class _PoCartItem {
   final int productId;
@@ -30,6 +31,7 @@ class NewPurchaseOrderScreen extends StatefulWidget {
 class _NewPurchaseOrderScreenState extends State<NewPurchaseOrderScreen> {
   final List<_PoCartItem> _cart = [];
   List<Map<String, dynamic>> _suppliers = [];
+  Map<String, dynamic>? _company;
   int? _selectedSupplierId;
   final _notesCtrl = TextEditingController();
   bool _saving = false;
@@ -54,7 +56,12 @@ class _NewPurchaseOrderScreenState extends State<NewPurchaseOrderScreen> {
 
   Future<void> _loadSuppliers() async {
     final rows = await DBHelper.instance.getSuppliers(widget.companyId);
-    setState(() => _suppliers = rows);
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
+    if (!mounted) return;
+    setState(() {
+      _suppliers = rows;
+      _company = company;
+    });
   }
 
   Future<void> _openProductPicker() async {
@@ -177,7 +184,7 @@ class _NewPurchaseOrderScreenState extends State<NewPurchaseOrderScreen> {
                                         style: const TextStyle(
                                             fontWeight: FontWeight.bold)),
                                     Text(
-                                        'Rs. ${item.unitCost.toStringAsFixed(0)} each',
+                                        '${CurrencyFormatter.formatFromCompany(item.unitCost, _company, decimalPlaces: 0)} each',
                                         style: const TextStyle(fontSize: 12)),
                                   ],
                                 ),
@@ -197,7 +204,7 @@ class _NewPurchaseOrderScreenState extends State<NewPurchaseOrderScreen> {
                               SizedBox(
                                 width: 70,
                                 child: Text(
-                                  'Rs. ${item.total.toStringAsFixed(0)}',
+                                  CurrencyFormatter.formatFromCompany(item.total, _company, decimalPlaces: 0),
                                   textAlign: TextAlign.right,
                                   style: const TextStyle(
                                       fontWeight: FontWeight.bold),
@@ -258,7 +265,7 @@ class _NewPurchaseOrderScreenState extends State<NewPurchaseOrderScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text('Total', style: TextStyle(fontSize: 16)),
-                    Text('Rs. ${_total.toStringAsFixed(0)}',
+                    Text(CurrencyFormatter.formatFromCompany(_total, _company, decimalPlaces: 0),
                         style: const TextStyle(
                             fontSize: 20, fontWeight: FontWeight.bold)),
                   ],

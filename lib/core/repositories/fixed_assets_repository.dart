@@ -1,5 +1,4 @@
 import 'base_repository.dart';
-import '../events/domain_event_bus.dart';
 import '../di/service_locator.dart';
 import 'accounting_repository.dart';
 

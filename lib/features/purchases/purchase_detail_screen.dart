@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/utils/currency_formatter.dart';
 import '../returns/new_purchase_return_screen.dart';
 
 class PurchaseDetailScreen extends StatefulWidget {
@@ -12,6 +13,7 @@ class PurchaseDetailScreen extends StatefulWidget {
 
 class _PurchaseDetailScreenState extends State<PurchaseDetailScreen> {
   List<Map<String, dynamic>> _items = [];
+  Map<String, dynamic>? _company;
   bool _loading = true;
 
   @override
@@ -23,8 +25,14 @@ class _PurchaseDetailScreenState extends State<PurchaseDetailScreen> {
   Future<void> _load() async {
     final items =
         await DBHelper.instance.getPurchaseItems(widget.purchase['id'] as int);
+    final companyId = widget.purchase['company_id'] as int?;
+    final company = companyId != null
+        ? await DBHelper.instance.getCompanyById(companyId)
+        : null;
+    if (!mounted) return;
     setState(() {
       _items = items;
+      _company = company;
       _loading = false;
     });
   }
@@ -66,9 +74,9 @@ class _PurchaseDetailScreenState extends State<PurchaseDetailScreen> {
                       child: ListTile(
                         title: Text(item['product_name'] as String),
                         subtitle: Text(
-                            '${item['quantity']} x Rs. ${item['unit_cost']}'),
+                            '${item['quantity']} x ${CurrencyFormatter.formatFromCompany((item['unit_cost'] as num?) ?? 0, _company, decimalPlaces: 0)}'),
                         trailing: Text(
-                            'Rs. ${(item['total'] as num).toStringAsFixed(0)}'),
+                            CurrencyFormatter.formatFromCompany(item['total'] as num, _company, decimalPlaces: 0)),
                       ),
                     )),
                 const Divider(height: 32),
@@ -114,7 +122,7 @@ class _PurchaseDetailScreenState extends State<PurchaseDetailScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: style),
-          Text('Rs. ${value.toStringAsFixed(0)}', style: style),
+          Text(CurrencyFormatter.formatFromCompany(value, _company, decimalPlaces: 0), style: style),
         ],
       ),
     );

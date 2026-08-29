@@ -9,8 +9,6 @@ import '../../core/import/parsers/quickbooks_import_parser.dart';
 import '../../core/import/parsers/tally_import_parser.dart';
 import '../../core/import/parsers/vyapar_import_parser.dart';
 import '../../core/import/parsers/generic_csv_excel_parser.dart';
-import '../../core/theme/design_tokens.dart';
-import '../../core/widgets/app_empty_state.dart';
 
 class UniversalImportScreen extends StatefulWidget {
   final int companyId;
@@ -31,9 +29,7 @@ class _UniversalImportScreenState extends State<UniversalImportScreen> {
   ImportSource _selectedSource = ImportSource.quickbooks;
   late ImportEntityType _selectedEntityType;
 
-  String? _filePath;
   String? _fileName;
-  List<String> _headers = [];
   List<ColumnMapping> _mappings = [];
   List<ParsedRow> _parsedRows = [];
 
@@ -68,7 +64,6 @@ class _UniversalImportScreenState extends State<UniversalImportScreen> {
         return;
       }
 
-      _filePath = path;
       _fileName = name;
 
       Map<String, dynamic> parseResult;
@@ -107,7 +102,6 @@ class _UniversalImportScreenState extends State<UniversalImportScreen> {
           break;
       }
 
-      _headers = List<String>.from(parseResult['headers']);
       _mappings = List<ColumnMapping>.from(parseResult['mappings']);
       final List<Map<String, String>> rawRows =
           List<Map<String, String>>.from(parseResult['rows']);

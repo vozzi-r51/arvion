@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/audit/audit_logger.dart';
+import '../../core/utils/currency_formatter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class QuotationDetailScreen extends StatefulWidget {
@@ -13,6 +14,7 @@ class QuotationDetailScreen extends StatefulWidget {
 
 class _QuotationDetailScreenState extends State<QuotationDetailScreen> {
   List<Map<String, dynamic>> _items = [];
+  Map<String, dynamic>? _company;
   bool _loading = true;
   bool _converting = false;
 
@@ -25,8 +27,14 @@ class _QuotationDetailScreenState extends State<QuotationDetailScreen> {
   Future<void> _loadItems() async {
     final rows = await DBHelper.instance
         .getQuotationItems(widget.quotation['id'] as int);
+    final companyId = widget.quotation['company_id'] as int?;
+    final company = companyId != null
+        ? await DBHelper.instance.getCompanyById(companyId)
+        : null;
+    if (!mounted) return;
     setState(() {
       _items = rows;
+      _company = company;
       _loading = false;
     });
   }
@@ -189,9 +197,9 @@ class _QuotationDetailScreenState extends State<QuotationDetailScreen> {
                       ..._items.map((it) => ListTile(
                             title: Text(it['product_name']),
                             subtitle: Text(
-                                '${it['quantity']} x Rs. ${it['unit_price']}'),
+                                '${it['quantity']} x ${CurrencyFormatter.formatFromCompany((it['unit_price'] as num?) ?? 0, _company, decimalPlaces: 0)}'),
                             trailing: Text(
-                                'Rs. ${(it['total'] as num).toStringAsFixed(0)}'),
+                                CurrencyFormatter.formatFromCompany(it['total'] as num, _company, decimalPlaces: 0)),
                           )),
                       const Divider(),
                       _summaryRow('Subtotal', q['subtotal']),
@@ -236,7 +244,7 @@ class _QuotationDetailScreenState extends State<QuotationDetailScreen> {
           Text(label,
               style: TextStyle(
                   fontWeight: bold ? FontWeight.bold : FontWeight.normal)),
-          Text('Rs. ${(value as num).toStringAsFixed(0)}',
+          Text(CurrencyFormatter.formatFromCompany(value as num, _company, decimalPlaces: 0),
               style: TextStyle(
                   fontWeight: bold ? FontWeight.bold : FontWeight.normal,
                   fontSize: bold ? 18 : 14)),

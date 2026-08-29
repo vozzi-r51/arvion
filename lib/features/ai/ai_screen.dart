@@ -17,7 +17,7 @@ class _ChatMessage {
   final DateTime time;
   final AIIntent? pendingIntent;
   final Map<String, dynamic>? params;
-  bool isActionTaken;
+  bool isActionTaken = false;
 
   _ChatMessage({
     required this.text,
@@ -25,7 +25,6 @@ class _ChatMessage {
     required this.time,
     this.pendingIntent,
     this.params,
-    this.isActionTaken = false,
   });
 }
 

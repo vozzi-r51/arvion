@@ -17,7 +17,7 @@ class _ReturnLine {
   final double unitPrice;
   final double maxQty;
   double returnQty;
-  bool selected;
+  bool selected = false;
 
   _ReturnLine({
     required this.productId,
@@ -25,7 +25,6 @@ class _ReturnLine {
     required this.unitPrice,
     required this.maxQty,
     required this.returnQty,
-    this.selected = false,
   });
 
   double get total => selected ? unitPrice * returnQty : 0;

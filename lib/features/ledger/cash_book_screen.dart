@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/utils/currency_formatter.dart';
 
 class CashBookScreen extends StatefulWidget {
   final int companyId;
@@ -11,6 +12,7 @@ class CashBookScreen extends StatefulWidget {
 
 class _CashBookScreenState extends State<CashBookScreen> {
   List<Map<String, dynamic>> _transactions = [];
+  Map<String, dynamic>? _company;
   bool _loading = true;
 
   double get _cashIn => _transactions
@@ -29,8 +31,11 @@ class _CashBookScreenState extends State<CashBookScreen> {
 
   Future<void> _load() async {
     final rows = await DBHelper.instance.getCashTransactions(widget.companyId);
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
+    if (!mounted) return;
     setState(() {
       _transactions = rows;
+      _company = company;
       _loading = false;
     });
   }
@@ -218,7 +223,7 @@ class _CashBookScreenState extends State<CashBookScreen> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text(
-                                      'Rs. ${(t['amount'] as num).toStringAsFixed(0)}',
+                                      CurrencyFormatter.formatFromCompany(t['amount'] as num, _company, decimalPlaces: 0),
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         color: isIn ? Colors.green : Colors.red,

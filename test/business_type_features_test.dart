@@ -119,7 +119,7 @@ void main() {
 
       final total = quantity * unitPrice;
 
-      expect(availableUoms, contains('Meter'));
+      expect(availableUoms, contains(selectedUom));
       expect(total, equals(1250.0));
     });
 

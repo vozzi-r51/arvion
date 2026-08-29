@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/auth/auth_service.dart';
 import '../../core/auth/rbac_service.dart';
-import '../../core/theme/bizmanager_brand.dart';
 import '../../core/widgets/bizmanager_logo.dart';
 import '../company/company_selection_screen.dart';
 import '../shell/main_shell.dart';

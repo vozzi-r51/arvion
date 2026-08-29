@@ -1,5 +1,3 @@
-import 'package:intl/intl.dart';
-
 /// Locale-aware date formatter that respects company date_format settings.
 /// Supports: DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD
 class DateFormatter {

@@ -1,12 +1,14 @@
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'currency_formatter.dart';
 
 class BarcodePdfService {
   BarcodePdfService._();
 
   static Future<void> printBarcodeLabels({
     required List<Map<String, dynamic>> products,
+    Map<String, dynamic>? company,
   }) async {
     final doc = pw.Document();
 
@@ -48,7 +50,7 @@ class BarcodePdfService {
                         textStyle: const pw.TextStyle(fontSize: 8),
                       ),
                       pw.SizedBox(height: 5),
-                      pw.Text('Rs. $price',
+                      pw.Text(CurrencyFormatter.formatFromCompany(double.tryParse(price) ?? 0, company, decimalPlaces: 0),
                           style: const pw.TextStyle(fontSize: 10)),
                     ],
                   ),

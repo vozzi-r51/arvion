@@ -4,6 +4,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../../core/database/db_helper.dart';
 import '../../core/widgets/signature_pad.dart';
+import '../../core/utils/currency_formatter.dart';
 
 class NewDeliveryChallanScreen extends StatefulWidget {
   final int companyId;
@@ -196,6 +197,7 @@ class _SalePickerSheet extends StatefulWidget {
 class _SalePickerSheetState extends State<_SalePickerSheet> {
   List<Map<String, dynamic>> _sales = [];
   List<Map<String, dynamic>> _filtered = [];
+  Map<String, dynamic>? _company;
   bool _loading = true;
 
   @override
@@ -206,9 +208,12 @@ class _SalePickerSheetState extends State<_SalePickerSheet> {
 
   Future<void> _load() async {
     final rows = await DBHelper.instance.getSales(widget.companyId);
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
+    if (!mounted) return;
     setState(() {
       _sales = rows;
       _filtered = rows;
+      _company = company;
       _loading = false;
     });
   }
@@ -259,7 +264,7 @@ class _SalePickerSheetState extends State<_SalePickerSheet> {
                             return ListTile(
                               title: Text(s['invoice_number'] as String),
                               subtitle: Text(
-                                  '${s['customer_name'] ?? 'Walk-in Customer'}  •  Rs. ${s['total_amount']}'),
+                                  '${s['customer_name'] ?? 'Walk-in Customer'}  •  ${CurrencyFormatter.formatFromCompany((s['total_amount'] as num?) ?? 0, _company, decimalPlaces: 0)}'),
                               onTap: () => Navigator.of(context).pop(s),
                             );
                           },

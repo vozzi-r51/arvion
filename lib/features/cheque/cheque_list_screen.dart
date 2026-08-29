@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/utils/currency_formatter.dart';
 
 class ChequeListScreen extends StatefulWidget {
   final int companyId;
@@ -13,6 +14,7 @@ class ChequeListScreen extends StatefulWidget {
 
 class _ChequeListScreenState extends State<ChequeListScreen> {
   List<Map<String, dynamic>> _cheques = [];
+  Map<String, dynamic>? _company;
   bool _loading = true;
 
   @override
@@ -25,8 +27,11 @@ class _ChequeListScreenState extends State<ChequeListScreen> {
     setState(() => _loading = true);
     final rows =
         await DBHelper.instance.getCheques(widget.companyId, type: widget.type);
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
+    if (!mounted) return;
     setState(() {
       _cheques = rows;
+      _company = company;
       _loading = false;
     });
   }
@@ -254,7 +259,7 @@ class _ChequeListScreenState extends State<ChequeListScreen> {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                                'Rs. ${(c['amount'] as num).toStringAsFixed(0)}',
+                                CurrencyFormatter.formatFromCompany(c['amount'] as num, _company, decimalPlaces: 0),
                                 style: const TextStyle(
                                     fontWeight: FontWeight.bold)),
                             GestureDetector(

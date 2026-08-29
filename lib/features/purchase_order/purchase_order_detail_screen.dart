@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/utils/currency_formatter.dart';
 
 class PurchaseOrderDetailScreen extends StatefulWidget {
   final Map<String, dynamic> po;
@@ -12,6 +13,7 @@ class PurchaseOrderDetailScreen extends StatefulWidget {
 
 class _PurchaseOrderDetailScreenState extends State<PurchaseOrderDetailScreen> {
   List<Map<String, dynamic>> _items = [];
+  Map<String, dynamic>? _company;
   late String _status;
   bool _loading = true;
 
@@ -27,8 +29,14 @@ class _PurchaseOrderDetailScreenState extends State<PurchaseOrderDetailScreen> {
   Future<void> _load() async {
     final items =
         await DBHelper.instance.getPurchaseOrderItems(widget.po['id'] as int);
+    final companyId = widget.po['company_id'] as int?;
+    final company = companyId != null
+        ? await DBHelper.instance.getCompanyById(companyId)
+        : null;
+    if (!mounted) return;
     setState(() {
       _items = items;
+      _company = company;
       _loading = false;
     });
   }
@@ -111,9 +119,9 @@ class _PurchaseOrderDetailScreenState extends State<PurchaseOrderDetailScreen> {
                       child: ListTile(
                         title: Text(it['product_name'] as String),
                         subtitle:
-                            Text('${it['quantity']} x Rs. ${it['unit_cost']}'),
+                            Text('${it['quantity']} x ${CurrencyFormatter.formatFromCompany((it['unit_cost'] as num?) ?? 0, _company, decimalPlaces: 0)}'),
                         trailing: Text(
-                            'Rs. ${(it['total'] as num).toStringAsFixed(0)}'),
+                            CurrencyFormatter.formatFromCompany(it['total'] as num, _company, decimalPlaces: 0)),
                       ),
                     )),
                 const Divider(height: 32),
@@ -124,7 +132,7 @@ class _PurchaseOrderDetailScreenState extends State<PurchaseOrderDetailScreen> {
                         style: TextStyle(
                             fontSize: 16, fontWeight: FontWeight.bold)),
                     Text(
-                        'Rs. ${(po['total_amount'] as num).toStringAsFixed(0)}',
+                        CurrencyFormatter.formatFromCompany(po['total_amount'] as num, _company, decimalPlaces: 0),
                         style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold)),
                   ],

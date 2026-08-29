@@ -77,6 +77,30 @@ class CurrencyFormatter {
     return double.tryParse(numStr) ?? 0.0;
   }
 
+  /// Format a number using a company record (e.g. from DBHelper.getActiveCompany).
+  /// Reads currency_code, currency_symbol, decimal_places, thousand_separator,
+  /// decimal_separator and locale_language from the map. Falls back to PKR / Rs.
+  /// if the map is null or missing keys.
+  static String formatFromCompany(
+    num amount,
+    Map<String, dynamic>? company, {
+    int decimalPlaces = 0,
+  }) {
+    if (company == null) {
+      return format(amount, currencyCode: 'PKR', symbol: 'Rs.', decimalPlaces: decimalPlaces);
+    }
+    return format(
+      amount,
+      currencyCode: (company['currency_code'] as String?) ?? 'PKR',
+      symbol: (company['currency_symbol'] as String?) ?? 'Rs.',
+      decimalPlaces: (company['decimal_places'] as int?) ?? decimalPlaces,
+      thousandSeparator:
+          (company['thousand_separator'] as String?) ?? ',',
+      decimalSeparator: (company['decimal_separator'] as String?) ?? '.',
+      locale: (company['locale_language'] as String?) ?? 'en',
+    );
+  }
+
   /// Format without symbol (numeric value only with separators)
   static String formatNumber(
     num amount, {

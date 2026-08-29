@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/utils/currency_formatter.dart';
 
 class ProductionOrderFormScreen extends StatefulWidget {
   final int companyId;
@@ -19,6 +20,7 @@ class _ProductionOrderFormScreenState extends State<ProductionOrderFormScreen> {
   int? _selectedBomId;
   Map<String, dynamic>? _selectedBom;
   List<Map<String, dynamic>> _bomItems = [];
+  Map<String, dynamic>? _company;
 
   bool _loading = true;
   bool _saving = false;
@@ -31,8 +33,11 @@ class _ProductionOrderFormScreenState extends State<ProductionOrderFormScreen> {
 
   Future<void> _loadBoms() async {
     final rows = await DBHelper.instance.getBoms(widget.companyId);
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
+    if (!mounted) return;
     setState(() {
       _boms = rows;
+      _company = company;
       _loading = false;
     });
   }
@@ -198,7 +203,7 @@ class _ProductionOrderFormScreenState extends State<ProductionOrderFormScreen> {
                       subtitle: Text(
                           'Required: ${reqQty.toStringAsFixed(2)} ${item['unit']}'),
                       trailing: Text(
-                          'Rs. ${(reqQty * (item['unit_cost'] as num).toDouble()).toStringAsFixed(0)}'),
+                          CurrencyFormatter.formatFromCompany(reqQty * (item['unit_cost'] as num).toDouble(), _company, decimalPlaces: 0)),
                     );
                   }).toList(),
                 ],

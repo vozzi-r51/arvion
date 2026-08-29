@@ -61,6 +61,7 @@ void main() {
       'rate': 17.0,
       'is_default': 1,
     });
+    expect(taxId, isPositive);
 
     final taxCodes = await db.getTaxCodes(companyId);
     expect(taxCodes, hasLength(1));

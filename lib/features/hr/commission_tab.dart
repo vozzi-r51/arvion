@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/utils/currency_formatter.dart';
 
 class CommissionTab extends StatefulWidget {
   final int companyId;
@@ -13,6 +14,7 @@ class CommissionTab extends StatefulWidget {
 
 class _CommissionTabState extends State<CommissionTab> {
   List<Map<String, dynamic>> _commissions = [];
+  Map<String, dynamic>? _company;
   bool _loading = true;
 
   double get _total =>
@@ -27,8 +29,11 @@ class _CommissionTabState extends State<CommissionTab> {
   Future<void> _load() async {
     setState(() => _loading = true);
     final rows = await DBHelper.instance.getCommissions(widget.employeeId);
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
+    if (!mounted) return;
     setState(() {
       _commissions = rows;
+      _company = company;
       _loading = false;
     });
   }
@@ -123,7 +128,7 @@ class _CommissionTabState extends State<CommissionTab> {
                   const Text('Total Commission',
                       style: TextStyle(fontSize: 12)),
                   Text(
-                    'Rs. ${_total.toStringAsFixed(0)}',
+                    CurrencyFormatter.formatFromCompany(_total, _company, decimalPlaces: 0),
                     style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -158,7 +163,7 @@ class _CommissionTabState extends State<CommissionTab> {
                               color: Colors.white, size: 18),
                         ),
                         title: Text(
-                            'Rs. ${(c['amount'] as num).toStringAsFixed(0)}'),
+                            CurrencyFormatter.formatFromCompany(c['amount'] as num, _company, decimalPlaces: 0)),
                         subtitle: Text(
                             '${(c['commission_date'] as String).substring(0, 10)}  •  ${c['notes'] ?? ''}'),
                       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/database/db_helper.dart';
+import '../../core/utils/currency_formatter.dart';
 
 class AdvanceTab extends StatefulWidget {
   final int companyId;
@@ -13,6 +14,7 @@ class AdvanceTab extends StatefulWidget {
 
 class _AdvanceTabState extends State<AdvanceTab> {
   List<Map<String, dynamic>> _advances = [];
+  Map<String, dynamic>? _company;
   bool _loading = true;
 
   double get _totalPending => _advances.fold(
@@ -29,8 +31,11 @@ class _AdvanceTabState extends State<AdvanceTab> {
   Future<void> _load() async {
     setState(() => _loading = true);
     final rows = await DBHelper.instance.getAdvances(widget.employeeId);
+    final company = await DBHelper.instance.getCompanyById(widget.companyId);
+    if (!mounted) return;
     setState(() {
       _advances = rows;
+      _company = company;
       _loading = false;
     });
   }
@@ -169,7 +174,7 @@ class _AdvanceTabState extends State<AdvanceTab> {
                   const Text('Total Pending Advance',
                       style: TextStyle(fontSize: 12)),
                   Text(
-                    'Rs. ${_totalPending.toStringAsFixed(0)}',
+                    CurrencyFormatter.formatFromCompany(_totalPending, _company, decimalPlaces: 0),
                     style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -212,9 +217,9 @@ class _AdvanceTabState extends State<AdvanceTab> {
                           ),
                         ),
                         title: Text(
-                            'Rs. ${(a['amount'] as num).toStringAsFixed(0)}'),
+                            CurrencyFormatter.formatFromCompany(a['amount'] as num, _company, decimalPlaces: 0)),
                         subtitle: Text(
-                            '${(a['advance_date'] as String).substring(0, 10)}  •  ${a['reason'] ?? ''}\nPending: Rs. ${pending.toStringAsFixed(0)}'),
+                            '${(a['advance_date'] as String).substring(0, 10)}  •  ${a['reason'] ?? ''}\nPending: ${CurrencyFormatter.formatFromCompany(pending, _company, decimalPlaces: 0)}'),
                         isThreeLine: true,
                         trailing: isPending
                             ? TextButton(

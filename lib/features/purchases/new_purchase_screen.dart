@@ -4,6 +4,7 @@ import '../../core/di/service_locator.dart';
 import '../../core/services/purchase_service.dart';
 import '../../core/scanner/barcode_scanner_screen.dart';
 import '../../core/audit/audit_logger.dart';
+import '../../core/utils/currency_formatter.dart';
 
 class _PurchaseCartItem {
   final int productId;
@@ -15,7 +16,7 @@ class _PurchaseCartItem {
   String baseUnit;
   String? secondaryUnit;
   double conversionFactor;
-  bool isSecondary;
+  bool isSecondary = false;
 
   late final TextEditingController costController;
   late final TextEditingController qtyController;
@@ -29,7 +30,6 @@ class _PurchaseCartItem {
     this.baseUnit = 'Pc',
     this.secondaryUnit,
     this.conversionFactor = 1,
-    this.isSecondary = false,
   }) {
     costController =
         TextEditingController(text: displayCost.toStringAsFixed(0));
@@ -70,6 +70,7 @@ class NewPurchaseScreen extends StatefulWidget {
 class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
   final List<_PurchaseCartItem> _cart = [];
   List<Map<String, dynamic>> _suppliers = [];
+  Map<String, dynamic>? _company;
   int? _selectedSupplierId;
   String _purchaseType = 'cash'; // 'cash' or 'due'
   DateTime _purchaseDate = DateTime.now();
@@ -87,8 +88,12 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
   Future<void> _loadSuppliers() async {
     try {
       final rows = await DBHelper.instance.getSuppliers(widget.companyId);
+      final company = await DBHelper.instance.getCompanyById(widget.companyId);
       if (!mounted) return;
-      setState(() => _suppliers = rows);
+      setState(() {
+        _suppliers = rows;
+        _company = company;
+      });
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -410,7 +415,7 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
                                     child: Padding(
                                       padding: const EdgeInsets.only(top: 12.0),
                                       child: Text(
-                                        'Rs. ${item.total.toStringAsFixed(0)}',
+                                        CurrencyFormatter.formatFromCompany(item.total, _company, decimalPlaces: 0),
                                         textAlign: TextAlign.right,
                                         style: const TextStyle(
                                             fontWeight: FontWeight.bold),
@@ -525,7 +530,7 @@ class _NewPurchaseScreenState extends State<NewPurchaseScreen> {
                   children: [
                     const Text('Total', style: TextStyle(fontSize: 16)),
                     Text(
-                      'Rs. ${_grandTotal.toStringAsFixed(0)}',
+                      CurrencyFormatter.formatFromCompany(_grandTotal, _company, decimalPlaces: 0),
                       style: const TextStyle(
                           fontSize: 20, fontWeight: FontWeight.bold),
                     ),

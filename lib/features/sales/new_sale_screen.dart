@@ -23,7 +23,7 @@ class _CartItem {
   String baseUnit;
   String? secondaryUnit;
   double conversionFactor;
-  bool isSecondary;
+  bool isSecondary = false;
 
   String? promoLabel;
   double promoDiscount = 0;
@@ -46,7 +46,6 @@ class _CartItem {
     this.baseUnit = 'Pc',
     this.secondaryUnit,
     this.conversionFactor = 1,
-    this.isSecondary = false,
   }) {
     priceController =
         TextEditingController(text: displayPrice.toStringAsFixed(0));
@@ -99,7 +98,6 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
   double _pointValue = 1.0;
   String _currency = 'Rs.';
 
-  Map<String, dynamic>? _company;
   String? _templateFamily;
   String? _selectedTable; // e.g. "Table 4" or "Takeaway"
 
@@ -127,7 +125,6 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
       if (!mounted) return;
       setState(() {
         _customers = rows;
-        _company = company;
         _templateFamily = company?['template_family'] as String?;
         _pointValue = prefs.getDouble('loyalty_point_value') ?? 1.0;
         if (company != null) {
