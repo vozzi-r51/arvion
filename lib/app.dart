@@ -7,6 +7,8 @@ import 'core/auth/auth_service.dart';
 import 'core/services/error_reporter.dart';
 import 'core/widgets/bizmanager_logo.dart';
 import 'core/providers/branding_provider.dart';
+import 'core/providers/localization_provider.dart';
+import 'l10n/app_localizations.dart';
 import 'features/auth/pin_setup_screen.dart';
 import 'features/auth/pin_login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -95,6 +97,9 @@ class _BizManagerAppState extends State<BizManagerApp>
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
+    // Phase 58: reactively read the locale so a Settings change rebuilds
+    // MaterialApp with the new `locale` immediately.
+    final localizationProvider = context.watch<LocalizationProvider>();
 
     return MaterialApp(
       navigatorKey: appNavigatorKey,
@@ -103,7 +108,9 @@ class _BizManagerAppState extends State<BizManagerApp>
       theme: AppTheme.lightThemeWithPrimary(themeProvider.primaryColor),
       darkTheme: AppTheme.darkThemeWithPrimary(themeProvider.primaryColor),
       themeMode: themeProvider.themeMode,
+      locale: localizationProvider.appLocale,
       localizationsDelegates: const [
+        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,

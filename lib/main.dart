@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:workmanager/workmanager.dart';
 import 'app.dart';
 import 'core/di/service_locator.dart';
 import 'core/database/bizmanager_db_migration.dart';
@@ -10,6 +11,8 @@ import 'core/services/error_reporter.dart';
 import 'core/theme/app_theme.dart';
 import 'core/providers/terminology_provider.dart';
 import 'core/providers/branding_provider.dart';
+import 'core/providers/localization_provider.dart';
+import 'core/backup/auto_sync_scheduler.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,6 +56,22 @@ Future<void> main() async {
   final bool crashReportingEnabled =
       prefs.getBool('crash_reporting_enabled') ?? true;
 
+  // Phase 58: initialize workmanager for cloud auto-sync background
+  // tasks. `initialize` must be called before `runApp` so the platform
+  // side registers our `autoSyncDispatcher` callback. We catch failures
+  // so a misbehaving workmanager (e.g. on a fresh emulator) doesn't
+  // block the rest of the app from starting.
+  try {
+    await Workmanager().initialize(
+      autoSyncDispatcher,
+      isInDebugMode: false,
+    );
+    await AutoSyncScheduler.instance.ensureRegistered();
+  } catch (_) {
+    // Auto-sync is best-effort. If the OS scheduler is unavailable the
+    // app still works; users just lose the background trigger.
+  }
+
   // Disable runtime fetching of fonts to ensure 100% offline operation.
   GoogleFonts.config.allowRuntimeFetching = false;
 
@@ -77,6 +96,12 @@ void _runApp() {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => TerminologyProvider()),
         ChangeNotifierProvider(create: (_) => BrandingProvider()),
+        // Phase 58: LocalizationProvider also drives MaterialApp.locale.
+        // It is created here and init() is awaited before runApp so the
+        // first frame already uses the persisted language.
+        ChangeNotifierProvider(
+          create: (_) => LocalizationProvider()..init(),
+        ),
       ],
       child: const BizManagerApp(),
     ),

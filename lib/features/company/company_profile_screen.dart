@@ -10,6 +10,7 @@ import '../../core/services/error_reporter.dart';
 import '../../core/utils/image_generator.dart';
 import '../../core/auth/auth_service.dart';
 import '../../core/theme/app_theme.dart';
+import '../settings/regional_settings_screen.dart';
 import 'company_selection_screen.dart';
 
 class CompanyProfileScreen extends StatefulWidget {
@@ -33,7 +34,10 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
   final _taxCtrl = TextEditingController(text: '0');
 
   String _businessType = 'Mixed';
-  String _currency = 'Rs.';
+  // Read-only display of the company's current currency. The actual
+  // currency symbol / code / decimals are owned by RegionalSettingsScreen
+  // (the single source of truth). We only show them here for visibility.
+  String _displayCurrency = 'PKR';
   Color _brandingColor = AppTheme.primaryBlue;
 
   final Map<String, bool> _modules = {
@@ -75,7 +79,10 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
       _detailsCtrl.text = c['company_details'] as String? ?? '';
       _taxCtrl.text = '${c['default_tax_percent'] ?? 0}';
       _businessType = c['business_type'] as String? ?? 'Mixed';
-      _currency = c['currency_symbol'] as String? ?? 'Rs.';
+      _displayCurrency =
+          '${c['currency_code'] as String? ?? 'PKR'} (${c['currency_symbol'] as String? ?? 'Rs.'})';
+      // Note: currency_symbol / currency_code / decimal_places / separators
+      // are owned by RegionalSettingsScreen now. We do NOT touch them here.
 
       if (c['branding_color'] != null) {
         _brandingColor = Color(c['branding_color'] as int);
@@ -152,7 +159,6 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
         'company_details': _detailsCtrl.text.trim(),
         'default_tax_percent': double.tryParse(_taxCtrl.text.trim()) ?? 0,
         'business_type': _businessType,
-        'currency_symbol': _currency,
         'branding_color': _brandingColor.value,
         'enabled_modules': jsonEncode(enabledModules),
         'logo_path': _logoPath,
@@ -437,19 +443,51 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                       ),
                     ),
                     const SizedBox(width: 10),
+                    // Phase 58: read-only currency summary. Editing the
+                    // currency belongs to RegionalSettingsScreen; we only
+                    // surface the current value here so the user is not
+                    // surprised that a change in this form does not stick.
                     Expanded(
-                      child: DropdownButtonFormField<String>(
-                        value: _currency,
-                        decoration:
-                            const InputDecoration(labelText: 'Currency'),
-                        items: ['Rs.', '\$', '€', '£', 'AED']
-                            .map((t) =>
-                                DropdownMenuItem(value: t, child: Text(t)))
-                            .toList(),
-                        onChanged: (v) => setState(() => _currency = v!),
+                      child: InputDecorator(
+                        decoration: const InputDecoration(
+                          labelText: 'Currency',
+                          suffixIcon: Icon(Icons.lock_outline, size: 18),
+                        ),
+                        child: Text(
+                          _displayCurrency,
+                          style: const TextStyle(fontWeight: FontWeight.w500),
+                        ),
                       ),
                     ),
                   ],
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    icon: const Icon(Icons.tune, size: 16),
+                    label: const Text('Change in Regional Settings'),
+                    onPressed: () async {
+                      final updated = await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => RegionalSettingsScreen(
+                            companyId: widget.companyId,
+                          ),
+                        ),
+                      );
+                      // If Regional Settings returned a flag indicating
+                      // something was changed, reload our display value.
+                      if (updated == true) {
+                        final c = await DBHelper.instance
+                            .getCompanyById(widget.companyId);
+                        if (c != null && mounted) {
+                          setState(() {
+                            _displayCurrency =
+                                '${c['currency_code'] as String? ?? 'PKR'} (${c['currency_symbol'] as String? ?? 'Rs.'})';
+                          });
+                        }
+                      }
+                    },
+                  ),
                 ),
                 const SizedBox(height: 20),
                 const Text('App Branding Color',

@@ -33,6 +33,21 @@ subprojects {
                 kotlinAndroid.compilerOptions.jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
             }
 
+            // Some plugins (e.g. workmanager 0.5.2) configure Kotlin at evaluation
+            // time, which races with afterEvaluate. For known-laggy plugins, force
+            // the Kotlin compile tasks to JVM 17 after the project is fully
+            // evaluated.
+            if (project.name == "workmanager") {
+                tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class.java).configureEach {
+                    // Use the new compilerOptions DSL (kotlinOptions is deprecated).
+                    val kotlinTask = this
+                    // compilerOptions is available on KotlinCompile from Kotlin
+                    // Gradle Plugin 1.8.x; workmanager uses 1.8.10 which has it.
+                    val compilerOptions = kotlinTask.compilerOptions
+                    compilerOptions.jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+                }
+            }
+
             // Fix for plugins that don't specify a namespace (required by newer AGP)
             if (android.namespace == null) {
                 if (project.name == "blue_thermal_printer") {

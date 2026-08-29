@@ -26,6 +26,7 @@ import '../../core/widgets/bizmanager_logo.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/app_skeleton.dart';
 import '../../core/providers/terminology_provider.dart';
+import '../../l10n/app_localizations.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -422,9 +423,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Dashboard')),
+        appBar: AppBar(title: Text(l10n.dashboard_title)),
         body: ListView(
           padding: const EdgeInsets.all(AppSpacing.l),
           children: [

@@ -10,6 +10,7 @@ import '../shell/main_shell.dart';
 import '../../core/auth/session.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/theme/design_tokens.dart';
+import '../../l10n/app_localizations.dart';
 
 class PinLoginScreen extends StatefulWidget {
   const PinLoginScreen({super.key});
@@ -277,6 +278,7 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isLocked = _lockoutSeconds > 0;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       body: Container(
@@ -325,14 +327,14 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Text('Sign in',
+                            Text(l10n.auth_signIn,
                                 style: AppTypography.titleLarge(context)
                                     .copyWith(fontWeight: FontWeight.w800)),
                             const SizedBox(height: AppSpacing.xs),
                             Text(
                               isLocked
                                   ? 'Security lockout active. Please wait.'
-                                  : 'Enter your secure PIN to continue',
+                                  : l10n.auth_enterPin,
                               style: TextStyle(
                                   color: isLocked
                                       ? theme.colorScheme.error
@@ -395,7 +397,7 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
                                         child: CircularProgressIndicator(
                                             strokeWidth: 2,
                                             color: Colors.white))
-                                    : Text(isLocked ? 'Locked' : 'Sign In',
+                                    : Text(isLocked ? 'Locked' : l10n.auth_signIn,
                                         style: const TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold)),

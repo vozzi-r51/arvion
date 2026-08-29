@@ -15,6 +15,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/widgets/bizmanager_logo.dart';
 import '../../core/database/db_helper.dart';
 import '../../core/backup/backup_service.dart';
+import '../../core/backup/auto_sync_scheduler.dart';
 import '../../core/providers/localization_provider.dart';
 import '../../core/widgets/sensitive_screen_guard.dart';
 import '../company/company_selection_screen.dart';
@@ -67,6 +68,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _autoUploadToDrive = false;
   bool _driveActionInProgress = false;
 
+  // Phase 58 — Background auto-sync state.
+  bool _autoSyncEnabled = false;
+  bool _autoSyncWifiOnly = true;
+  int _autoSyncFrequencyHours = 24;
+  DateTime? _autoSyncLastSynced;
+  String? _autoSyncLastStatus;
+  bool _autoSyncBusy = false;
+
+  String get _autoSyncLastLabel {
+    if (_autoSyncLastSynced == null) {
+      return 'Abhi tak koi sync nahi hui';
+    }
+    final local = _autoSyncLastSynced!.toLocal();
+    final delta = DateTime.now().difference(local);
+    String rel;
+    if (delta.inMinutes < 1) {
+      rel = 'abhi';
+    } else if (delta.inMinutes < 60) {
+      rel = '${delta.inMinutes} min pehle';
+    } else if (delta.inHours < 24) {
+      rel = '${delta.inHours} ghante pehle';
+    } else {
+      rel = '${delta.inDays} din pehle';
+    }
+    final status = _autoSyncLastStatus ?? 'unknown';
+    return '${local.toIso8601String().substring(0, 16)} ($rel) — $status';
+  }
+
   // Loyalty Settings
   double _loyaltyRate = 100.0;
   double _pointValue = 1.0;
@@ -98,6 +127,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final driveEnabled = await GoogleDriveService.isAutoUploadEnabled();
     final driveUser = await GoogleDriveService.instance.signInSilently();
 
+    // Phase 58: load auto-sync state.
+    final autoSyncEnabled = await AutoSyncScheduler.instance.isEnabled();
+    final autoSyncWifi = await AutoSyncScheduler.instance.isWifiOnly();
+    final autoSyncFreq = await AutoSyncScheduler.instance.getFrequencyHours();
+    final autoSyncLast = await AutoSyncScheduler.instance.getLastSyncedAt();
+    final autoSyncStatus = await AutoSyncScheduler.instance.getLastSyncStatus();
+
     setState(() {
       _biometricSupported = supported;
       _biometricEnabled = enabled;
@@ -121,6 +157,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       _autoUploadToDrive = driveEnabled;
       _driveUser = driveUser;
+
+      _autoSyncEnabled = autoSyncEnabled;
+      _autoSyncWifiOnly = autoSyncWifi;
+      _autoSyncFrequencyHours = autoSyncFreq;
+      _autoSyncLastSynced = autoSyncLast;
+      _autoSyncLastStatus = autoSyncStatus;
     });
 
     final active = await DBHelper.instance.getActiveCompany();
@@ -150,6 +192,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
     await AuthService.instance.setBiometricEnabled(value);
     setState(() => _biometricEnabled = value);
+  }
+
+  /// Phase 58: re-reads the auto-sync state from SharedPreferences. Called
+  /// after a "Sync Now" so the Last Synced label updates immediately.
+  Future<void> _refreshAutoSyncState() async {
+    final last = await AutoSyncScheduler.instance.getLastSyncedAt();
+    final status = await AutoSyncScheduler.instance.getLastSyncStatus();
+    if (!mounted) return;
+    setState(() {
+      _autoSyncLastSynced = last;
+      _autoSyncLastStatus = status;
+    });
   }
 
   Future<void> _createBackup(bool directSave) async {
@@ -955,12 +1009,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ],
                       onChanged: (v) async {
                         if (v == null) return;
-                        final prefs = await SharedPreferences.getInstance();
-                        await prefs.setString('selected_language', v);
-                        final locProvider =
-                            context.read<LocalizationProvider>();
-                        locProvider.setLocale(v);
-                        setState(() => _selectedLanguage = v);
+                        // LocalizationProvider.setLocale persists to
+                        // SharedPreferences and notifies listeners so
+                        // MaterialApp.locale rebuilds immediately.
+                        await context
+                            .read<LocalizationProvider>()
+                            .setLocale(v);
+                        if (mounted) {
+                          setState(() => _selectedLanguage = v);
+                        }
                       },
                     ),
                   ),
@@ -1399,6 +1456,125 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         setState(() => _autoUploadToDrive = v);
                       },
                     ),
+                    // Phase 58: Background Auto-Sync (WorkManager).
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(16, 16, 16, 4),
+                      child: Text('Background Auto-Sync',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, color: Colors.grey)),
+                    ),
+                    SwitchListTile(
+                      secondary: const Icon(Icons.schedule, color: Colors.purple),
+                      title: const Text('Auto Cloud Backup'),
+                      subtitle: Text(_autoSyncEnabled
+                          ? 'Schedule ke mutabiq cloud par backup hogi'
+                          : 'OFF — sirf manual upload'),
+                      value: _autoSyncEnabled,
+                      onChanged: _autoSyncBusy
+                          ? null
+                          : (v) async {
+                              setState(() => _autoSyncBusy = true);
+                              try {
+                                await AutoSyncScheduler.instance
+                                    .setEnabled(v);
+                                if (!mounted) return;
+                                setState(() => _autoSyncEnabled = v);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(v
+                                        ? 'Auto-sync shuru ho gayi. Pehli sync 15 min baad.'
+                                        : 'Auto-sync band kar di gayi.'),
+                                  ),
+                                );
+                              } finally {
+                                if (mounted) {
+                                  setState(() => _autoSyncBusy = false);
+                                }
+                              }
+                            },
+                    ),
+                    if (_autoSyncEnabled) ...[
+                      ListTile(
+                        leading: const Icon(Icons.timer, color: Colors.indigo),
+                        title: const Text('Sync Frequency'),
+                        subtitle: Text(
+                            '${_autoSyncFrequencyHours} ghante'),
+                        trailing: DropdownButton<int>(
+                          value: _autoSyncFrequencyHours,
+                          items: const [6, 12, 24]
+                              .map((h) => DropdownMenuItem(
+                                    value: h,
+                                    child: Text('${h}h'),
+                                  ))
+                              .toList(),
+                          onChanged: (v) async {
+                            if (v == null) return;
+                            await AutoSyncScheduler.instance
+                                .setFrequencyHours(v);
+                            if (!mounted) return;
+                            setState(() => _autoSyncFrequencyHours = v);
+                          },
+                        ),
+                      ),
+                      SwitchListTile(
+                        secondary: const Icon(Icons.wifi),
+                        title: const Text('Wi-Fi Only'),
+                        subtitle: const Text(
+                            'Sirf Wi-Fi par sync karein (mobile data bachaye)'),
+                        value: _autoSyncWifiOnly,
+                        onChanged: (v) async {
+                          await AutoSyncScheduler.instance
+                              .setWifiOnly(v);
+                          if (!mounted) return;
+                          setState(() => _autoSyncWifiOnly = v);
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.history, color: Colors.teal),
+                        title: const Text('Last Synced'),
+                        subtitle: Text(_autoSyncLastLabel),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: _autoSyncBusy
+                                    ? null
+                                    : () async {
+                                        setState(
+                                            () => _autoSyncBusy = true);
+                                        try {
+                                          final ok = await AutoSyncScheduler
+                                              .instance
+                                              .runOnce();
+                                          if (!mounted) return;
+                                          await _refreshAutoSyncState();
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(ok
+                                                  ? 'Sync ho gaya.'
+                                                  : 'Sync fail hua. Settings mein dekhein.'),
+                                            ),
+                                          );
+                                        } finally {
+                                          if (mounted) {
+                                            setState(
+                                                () => _autoSyncBusy = false);
+                                          }
+                                        }
+                                      },
+                                icon: const Icon(Icons.cloud_sync, size: 18),
+                                label: const Text('Abhi Sync Karein'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
                   if (Session.isOwner) ...[
                     const Divider(),

@@ -55,6 +55,12 @@ dependencies:
   blue_thermal_printer: ^1.2.3
   permission_handler: ^11.3.1
 
+  # Phase 58: background cloud auto-sync (Drive backups on a schedule).
+  # WorkManager runs the periodic task even when the app is closed, and
+  # honours Wi-Fi-only constraints when the user enables them.
+  workmanager: ^0.6.0
+  connectivity_plus: ^6.0.5
+
   # Local notifications (low stock / due payment reminders)
   flutter_local_notifications: ^18.0.1
 
