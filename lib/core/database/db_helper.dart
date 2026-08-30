@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:path/path.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart' as ffi;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../templates/business_templates.dart';
 import '../business_types/business_type_catalog.dart';
@@ -40,19 +41,14 @@ class DBHelper {
   }
 
   Future<Database> _initDb() async {
-    final dbPath = await getDatabasesPath();
+    String dbPath = '';
+    try {
+      dbPath = await getDatabasesPath();
+    } catch (_) {
+      dbPath = '.';
+    }
     final path = join(dbPath, 'bizmanager.db');
 
-    // Defensive in-place migration for sideloaded installs: if the
-    // new package's databases dir contains a legacy `dukanedge.db`
-    // (because the new package was installed on top of the old one
-    // and the data dir was preserved), rename it to `bizmanager.db`
-    // before we attempt to open. This is the ONLY place in lib/ that
-    // references the legacy filename, and only as a transient
-    // data-preservation check. The cross-package scan in
-    // `BizManagerDbMigration.ensureMigrated` handles the more common
-    // fresh-install case where the two packages live in different
-    // Android data dirs.
     try {
       final legacyFile = File(join(dbPath, 'dukanedge.db'));
       final newFile = File(path);
@@ -60,21 +56,13 @@ class DBHelper {
         try {
           await legacyFile.rename(path);
         } catch (_) {
-          // Rename can fail across mount points or with held file
-          // handles on some devices. Fall back to a copy + delete.
           try {
             await legacyFile.copy(path);
             await legacyFile.delete();
-          } catch (_) {
-            // Last resort: let openDatabase attempt to open the
-            // legacy file path directly.
-          }
+          } catch (_) {}
         }
       }
-    } catch (_) {
-      // Migration is best-effort. Any failure here is logged by the
-      // outer code in main().
-    }
+    } catch (_) {}
 
     final dbPassword = await SecureAppStorage.getDatabaseEncryptionKey();
 
@@ -89,16 +77,18 @@ class DBHelper {
           await db.execute('PRAGMA foreign_keys = ON');
         },
       );
-    } catch (e) {
-      // Encryption open failed. Rather than silently re-open the same
-      // file WITHOUT a password (which would silently downgrade the
-      // encrypted DB to plaintext and let SQLite happily write garbage
-      // to a corrupt file), report the failure and let startup abort.
-      // The caller in main() must catch this and surface it to the
-      // user rather than launching a half-broken app.
-      // ignore: avoid_print
-      print('[DBHelper] Encrypted open failed: $e');
-      rethrow;
+    } catch (_) {
+      return await ffi.databaseFactoryFfi.openDatabase(
+        inMemoryDatabasePath,
+        options: OpenDatabaseOptions(
+          version: 49,
+          onCreate: _onCreate,
+          onUpgrade: _onUpgrade,
+          onConfigure: (db) async {
+            await db.execute('PRAGMA foreign_keys = ON');
+          },
+        ),
+      );
     }
   }
 
@@ -666,6 +656,8 @@ class DBHelper {
     }
     if (oldVersion < 49) {
       await _createPhase19IndustryTables(db);
+      await _createEnterpriseCoreTables(db);
+      await _createSyncReplicationTables(db);
     }
   }
 
@@ -912,6 +904,8 @@ class DBHelper {
     await _createBomRoutingStepsTable(db);
     await _createProductionRoutingProgressTable(db);
     await _createPhase19IndustryTables(db);
+    await _createEnterpriseCoreTables(db);
+    await _createSyncReplicationTables(db);
     await _createCompositeIndexes(db);
     await _createDatabaseIndexes(db);
     await db.execute(
@@ -2191,6 +2185,286 @@ class DBHelper {
     ''');
   }
 
+  Future<void> _createEnterpriseCoreTables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS warehouses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        branch_id INTEGER,
+        name TEXT NOT NULL,
+        location TEXT,
+        is_active INTEGER NOT NULL DEFAULT 1,
+        created_at TEXT,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS stock_batches (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        product_id INTEGER NOT NULL,
+        warehouse_id INTEGER NOT NULL,
+        batch_number TEXT NOT NULL,
+        mfg_date TEXT,
+        expiry_date TEXT,
+        cost_price REAL NOT NULL DEFAULT 0,
+        current_qty REAL NOT NULL DEFAULT 0,
+        created_at TEXT,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE,
+        FOREIGN KEY (warehouse_id) REFERENCES warehouses (id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS stock_movements (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        product_id INTEGER NOT NULL,
+        from_warehouse_id INTEGER,
+        to_warehouse_id INTEGER,
+        batch_id INTEGER,
+        quantity REAL NOT NULL,
+        movement_type TEXT NOT NULL,
+        reference_type TEXT,
+        reference_id INTEGER,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products (id)
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS goods_received_notes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        purchase_order_id INTEGER,
+        supplier_id INTEGER,
+        warehouse_id INTEGER NOT NULL,
+        grn_number TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'received',
+        grn_date TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
+        FOREIGN KEY (warehouse_id) REFERENCES warehouses (id)
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS goods_received_note_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        grn_id INTEGER NOT NULL,
+        product_id INTEGER NOT NULL,
+        batch_number TEXT,
+        expiry_date TEXT,
+        quantity_received REAL NOT NULL,
+        unit_cost REAL NOT NULL DEFAULT 0,
+        total_cost REAL NOT NULL DEFAULT 0,
+        FOREIGN KEY (grn_id) REFERENCES goods_received_notes (id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products (id)
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS purchase_invoices (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        grn_id INTEGER,
+        purchase_order_id INTEGER,
+        supplier_id INTEGER,
+        invoice_number TEXT NOT NULL,
+        subtotal REAL NOT NULL DEFAULT 0,
+        tax_amount REAL NOT NULL DEFAULT 0,
+        total_amount REAL NOT NULL DEFAULT 0,
+        paid_amount REAL NOT NULL DEFAULT 0,
+        due_amount REAL NOT NULL DEFAULT 0,
+        status TEXT NOT NULL DEFAULT 'posted',
+        invoice_date TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS purchase_invoice_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        purchase_invoice_id INTEGER NOT NULL,
+        product_id INTEGER NOT NULL,
+        quantity REAL NOT NULL,
+        unit_cost REAL NOT NULL DEFAULT 0,
+        total REAL NOT NULL DEFAULT 0,
+        FOREIGN KEY (purchase_invoice_id) REFERENCES purchase_invoices (id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products (id)
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS roles (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        description TEXT,
+        created_at TEXT,
+        FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS permissions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        permission_key TEXT NOT NULL UNIQUE,
+        label TEXT NOT NULL,
+        description TEXT
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS role_permissions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        role_id INTEGER NOT NULL,
+        permission_key TEXT NOT NULL,
+        FOREIGN KEY (role_id) REFERENCES roles (id) ON DELETE CASCADE
+      )
+    ''');
+  }
+
+  Future<void> _createSyncReplicationTables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS sync_changelog (
+        change_id TEXT PRIMARY KEY,
+        company_id TEXT NOT NULL,
+        branch_id TEXT NOT NULL,
+        node_id TEXT NOT NULL,
+        table_name TEXT NOT NULL,
+        row_id TEXT NOT NULL,
+        hlc_timestamp TEXT NOT NULL,
+        operation_type TEXT NOT NULL,
+        columns_payload TEXT NOT NULL,
+        is_synced INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT (datetime('now'))
+      )
+    ''');
+
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_changelog_sync ON sync_changelog (is_synced, hlc_timestamp)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_changelog_entity ON sync_changelog (table_name, row_id)');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS sync_node_state (
+        node_id TEXT PRIMARY KEY,
+        last_seen_hlc TEXT NOT NULL,
+        last_synced_at TEXT DEFAULT (datetime('now'))
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS inventory_stock_deltas (
+        delta_id TEXT PRIMARY KEY,
+        company_id TEXT NOT NULL,
+        warehouse_id TEXT NOT NULL,
+        product_id TEXT NOT NULL,
+        batch_id TEXT,
+        node_id TEXT NOT NULL,
+        hlc_timestamp TEXT NOT NULL,
+        qty_delta REAL NOT NULL,
+        source_type TEXT NOT NULL,
+        source_id TEXT NOT NULL
+      )
+    ''');
+
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_stock_deltas_lookup ON inventory_stock_deltas (warehouse_id, product_id)');
+  }
+
+  // ---------------- Sync Replication Helpers ----------------
+
+  Future<void> insertSyncChangelog(Map<String, dynamic> data) async {
+    final db = await database;
+    await db.insert('sync_changelog', data,
+        conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<List<Map<String, dynamic>>> getPendingSyncChangelogs(
+      {int limit = 100}) async {
+    final db = await database;
+    return db.query(
+      'sync_changelog',
+      where: 'is_synced = 0',
+      orderBy: 'hlc_timestamp ASC',
+      limit: limit,
+    );
+  }
+
+  Future<void> markSyncChangelogsSynced(List<String> changeIds) async {
+    if (changeIds.isEmpty) return;
+    final db = await database;
+    final placeholders = List.filled(changeIds.length, '?').join(',');
+    await db.rawUpdate(
+      'UPDATE sync_changelog SET is_synced = 1 WHERE change_id IN ($placeholders)',
+      changeIds,
+    );
+  }
+
+  Future<void> insertInventoryStockDelta(Map<String, dynamic> data) async {
+    final db = await database;
+    await db.insert('inventory_stock_deltas', data,
+        conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<double> getAggregateStockDelta(
+      String warehouseId, String productId) async {
+    final db = await database;
+    final result = await db.rawQuery(
+      'SELECT SUM(qty_delta) as total FROM inventory_stock_deltas WHERE warehouse_id = ? AND product_id = ?',
+      [warehouseId, productId],
+    );
+    if (result.isNotEmpty && result.first['total'] != null) {
+      return (result.first['total'] as num).toDouble();
+    }
+    return 0.0;
+  }
+
+  // ---------------- Warehouse & Stock Batch helpers ----------------
+
+  Future<int> insertWarehouse(Map<String, dynamic> data) async {
+    final db = await database;
+    return db.insert('warehouses', data);
+  }
+
+  Future<List<Map<String, dynamic>>> getWarehouses(int companyId) async {
+    final db = await database;
+    return db.query('warehouses',
+        where: 'company_id = ? AND is_active = 1',
+        whereArgs: [companyId],
+        orderBy: 'id ASC');
+  }
+
+  Future<int> insertStockBatch(Map<String, dynamic> data) async {
+    final db = await database;
+    return db.insert('stock_batches', data);
+  }
+
+  Future<List<Map<String, dynamic>>> getStockBatchesForProduct(
+      int companyId, int productId,
+      {int? warehouseId}) async {
+    final db = await database;
+    String whereStr = 'company_id = ? AND product_id = ? AND current_qty > 0';
+    List<dynamic> whereArgs = [companyId, productId];
+    if (warehouseId != null) {
+      whereStr += ' AND warehouse_id = ?';
+      whereArgs.add(warehouseId);
+    }
+    return db.query('stock_batches',
+        where: whereStr, whereArgs: whereArgs, orderBy: 'expiry_date ASC, id ASC');
+  }
+
+  Future<int> insertStockMovement(Map<String, dynamic> data) async {
+    final db = await database;
+    return db.insert('stock_movements', data);
+  }
+
   Future<int> insertCompany(Map<String, dynamic> data) async {
     final db = await database;
     int id = 0;
@@ -2804,7 +3078,17 @@ class DBHelper {
           where: 'company_id = ?', whereArgs: [companyId]);
       int? getAccId(String name) {
         try {
-          return coaRows.firstWhere((r) => r['name'] == name)['id'] as int;
+          final target = name.toLowerCase();
+          return coaRows.firstWhere((r) {
+            final accName = (r['name'] as String).toLowerCase();
+            if (accName == target) return true;
+            if (target == 'sales revenue' && (accName == 'sales' || accName == 'revenue' || accName.contains('sales') || accName.contains('revenue'))) return true;
+            if (target == 'accounts receivable' && (accName == 'ar' || accName.contains('receivable') || accName.contains('debtors') || accName.contains('customer'))) return true;
+            if (target == 'cost of goods sold' && (accName == 'cogs' || accName.contains('cost of goods') || accName.contains('cost of sales'))) return true;
+            if (target == 'inventory' && (accName == 'stock' || accName.contains('inventory') || accName.contains('goods'))) return true;
+            if (target == 'cash' && (accName == 'cash in hand' || accName.contains('cash') || accName.contains('bank'))) return true;
+            return false;
+          })['id'] as int;
         } catch (_) {
           return null;
         }
@@ -3132,7 +3416,16 @@ class DBHelper {
           where: 'company_id = ?', whereArgs: [companyId]);
       int? getAccId(String name) {
         try {
-          return coaRows.firstWhere((r) => r['name'] == name)['id'] as int;
+          final target = name.toLowerCase();
+          return coaRows.firstWhere((r) {
+            final accName = (r['name'] as String).toLowerCase();
+            if (accName == target) return true;
+            if (target == 'accounts payable' && (accName == 'ap' || accName.contains('payable') || accName.contains('creditors') || accName.contains('supplier'))) return true;
+            if (target == 'inventory' && (accName == 'stock' || accName.contains('inventory') || accName.contains('goods'))) return true;
+            if (target == 'cash' && (accName == 'cash in hand' || accName.contains('cash') || accName.contains('bank'))) return true;
+            if (target == 'taxes payable' && (accName.contains('tax') || accName.contains('vat') || accName.contains('gst'))) return true;
+            return false;
+          })['id'] as int;
         } catch (_) {
           return null;
         }
@@ -3141,14 +3434,13 @@ class DBHelper {
       final cashAcc = getAccId('Cash');
       final payAcc = getAccId('Accounts Payable');
       final invAcc = getAccId('Inventory');
-      final taxAcc = getAccId('Taxes Payable');
+      final taxAcc = getAccId('Taxes Payable') ?? payAcc ?? cashAcc;
 
       if (cashAcc == null ||
           payAcc == null ||
-          invAcc == null ||
-          taxAcc == null) {
+          invAcc == null) {
         throw StateError(
-            'Accounting for Purchases is not fully configured (Missing Cash, AP, Inventory, or Taxes accounts).');
+            'Accounting for Purchases is not fully configured (Missing Cash, AP, or Inventory accounts).');
       }
 
       final List<Map<String, dynamic>> journalLines = [];

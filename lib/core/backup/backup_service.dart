@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:share_plus/share_plus.dart';
 import '../database/db_helper.dart';
 import 'google_drive_service.dart';
 
@@ -16,7 +17,7 @@ class BackupService {
   static Future<String> createBackupZip() async {
     await DBHelper.instance.closeDatabase();
 
-    final dbDir = await getDatabasesPath();
+    final dbDir = await databaseFactory.getDatabasesPath();
     final dbFile = File(p.join(dbDir, _dbFileName));
 
     final docsDir = await getApplicationDocumentsDirectory();
@@ -87,33 +88,44 @@ class BackupService {
     }
   }
 
-  /// Lets the user pick a folder on their device (Downloads, SD card,
-  /// wherever) and saves the backup .zip there directly — no share sheet.
+  /// Lets the user pick a folder on their device or share out directly.
   /// Returns the saved file path, or null if the user cancelled.
   static Future<String?> saveBackupToDevice() async {
     final zipPath = await createBackupZip();
 
+    String? savedPath;
     try {
       final folder = await FilePicker.platform.getDirectoryPath(
         dialogTitle: 'Backup Kahan Save Karni Hai Woh Folder Chunein',
       );
       if (folder != null) {
         final fileName = p.basename(zipPath);
-        final savedPath = p.join(folder, fileName);
+        savedPath = p.join(folder, fileName);
         await File(zipPath).copy(savedPath);
-        return savedPath;
       }
     } catch (_) {}
 
-    // Fallback: save to app's external Downloads directory
-    return await saveBackupToDownloads();
+    if (savedPath == null) {
+      savedPath = await saveBackupToDownloads();
+    }
+
+    if (savedPath != null) {
+      try {
+        await Share.shareXFiles(
+          [XFile(savedPath)],
+          text: 'BizManager Business Backup',
+        );
+      } catch (_) {}
+    }
+
+    return savedPath;
   }
 
   static Future<void> restoreFromZip(String zipPath) async {
     final bytes = await File(zipPath).readAsBytes();
     final archive = ZipDecoder().decodeBytes(bytes);
 
-    final dbDir = await getDatabasesPath();
+    final dbDir = await databaseFactory.getDatabasesPath();
     final docsDir = await getApplicationDocumentsDirectory();
     final dbEntry =
         archive.where((entry) => entry.name == _dbFileName).firstOrNull;

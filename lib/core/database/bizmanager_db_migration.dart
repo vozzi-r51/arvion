@@ -25,7 +25,7 @@ class BizManagerDbMigration {
 
   static Future<void> ensureMigrated() async {
     try {
-      final dbDir = await getDatabasesPath();
+      final dbDir = await databaseFactory.getDatabasesPath();
       final newDbPath = join(dbDir, newDbName);
       final newDbFile = File(newDbPath);
 

@@ -126,23 +126,23 @@ class RbacService {
     }
 
     // 2. Fallback to roles table JSON permissions column
-    final roleRows = await db.query(
-      'roles',
-      columns: ['permissions'],
-      where: 'company_id = ? AND name = ?',
-      whereArgs: [companyId, roleName],
-      limit: 1,
-    );
+    try {
+      final roleRows = await db.query(
+        'roles',
+        columns: ['permissions'],
+        where: 'company_id = ? AND name = ?',
+        whereArgs: [companyId, roleName],
+        limit: 1,
+      );
 
-    if (roleRows.isNotEmpty) {
-      final rawJson = roleRows.first['permissions'] as String? ?? '[]';
-      try {
+      if (roleRows.isNotEmpty) {
+        final rawJson = roleRows.first['permissions'] as String? ?? '[]';
         final List<dynamic> list = jsonDecode(rawJson);
         final isAllowed = list.contains(permissionKey);
         _permissionCache[cacheKey] = isAllowed;
         return isAllowed;
-      } catch (_) {}
-    }
+      }
+    } catch (_) {}
 
     // Cashier default fallbacks
     if (roleName.toLowerCase() == 'cashier') {
