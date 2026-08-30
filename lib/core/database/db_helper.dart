@@ -968,10 +968,21 @@ class DBHelper {
         pin_hash TEXT NOT NULL,
         pin_salt TEXT NOT NULL,
         role TEXT NOT NULL DEFAULT 'cashier',
+        role_id INTEGER,
+        permissions TEXT,
         created_at TEXT NOT NULL,
         FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE
       )
     ''');
+    // Defensive: even on legacy installs that pre-date the v37 migration,
+    // make sure the columns exist. ALTER TABLE throws "duplicate column"
+    // which is exactly the success signal we want — swallow it.
+    try {
+      await db.execute('ALTER TABLE staff_users ADD COLUMN permissions TEXT');
+    } catch (_) {}
+    try {
+      await db.execute('ALTER TABLE staff_users ADD COLUMN role_id INTEGER');
+    } catch (_) {}
   }
 
   Future<void> _createJournalTables(Database db) async {
@@ -2681,6 +2692,9 @@ class DBHelper {
     required List<Map<String, dynamic>> items,
     bool allowNegativeStock = true,
   }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final double rate = prefs.getDouble('loyalty_points_rate') ?? 100.0;
+
     final db = await database;
     return db.transaction<int>((txn) async {
       await _enforcePeriodLock(sale['sale_date'] as String);
@@ -2691,7 +2705,12 @@ class DBHelper {
         priceKey: 'unit_price',
         allowNegativeStock: allowNegativeStock,
       );
-      final saleId = await txn.insert('sales', sale);
+
+      final sanitizedSale = Map<String, dynamic>.from(sale);
+      final double redeemedPoints =
+          (sanitizedSale.remove('redeemed_points') as num?)?.toDouble() ?? 0;
+
+      final saleId = await txn.insert('sales', sanitizedSale);
       final companyId = sale['company_id'] as int;
       final saleDate = sale['sale_date'] as String;
       final invoiceNum = sale['invoice_number'] as String;
@@ -2699,16 +2718,19 @@ class DBHelper {
       double totalCost = 0;
 
       for (final item in items) {
-        await txn.insert('sale_items', {
-          ...item,
-          'sale_id': saleId,
-        });
-
         final productId = item['product_id'] as int?;
         final variantId = item['variant_id'] as int?;
         final qty = item['quantity'] as num;
         final pPrice = (item['purchase_price'] as num?)?.toDouble() ?? 0;
         totalCost += pPrice * qty.toDouble();
+
+        final sanitizedItem = Map<String, dynamic>.from(item);
+        sanitizedItem.remove('variant_id');
+
+        await txn.insert('sale_items', {
+          ...sanitizedItem,
+          'sale_id': saleId,
+        });
 
         if (productId != null) {
           // Check item type
@@ -2748,9 +2770,6 @@ class DBHelper {
 
       // --- LOYALTY POINTS ---
       if (customerId != null && totalAmount > 0) {
-        final prefs = await SharedPreferences.getInstance();
-        final double rate = prefs.getDouble('loyalty_points_rate') ??
-            100.0; // 1 point per 100 Rs
         if (rate > 0) {
           final pointsEarned = totalAmount / rate;
           await txn.rawUpdate(
@@ -2760,8 +2779,6 @@ class DBHelper {
         }
 
         // Handle Point Redemption (Redeemed as discount)
-        final double redeemedPoints =
-            (sale['redeemed_points'] as num?)?.toDouble() ?? 0;
         if (redeemedPoints > 0) {
           await txn.rawUpdate(
             'UPDATE customers SET loyalty_points = loyalty_points - ? WHERE id = ?',
@@ -2771,7 +2788,18 @@ class DBHelper {
       }
 
       // --- AUTOMATED ACCOUNTING ENTRIES ---
-      await _ensureChartOfAccountsInTransaction(txn, companyId);
+      // Resolve the company's template CoA BEFORE seeding so the
+      // per-category account names (e.g. restaurant's "Food Sales") line
+      // up with what the journal entries below expect. Without this, a
+      // restaurant-typed company would only have the static retail CoA
+      // and the "Missing AR, Sales, COGS, or Inventory accounts" StateError
+      // would fire — which the UI surfaces as a generic "Database
+      // Exception" and the user can't recover from.
+      final templateCoa = await _resolveTemplateCoaForCompany(
+        txn,
+        companyId,
+      );
+      await _ensureChartOfAccountsInTransaction(txn, companyId, templateCoa);
       final coaRows = await txn.query('chart_of_accounts',
           where: 'company_id = ?', whereArgs: [companyId]);
       int? getAccId(String name) {
@@ -3017,13 +3045,15 @@ class DBHelper {
       final invoiceNum = purchase['invoice_number'] as String;
 
       for (final item in items) {
+        final sanitizedItem = Map<String, dynamic>.from(item);
+        final variantId = sanitizedItem.remove('variant_id') as int?;
+
         await txn.insert('purchase_items', {
-          ...item,
+          ...sanitizedItem,
           'purchase_id': purchaseId,
         });
 
         final productId = item['product_id'] as int?;
-        final variantId = item['variant_id'] as int?;
         final qty = (item['quantity'] as num).toDouble();
         final unitCost = (item['unit_cost'] as num).toDouble();
 
@@ -3086,7 +3116,18 @@ class DBHelper {
       }
 
       // --- AUTOMATED ACCOUNTING ENTRIES ---
-      await _ensureChartOfAccountsInTransaction(txn, companyId);
+      // Resolve the company's template CoA BEFORE seeding so the
+      // per-category account names (e.g. restaurant's "Food Sales") line
+      // up with what the journal entries below expect. Without this, a
+      // restaurant-typed company would only have the static retail CoA
+      // and the "Missing AR, Sales, COGS, or Inventory accounts" StateError
+      // would fire — which the UI surfaces as a generic "Database
+      // Exception" and the user can't recover from.
+      final templateCoa = await _resolveTemplateCoaForCompany(
+        txn,
+        companyId,
+      );
+      await _ensureChartOfAccountsInTransaction(txn, companyId, templateCoa);
       final coaRows = await txn.query('chart_of_accounts',
           where: 'company_id = ?', whereArgs: [companyId]);
       int? getAccId(String name) {
@@ -4974,6 +5015,98 @@ class DBHelper {
     }
     await batch.commit(noResult: true);
   }
+
+  /// Resolves the per-category CoA seed for [companyId] based on its
+  /// `template_family` column. Returns an empty list when the company
+  /// is missing or its family is unknown, in which case the caller
+  /// will fall back to the static [defaultChartOfAccounts] via
+  /// [_ensureChartOfAccountsInTransaction].
+  ///
+  /// This is the fix for the "Database Exception" users saw on
+  /// sales/purchases for restaurant / service / manufacturing /
+  /// workshop companies: those templates' CoA had differently-named
+  /// accounts (e.g. "Food Sales" instead of "Sales Revenue") so
+  /// `getAccId('Sales Revenue')` returned null and the journal-entry
+  /// code threw `StateError('Accounting for Sales is not fully
+  /// configured...')`. By always seeding the universal retail
+  /// accounts on top of any per-template extras, both naming styles
+  /// are guaranteed to resolve.
+  Future<List<Map<String, String>>> _resolveTemplateCoaForCompany(
+    Transaction txn,
+    int companyId,
+  ) async {
+    // Always start with the static retail baseline so the journal-entry
+    // code's hard-coded account names (Cash, AR, Sales Revenue, COGS,
+    // Inventory) always resolve, regardless of the template.
+    final baseline = List<Map<String, String>>.from(defaultChartOfAccounts);
+    try {
+      final rows = await txn.query(
+        'companies',
+        columns: ['template_family'],
+        where: 'id = ?',
+        whereArgs: [companyId],
+        limit: 1,
+      );
+      if (rows.isEmpty) return baseline;
+      final family = rows.first['template_family'] as String?;
+      if (family == null || family.isEmpty) return baseline;
+      // Append the per-template extras (e.g. "Food Sales" for
+      // foodService). De-dupe by name so an account that happens to
+      // be in both lists is only inserted once.
+      final extras = _kTemplateExtras[family] ?? const [];
+      final seen = baseline.map((a) => a['name']).toSet();
+      for (final e in extras) {
+        final name = e['name'];
+        if (name != null && !seen.contains(name)) {
+          baseline.add(e);
+          seen.add(name);
+        }
+      }
+      return baseline;
+    } catch (_) {
+      // Never block the sale on a CoA lookup failure.
+      return baseline;
+    }
+  }
+
+  /// Per-template CoA extras on top of the universal retail baseline.
+  /// Only contains accounts that the baseline is missing — never
+  /// duplicates Cash/AR/Sales/COGS/Inventory.
+  static const Map<String, List<Map<String, String>>> _kTemplateExtras = {
+    'foodService': [
+      {'code': '4030', 'name': 'Food Sales', 'type': 'income'},
+      {'code': '4031', 'name': 'Beverage Sales', 'type': 'income'},
+      {'code': '5020', 'name': 'Food Cost', 'type': 'expense'},
+      {'code': '5021', 'name': 'Beverage Cost', 'type': 'expense'},
+      {'code': '5022', 'name': 'Kitchen Supplies', 'type': 'expense'},
+      {'code': '2010', 'name': 'Waiter Tips Payable', 'type': 'liability'},
+    ],
+    'manufacturing': [
+      {'code': '1006', 'name': 'Raw Materials Inventory', 'type': 'asset'},
+      {'code': '1007', 'name': 'Work in Progress', 'type': 'asset'},
+      {'code': '1008', 'name': 'Finished Goods Inventory', 'type': 'asset'},
+      {'code': '5008', 'name': 'Manufacturing Overhead', 'type': 'expense'},
+      {'code': '5011', 'name': 'Wages - Direct', 'type': 'expense'},
+    ],
+    'workshopJob': [
+      {'code': '4010', 'name': 'Service Revenue', 'type': 'income'},
+    ],
+    'serviceJob': [
+      {'code': '4010', 'name': 'Service Revenue', 'type': 'income'},
+    ],
+    'bookingBased': [
+      {'code': '4010', 'name': 'Service Revenue', 'type': 'income'},
+    ],
+    'trading': [
+      {'code': '4021', 'name': 'Purchase Discount', 'type': 'income'},
+      {'code': '4022', 'name': 'Sales Returns', 'type': 'income'},
+      {'code': '5007', 'name': 'Freight Inward', 'type': 'expense'},
+      {'code': '5010', 'name': 'Import Duty', 'type': 'expense'},
+    ],
+    'farmOperations': [
+      {'code': '4020', 'name': 'Crop Sales', 'type': 'income'},
+    ],
+  };
 
   Future<void> _ensureChartOfAccountsInTransaction(
     Transaction txn,

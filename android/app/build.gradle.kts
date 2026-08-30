@@ -49,7 +49,11 @@ android {
             } else {
                 keyAlias = "androiddebugkey"
                 keyPassword = "android"
-                storeFile = file("C:/Users/Abdul Rehman/.android/debug.keystore")
+                val userHome = System.getProperty("user.home")
+                val debugKeystore = file("$userHome/.android/debug.keystore")
+                if (debugKeystore.exists()) {
+                    storeFile = debugKeystore
+                }
                 storePassword = "android"
             }
         }

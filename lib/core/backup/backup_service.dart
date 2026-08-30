@@ -53,20 +53,28 @@ class BackupService {
     try {
       final zipPath = await createBackupZip();
 
-      Directory? downloadsDir;
+      // Android 10+ scoped storage: we cannot write to /storage/emulated/0
+      // directly without WRITE_EXTERNAL_STORAGE, which Google Play
+      // disallows for target SDK 30+. Use the app's external-files dir,
+      // which is always writable, and let the user share the file out
+      // from there.
+      Directory? targetDir;
       if (Platform.isAndroid) {
-        downloadsDir = Directory('/storage/emulated/0/Download');
-        if (!await downloadsDir.exists()) {
-          downloadsDir = await getExternalStorageDirectory();
+        final ext = await getExternalStorageDirectory();
+        if (ext != null) {
+          targetDir = Directory(p.join(ext.path, 'BizManager_Backups'));
+        } else {
+          final tmp = await getTemporaryDirectory();
+          targetDir = Directory(p.join(tmp.path, 'BizManager_Backups'));
         }
       } else {
-        downloadsDir = await getDownloadsDirectory();
+        final dl = await getDownloadsDirectory();
+        if (dl != null) {
+          targetDir = Directory(p.join(dl.path, 'BizManager_Backups'));
+        }
       }
 
-      if (downloadsDir == null) return null;
-
-      final targetDir =
-          Directory(p.join(downloadsDir.path, 'BizManager_Backups'));
+      if (targetDir == null) return null;
       if (!await targetDir.exists()) await targetDir.create(recursive: true);
 
       final fileName = p.basename(zipPath);
@@ -85,15 +93,20 @@ class BackupService {
   static Future<String?> saveBackupToDevice() async {
     final zipPath = await createBackupZip();
 
-    final folder = await FilePicker.platform.getDirectoryPath(
-      dialogTitle: 'Backup Kahan Save Karni Hai Woh Folder Chunein',
-    );
-    if (folder == null) return null; // user cancelled
+    try {
+      final folder = await FilePicker.platform.getDirectoryPath(
+        dialogTitle: 'Backup Kahan Save Karni Hai Woh Folder Chunein',
+      );
+      if (folder != null) {
+        final fileName = p.basename(zipPath);
+        final savedPath = p.join(folder, fileName);
+        await File(zipPath).copy(savedPath);
+        return savedPath;
+      }
+    } catch (_) {}
 
-    final fileName = p.basename(zipPath);
-    final savedPath = p.join(folder, fileName);
-    await File(zipPath).copy(savedPath);
-    return savedPath;
+    // Fallback: save to app's external Downloads directory
+    return await saveBackupToDownloads();
   }
 
   static Future<void> restoreFromZip(String zipPath) async {

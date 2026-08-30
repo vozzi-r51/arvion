@@ -4,6 +4,7 @@ import '../../core/di/service_locator.dart';
 import '../../core/services/sales_service.dart';
 import '../../core/scanner/barcode_scanner_screen.dart';
 import '../../core/audit/audit_logger.dart';
+import '../../core/utils/currency_formatter.dart';
 import '../invoice/invoice_preview_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -416,7 +417,8 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
         } else if (type == 'flat') {
           item.promoDiscount = val;
           item.unitPrice -= val;
-          item.promoLabel = '${promo['name']} (-Rs.${val.toStringAsFixed(0)})';
+          item.promoLabel =
+              '${promo['name']} (-$_currency${val.toStringAsFixed(0)})';
         }
         item.updateControllers();
         break; // Apply only one promo for now
@@ -528,7 +530,7 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
         module: 'Sale',
         action: AuditLogger.create,
         description:
-            'Sale banayi: $invoiceNumber (Rs. ${_grandTotal.toStringAsFixed(0)})',
+            'Sale banayi: $invoiceNumber ($_currency ${_grandTotal.toStringAsFixed(0)})',
       );
     } catch (_) {
       // The sale is already committed; audit logging must not block checkout.
@@ -758,7 +760,7 @@ class _NewSaleScreenState extends State<NewSaleScreen> {
                                   ),
                                   const Spacer(),
                                   Text(
-                                    'Rs. ${item.total.toStringAsFixed(0)}',
+                                    '$_currency ${item.total.toStringAsFixed(0)}',
                                     style: const TextStyle(
                                         fontWeight: FontWeight.bold),
                                   ),
@@ -1149,7 +1151,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                                 ],
                               ),
                               subtitle: Text(
-                                  'Stock: $stock  •  Rs. ${p['retail_price']}${expiry != null ? "  •  Exp: ${expiry.toIso8601String().substring(0, 10)}" : ""}'),
+                                  'Stock: $stock  •  ${CurrencyFormatter.format((p['retail_price'] as num?) ?? 0, currencyCode: 'PKR', symbol: 'Rs.', decimalPlaces: 0)}${expiry != null ? "  •  Exp: ${expiry.toIso8601String().substring(0, 10)}" : ""}'),
                               onTap: () => Navigator.of(context).pop(p),
                             );
                           },

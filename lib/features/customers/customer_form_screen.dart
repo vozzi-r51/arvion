@@ -14,6 +14,7 @@ class CustomerFormScreen extends StatefulWidget {
 class _CustomerFormScreenState extends State<CustomerFormScreen> {
   final _nameCtrl = TextEditingController();
   final _urduCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
   final _mobileCtrl = TextEditingController();
   final _whatsappCtrl = TextEditingController();
   final _addressCtrl = TextEditingController();
@@ -22,11 +23,46 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
   final _openingBalanceCtrl = TextEditingController(text: '0');
   final _notesCtrl = TextEditingController();
   String _customerType = 'Retail';
+  String _selectedCountryCode = '+92 (PK)';
+  String _paymentTerms = 'Immediate / Cash';
   bool _saving = false;
 
   bool get _isEditing => widget.existing != null;
 
   static const _types = ['Retail', 'Wholesale', 'VIP'];
+  static const _countryCodes = [
+    '+92 (PK)',
+    '+1 (US/CA)',
+    '+971 (UAE)',
+    '+966 (KSA)',
+    '+44 (UK)',
+    '+91 (IN)',
+    '+61 (AU)',
+  ];
+  static const _paymentTermsOptions = [
+    'Immediate / Cash',
+    '1 Month (30 Days)',
+    '2 Months (60 Days)',
+    '3 Months (90 Days)',
+    '4 Months (120 Days)',
+    'Custom Terms',
+  ];
+
+  int get _maxPhoneDigits {
+    if (_selectedCountryCode.contains('+92')) return 11;
+    if (_selectedCountryCode.contains('+1')) return 10;
+    if (_selectedCountryCode.contains('+971')) return 9;
+    if (_selectedCountryCode.contains('+966')) return 9;
+    if (_selectedCountryCode.contains('+44')) return 10;
+    if (_selectedCountryCode.contains('+91')) return 10;
+    return 12;
+  }
+
+  String get _idLabel {
+    return _selectedCountryCode.contains('+92')
+        ? 'CNIC (13 Digits)'
+        : 'National ID / Tax ID (NTR / SSN / VAT)';
+  }
 
   @override
   void initState() {
@@ -35,6 +71,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
     if (e != null) {
       _nameCtrl.text = e['name'] as String? ?? '';
       _urduCtrl.text = e['urdu_name'] as String? ?? '';
+      _emailCtrl.text = e['email'] as String? ?? '';
       _mobileCtrl.text = e['mobile'] as String? ?? '';
       _whatsappCtrl.text = e['whatsapp'] as String? ?? '';
       _addressCtrl.text = e['address'] as String? ?? '';
@@ -53,6 +90,19 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Customer naam zaroori hai')));
       return;
+    }
+
+    final email = _emailCtrl.text.trim();
+    if (email.isNotEmpty) {
+      final emailValid =
+          RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+      if (!emailValid) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Valid email address enter karein (e.g. example@gmail.com)')),
+        );
+        return;
+      }
     }
 
     // --- DUPLICATE DETECTION ---
@@ -92,6 +142,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
       'company_id': widget.companyId,
       'name': _nameCtrl.text.trim(),
       'urdu_name': _urduCtrl.text.trim(),
+      'email': _emailCtrl.text.trim(),
       'mobile': _mobileCtrl.text.trim(),
       'whatsapp': _whatsappCtrl.text.trim(),
       'address': _addressCtrl.text.trim(),
@@ -142,6 +193,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
   void dispose() {
     _nameCtrl.dispose();
     _urduCtrl.dispose();
+    _emailCtrl.dispose();
     _mobileCtrl.dispose();
     _whatsappCtrl.dispose();
     _addressCtrl.dispose();
@@ -171,12 +223,32 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
               decoration: const InputDecoration(labelText: 'Urdu Naam'),
             ),
             const SizedBox(height: 12),
+            TextField(
+              controller: _emailCtrl,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                labelText: 'Email Address',
+                hintText: 'example@gmail.com',
+              ),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: _selectedCountryCode,
+              decoration: const InputDecoration(labelText: 'Country Code'),
+              items: _countryCodes
+                  .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                  .toList(),
+              onChanged: (v) =>
+                  setState(() => _selectedCountryCode = v ?? '+92 (PK)'),
+            ),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: _mobileCtrl,
                     keyboardType: TextInputType.phone,
+                    maxLength: _maxPhoneDigits,
                     decoration: const InputDecoration(labelText: 'Mobile'),
                   ),
                 ),
@@ -185,6 +257,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                   child: TextField(
                     controller: _whatsappCtrl,
                     keyboardType: TextInputType.phone,
+                    maxLength: _maxPhoneDigits,
                     decoration: const InputDecoration(labelText: 'WhatsApp'),
                   ),
                 ),
@@ -199,7 +272,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
             const SizedBox(height: 12),
             TextField(
               controller: _cnicCtrl,
-              decoration: const InputDecoration(labelText: 'CNIC'),
+              decoration: InputDecoration(labelText: _idLabel),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
@@ -209,6 +282,16 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                   .map((t) => DropdownMenuItem(value: t, child: Text(t)))
                   .toList(),
               onChanged: (v) => setState(() => _customerType = v ?? 'Retail'),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: _paymentTerms,
+              decoration: const InputDecoration(labelText: 'Payment Terms'),
+              items: _paymentTermsOptions
+                  .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                  .toList(),
+              onChanged: (v) =>
+                  setState(() => _paymentTerms = v ?? 'Immediate / Cash'),
             ),
             const SizedBox(height: 12),
             Row(

@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import '../../core/notifications/sms_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
@@ -102,6 +103,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   // SMS Settings
   bool _smsEnabled = false;
+  String _smsProviderId = 'custom';
   final _smsUrlCtrl = TextEditingController();
   final _smsKeyCtrl = TextEditingController();
 
@@ -152,6 +154,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _loyaltyRate = prefs.getDouble('loyalty_points_rate') ?? 100.0;
       _pointValue = prefs.getDouble('loyalty_point_value') ?? 1.0;
       _smsEnabled = prefs.getBool('sms_enabled') ?? false;
+      _smsProviderId = prefs.getString('sms_provider_id') ?? 'custom';
       _smsUrlCtrl.text = prefs.getString('sms_gateway_url') ?? '';
       _smsKeyCtrl.text = prefs.getString('sms_api_key') ?? '';
 
@@ -658,9 +661,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     return Chip(
                       label: Text(
                         '$emoji $feature',
-                        style: Theme.of(context).textTheme.labelSmall,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface,
+                            ),
                       ),
-                      backgroundColor: Colors.white,
+                      backgroundColor:
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
                       side: BorderSide(
                         color: Theme.of(context)
                             .colorScheme
@@ -1229,14 +1237,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     if (_smsEnabled) ...[
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: DropdownButtonFormField<String>(
+                          value: _smsProviderId,
+                          decoration: const InputDecoration(
+                            labelText: 'SMS Provider',
+                            helperText:
+                                'Built-in provider chunein, ya Custom URL likhein',
+                          ),
+                          items: SmsProviders.presets
+                              .map((p) => DropdownMenuItem(
+                                  value: p.id,
+                                  child: Text(p.label,
+                                      overflow: TextOverflow.ellipsis)))
+                              .toList(),
+                          onChanged: (v) async {
+                            if (v == null) return;
+                            final prefs = await SharedPreferences.getInstance();
+                            await prefs.setString('sms_provider_id', v);
+                            setState(() {
+                              _smsProviderId = v;
+                              // Auto-fill URL field with provider's template
+                              // so the user can see / edit it.
+                              if (v != 'custom') {
+                                _smsUrlCtrl.text =
+                                    SmsProviders.byId(v).urlTemplate;
+                                prefs.setString(
+                                    'sms_gateway_url', _smsUrlCtrl.text);
+                              }
+                            });
+                          },
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: TextField(
                           controller: _smsUrlCtrl,
-                          decoration: const InputDecoration(
+                          enabled: _smsProviderId == 'custom',
+                          decoration: InputDecoration(
                             labelText: 'Gateway URL',
                             hintText:
                                 'https://api.com/s?k={key}&t={mobile}&m={message}',
-                            helperText:
-                                'Use {key}, {mobile}, {message} placeholders',
+                            helperText: _smsProviderId == 'custom'
+                                ? 'Use {key}, {mobile}, {message} placeholders'
+                                : 'Provider template (read-only)',
                           ),
                           onChanged: (v) async {
                             final prefs = await SharedPreferences.getInstance();

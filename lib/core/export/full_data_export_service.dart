@@ -65,24 +65,26 @@ class FullDataExportService {
     Future<void> writeTableCsv(
         String filename, List<Map<String, dynamic>> records) async {
       if (records.isEmpty) return;
-      final file = File(p.join(exportDir.path, filename));
+      try {
+        final file = File(p.join(exportDir.path, filename));
 
-      // Extract sanitize headers
-      final headers = records.first.keys
-          .where((k) =>
-              k != 'pin_hash' &&
-              k != 'pin_salt' &&
-              k != 'db_encryption_key' &&
-              k != 'security_answer')
-          .toList();
+        // Extract sanitize headers
+        final headers = records.first.keys
+            .where((k) =>
+                k != 'pin_hash' &&
+                k != 'pin_salt' &&
+                k != 'db_encryption_key' &&
+                k != 'security_answer')
+            .toList();
 
-      final rows = [
-        headers,
-        ...records.map((r) => headers.map((h) => r[h]).toList()),
-      ];
+        final rows = [
+          headers,
+          ...records.map((r) => headers.map((h) => r[h]).toList()),
+        ];
 
-      await file.writeAsString(_toCsv(rows));
-      filesToShare.add(XFile(file.path));
+        await file.writeAsString(_toCsv(rows));
+        filesToShare.add(XFile(file.path));
+      } catch (_) {}
     }
 
     await writeTableCsv('1_company_profile.csv', company);

@@ -202,9 +202,6 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
         'created_at': DateTime.now().toIso8601String(),
       });
     } catch (e, s) {
-      // The most common failure here is a duplicate company name
-      // (insertCompany throws StateError). Surface it instead of
-      // leaving the user staring at a frozen wizard.
       ErrorReporter.instance.report(
         e,
         module: 'Company',
@@ -213,9 +210,12 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
       );
       if (!mounted) return;
       setState(() => _finishing = false);
+      final errorMsg = e.toString().contains('already exists')
+          ? 'Is naam ("${_nameCtrl.text.trim()}") ki company pehle se mojood hai. Kripya thoda alag naam chunain.'
+          : 'Company save nahi ho saki: $e';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Company save nahi ho saki: $e'),
+          content: Text(errorMsg),
           backgroundColor: Colors.red.shade700,
         ),
       );
@@ -384,7 +384,7 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? Theme.of(context).colorScheme.primaryContainer
-                        : Colors.white,
+                        : Theme.of(context).cardColor,
                     borderRadius: AppRadius.medium,
                     border: Border.all(
                         color: isSelected
@@ -493,7 +493,53 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
             child: Text('Koi matching subtype nahi mila.',
                 textAlign: TextAlign.center),
           ),
+        const SizedBox(height: 16),
+        _buildCoaPreviewCard(),
       ],
+    );
+  }
+
+  Widget _buildCoaPreviewCard() {
+    final family = _selectedCategory?.family ?? TemplateFamily.retailStandard;
+    final template = BusinessTemplates.getByFamily(family);
+
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: AppRadius.medium,
+        side: BorderSide(
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3)),
+      ),
+      child: ExpansionTile(
+        leading: Icon(Icons.account_tree,
+            color: Theme.of(context).colorScheme.primary),
+        title: const Text('Chart of Accounts Preview',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        subtitle: Text(
+            '${_selectedCategory?.label ?? "Business"} ke liye ${template.defaultCoa.length} accounts tayyar hongay'),
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Column(
+              children: template.defaultCoa.map((coa) {
+                return ListTile(
+                  dense: true,
+                  visualDensity: VisualDensity.compact,
+                  leading: Text(coa.code,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 12)),
+                  title: Text(coa.name, style: const TextStyle(fontSize: 13)),
+                  trailing: Chip(
+                    visualDensity: VisualDensity.compact,
+                    label: Text(coa.type.toUpperCase(),
+                        style: const TextStyle(fontSize: 10)),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -612,7 +658,7 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
         decoration: BoxDecoration(
           color: isSelected
               ? Theme.of(context).colorScheme.primaryContainer
-              : Colors.white,
+              : Theme.of(context).cardColor,
           borderRadius: AppRadius.medium,
           border: Border.all(
             color: isSelected
@@ -643,7 +689,7 @@ class _OnboardingWizardScreenState extends State<OnboardingWizardScreen> {
                       fontWeight: FontWeight.bold,
                       color: isSelected
                           ? Theme.of(context).colorScheme.primary
-                          : Colors.black,
+                          : Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.s),

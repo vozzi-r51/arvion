@@ -169,8 +169,30 @@ class _StaffUsersScreenState extends State<StaffUsersScreen> {
               onPressed: () async {
                 final name = nameCtrl.text.trim();
                 final pin = pinCtrl.text.trim();
-                if (name.isEmpty) return;
-                if (!isEditing && pin.length < 4) return;
+                // Surface validation errors instead of silently bailing out,
+                // which made staff addition look like the Save button did
+                // nothing (the old "if (name.isEmpty) return;" pattern).
+                if (name.isEmpty) {
+                  ScaffoldMessenger.of(ctx).showSnackBar(
+                    const SnackBar(
+                        content: Text('Staff member ka naam likhna zaroori hai')),
+                  );
+                  return;
+                }
+                if (!isEditing && pin.length < 4) {
+                  ScaffoldMessenger.of(ctx).showSnackBar(
+                    const SnackBar(
+                        content: Text('Login PIN 4-6 digits ka hona chahiye')),
+                  );
+                  return;
+                }
+                if (isEditing && pin.isNotEmpty && pin.length < 4) {
+                  ScaffoldMessenger.of(ctx).showSnackBar(
+                    const SnackBar(
+                        content: Text('Naya PIN 4-6 digits ka hona chahiye')),
+                  );
+                  return;
+                }
 
                 final Map<String, dynamic> data = {
                   'company_id': widget.companyId,
@@ -184,43 +206,63 @@ class _StaffUsersScreenState extends State<StaffUsersScreen> {
                   final hashed = AuthService.instance.hashNewPin(pin);
                   data['pin_hash'] = hashed.hash;
                   data['pin_salt'] = hashed.salt;
+                } else if (!isEditing) {
+                  // Defensive: schema requires pin_hash NOT NULL, so we
+                  // can't insert a staff row with a null hash. The PIN
+                  // length check above already guards this, but if a
+                  // future refactor relaxes the check, surface the error
+                  // instead of a confusing SQLite NOT NULL exception.
+                  ScaffoldMessenger.of(ctx).showSnackBar(
+                    const SnackBar(
+                        content: Text('Staff ke liye PIN set karna zaroori hai')),
+                  );
+                  return;
                 }
 
-                if (isEditing) {
-                  final oldData = Map<String, dynamic>.from(staffToEdit);
-                  await DBHelper.instance
-                      .updateStaffUser(staffToEdit['id'] as int, data);
-                  await AuditLogger.log(
-                    companyId: widget.companyId,
-                    module: 'Staff',
-                    action: AuditLogger.update,
-                    description:
-                        'Staff member "$name" ka role/permissions update kiya',
-                    beforeValue: {
-                      'name': oldData['name'],
-                      'role': oldData['role'],
-                      'permissions': oldData['permissions']
-                    },
-                    afterValue: {
-                      'name': name,
-                      'role': selectedRole,
-                      'permissions': jsonEncode(selectedPermissions.toList())
-                    },
+                try {
+                  if (isEditing) {
+                    final oldData = Map<String, dynamic>.from(staffToEdit);
+                    await DBHelper.instance
+                        .updateStaffUser(staffToEdit['id'] as int, data);
+                    await AuditLogger.log(
+                      companyId: widget.companyId,
+                      module: 'Staff',
+                      action: AuditLogger.update,
+                      description:
+                          'Staff member "$name" ka role/permissions update kiya',
+                      beforeValue: {
+                        'name': oldData['name'],
+                        'role': oldData['role'],
+                        'permissions': oldData['permissions']
+                      },
+                      afterValue: {
+                        'name': name,
+                        'role': selectedRole,
+                        'permissions': jsonEncode(selectedPermissions.toList())
+                      },
+                    );
+                  } else {
+                    await DBHelper.instance.insertStaffUser(data);
+                    await AuditLogger.log(
+                      companyId: widget.companyId,
+                      module: 'Staff',
+                      action: AuditLogger.create,
+                      description:
+                          'Naya staff member "$name" ($selectedRole) add kiya',
+                      afterValue: {
+                        'name': name,
+                        'role': selectedRole,
+                        'permissions': jsonEncode(selectedPermissions.toList())
+                      },
+                    );
+                  }
+                } catch (e) {
+                  if (!ctx.mounted) return;
+                  ScaffoldMessenger.of(ctx).showSnackBar(
+                    SnackBar(
+                        content: Text('Staff save nahi ho sake: $e')),
                   );
-                } else {
-                  await DBHelper.instance.insertStaffUser(data);
-                  await AuditLogger.log(
-                    companyId: widget.companyId,
-                    module: 'Staff',
-                    action: AuditLogger.create,
-                    description:
-                        'Naya staff member "$name" ($selectedRole) add kiya',
-                    afterValue: {
-                      'name': name,
-                      'role': selectedRole,
-                      'permissions': jsonEncode(selectedPermissions.toList())
-                    },
-                  );
+                  return;
                 }
 
                 if (!ctx.mounted) return;

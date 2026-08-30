@@ -149,7 +149,12 @@ class _SupplierLedgerScreenState extends State<SupplierLedgerScreen> {
               ),
             ListTile(
               leading: const Icon(Icons.sms, color: Colors.blue),
-              title: const Text('SMS Notification (Gateway)'),
+              title: const Text('Device SMS App (Direct SMS)'),
+              onTap: () => Navigator.pop(ctx, 'device_sms'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.cloud_queue, color: Colors.purple),
+              title: const Text('SMS Gateway (HTTP API)'),
               onTap: () => Navigator.pop(ctx, 'sms'),
             ),
             ListTile(
@@ -171,6 +176,8 @@ class _SupplierLedgerScreenState extends State<SupplierLedgerScreen> {
       if (await canLaunchUrl(Uri.parse(url))) {
         await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
       }
+    } else if (choice == 'device_sms') {
+      await SMSService.sendDeviceSMS(mobile: mobile, message: message);
     } else if (choice == 'sms') {
       final success =
           await SMSService.sendSMS(mobile: mobile, message: message);
