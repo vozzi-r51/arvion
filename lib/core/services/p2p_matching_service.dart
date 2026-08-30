@@ -136,6 +136,59 @@ class P2PMatchingService {
         [purchaseOrderId],
       );
 
+      // Automated Accounting Entry for GRN:
+      // Debit: Inventory Asset Account
+      // Credit: Unbilled GRN Accrual Account (Liability)
+      double totalGrnAmount = 0;
+      for (final it in items) {
+        totalGrnAmount += (it['quantity_received'] as num).toDouble() * (it['unit_cost'] as num).toDouble();
+      }
+
+      final coaRows = await txn.query('chart_of_accounts',
+          where: 'company_id = ?', whereArgs: [companyId]);
+      int? getAccId(String name) {
+        try {
+          final target = name.toLowerCase();
+          return coaRows.firstWhere((r) {
+            final accName = (r['name'] as String).toLowerCase();
+            if (accName == target) return true;
+            if (target == 'inventory' && (accName == 'stock' || accName.contains('inventory') || accName.contains('goods'))) return true;
+            if (target == 'unbilled grn' && (accName.contains('unbilled') || accName.contains('grn') || accName.contains('accrual') || accName.contains('clearing'))) return true;
+            if (target == 'accounts payable' && (accName == 'ap' || accName.contains('payable') || accName.contains('creditors') || accName.contains('supplier'))) return true;
+            return false;
+          })['id'] as int;
+        } catch (_) {
+          return null;
+        }
+      }
+
+      final invAcc = getAccId('inventory');
+      int? unbilledAcc = getAccId('unbilled grn');
+      if (unbilledAcc == null) {
+        unbilledAcc = await txn.insert('chart_of_accounts', {
+          'company_id': companyId,
+          'code': '2010',
+          'name': 'Unbilled GRN Accrual',
+          'type': 'liability',
+          'created_at': DateTime.now().toIso8601String(),
+        });
+      }
+
+      if (invAcc != null && totalGrnAmount > 0) {
+        await DBHelper.instance.postAutomatedEntry(
+          txn,
+          companyId: companyId,
+          date: DateTime.now().toIso8601String(),
+          description: 'Auto: GRN Receipt $grnNumber',
+          sourceType: 'grn',
+          sourceId: grnId,
+          lines: [
+            {'account_id': invAcc, 'debit': totalGrnAmount, 'credit': 0.0},
+            {'account_id': unbilledAcc, 'debit': 0.0, 'credit': totalGrnAmount},
+          ],
+        );
+      }
+
       return grnId;
     });
   }
@@ -178,6 +231,53 @@ class P2PMatchingService {
         "UPDATE goods_received_notes SET status = 'invoiced' WHERE id = ?",
         [grnId],
       );
+
+      // Automated Accounting Entry for Purchase Invoice:
+      // Debit: Unbilled GRN Accrual Account (Clears accrual to zero)
+      // Credit: Accounts Payable (Establishes vendor debt)
+      final coaRows = await txn.query('chart_of_accounts',
+          where: 'company_id = ?', whereArgs: [companyId]);
+      int? getAccId(String name) {
+        try {
+          final target = name.toLowerCase();
+          return coaRows.firstWhere((r) {
+            final accName = (r['name'] as String).toLowerCase();
+            if (accName == target) return true;
+            if (target == 'unbilled grn' && (accName.contains('unbilled') || accName.contains('grn') || accName.contains('accrual') || accName.contains('clearing'))) return true;
+            if (target == 'accounts payable' && (accName == 'ap' || accName.contains('payable') || accName.contains('creditors') || accName.contains('supplier'))) return true;
+            return false;
+          })['id'] as int;
+        } catch (_) {
+          return null;
+        }
+      }
+
+      final payAcc = getAccId('accounts payable');
+      int? unbilledAcc = getAccId('unbilled grn');
+      if (unbilledAcc == null) {
+        unbilledAcc = await txn.insert('chart_of_accounts', {
+          'company_id': companyId,
+          'code': '2010',
+          'name': 'Unbilled GRN Accrual',
+          'type': 'liability',
+          'created_at': DateTime.now().toIso8601String(),
+        });
+      }
+
+      if (payAcc != null && totalAmount > 0) {
+        await DBHelper.instance.postAutomatedEntry(
+          txn,
+          companyId: companyId,
+          date: DateTime.now().toIso8601String(),
+          description: 'Auto: Purchase Invoice $invoiceNumber (GRN #$grnId)',
+          sourceType: 'purchase_invoice',
+          sourceId: invId,
+          lines: [
+            {'account_id': unbilledAcc, 'debit': totalAmount, 'credit': 0.0},
+            {'account_id': payAcc, 'debit': 0.0, 'credit': totalAmount},
+          ],
+        );
+      }
 
       return invId;
     });

@@ -19,6 +19,12 @@ import '../customers/customer_form_screen.dart';
 import '../sales/new_sale_screen.dart';
 import '../purchases/new_purchase_screen.dart';
 import '../purchase_order/new_purchase_order_screen.dart';
+import '../finance/expense_list_screen.dart';
+import '../sales/sales_home_screen.dart';
+import '../customers/customer_list_screen.dart';
+import '../customers/supplier_list_screen.dart';
+import '../products/category_list_screen.dart';
+import '../reports/profit_report_screen.dart';
 import '../../core/auth/session.dart';
 import '../search/global_search_screen.dart';
 import '../shell/main_shell.dart';
@@ -330,7 +336,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             .then((_) => _loadAll());
         break;
       case 'Expense':
-        // No direct "Add Expense" screen exists yet, maybe open a dialog?
+        Navigator.of(context)
+            .push(MaterialPageRoute(
+                builder: (_) => ExpenseListScreen(companyId: id)))
+            .then((_) => _loadAll());
         break;
       case 'Customer':
         Navigator.of(context)
@@ -338,6 +347,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 builder: (_) => CustomerFormScreen(companyId: id)))
             .then((_) => _loadAll());
         break;
+    }
+  }
+
+  void _handleStatCardTap(_DashboardStat stat) {
+    if (_activeCompany == null) return;
+    final id = _activeCompany!['id'] as int;
+
+    if (stat.title.contains('Sale')) {
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (_) => SalesHomeScreen(companyId: id)))
+          .then((_) => _loadAll());
+      return;
+    }
+    if (stat.title.contains('Expense')) {
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (_) => ExpenseListScreen(companyId: id)))
+          .then((_) => _loadAll());
+      return;
+    }
+    if (stat.title.contains('Profit')) {
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (_) => ProfitReportScreen(companyId: id)))
+          .then((_) => _loadAll());
+      return;
+    }
+    if (stat.title.contains('Customer')) {
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (_) => CustomerListScreen(companyId: id)))
+          .then((_) => _loadAll());
+      return;
+    }
+    if (stat.title.contains('Supplier')) {
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (_) => SupplierListScreen(companyId: id)))
+          .then((_) => _loadAll());
+      return;
+    }
+    if (stat.title.contains('Product') || stat.title.contains('Item')) {
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (_) => CategoryListScreen(companyId: id)))
+          .then((_) => _loadAll());
+      return;
+    }
+    if (stat.title.contains('Low Stock') || stat.title.contains('Alert')) {
+      _showReorderSuggestions();
+      return;
     }
   }
 
@@ -655,49 +710,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               itemBuilder: (ctx, i) {
                 final stat = _stats[i];
-                return Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color:
-                          Theme.of(context).dividerColor.withValues(alpha: 0.2),
+                return InkWell(
+                  onTap: () => _handleStatCardTap(stat),
+                  borderRadius: BorderRadius.circular(18),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color:
+                            Theme.of(context).dividerColor.withValues(alpha: 0.2),
+                      ),
                     ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 34,
-                            height: 34,
-                            decoration: BoxDecoration(
-                              color: stat.color.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 34,
+                              height: 34,
+                              decoration: BoxDecoration(
+                                color: stat.color.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(stat.icon, color: stat.color, size: 18),
                             ),
-                            child: Icon(stat.icon, color: stat.color, size: 18),
-                          ),
-                          const Spacer(),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        stat.value,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
+                            const Spacer(),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        stat.title,
-                        style: const TextStyle(fontSize: 12),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                        const SizedBox(height: 12),
+                        Text(
+                          stat.value,
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          stat.title,
+                          style: const TextStyle(fontSize: 12),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },

@@ -15,7 +15,6 @@ import '../finance/expense_list_screen.dart';
 import '../journal/journal_home_screen.dart';
 import '../reports/reports_home_screen.dart';
 import '../settings/settings_screen.dart';
-import '../ai/ai_screen.dart';
 import '../quotations/quotation_list_screen.dart';
 import '../manufacturing/manufacturing_home_screen.dart';
 import '../services/service_jobs_screen.dart';
@@ -197,8 +196,6 @@ class _MainShellState extends State<MainShell> {
           isOwnerOnly: true, moduleName: 'accounting'),
       _NavItemData('Reports', Icons.bar_chart, Icons.bar_chart_outlined,
           isOwnerOnly: true),
-      _NavItemData(
-          'AI Assistant', Icons.auto_awesome, Icons.auto_awesome_outlined),
       _NavItemData('Settings', Icons.settings, Icons.settings_outlined),
     ];
 
@@ -264,10 +261,6 @@ class _MainShellState extends State<MainShell> {
           return companyId == null
               ? const _CompanyMissingScreen()
               : ReportsHomeScreen(companyId: companyId);
-        case 'AI Assistant':
-          return companyId == null
-              ? const _CompanyMissingScreen()
-              : AIScreen(companyId: companyId);
         case 'Settings':
           return const SettingsScreen();
         default:

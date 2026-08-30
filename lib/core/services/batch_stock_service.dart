@@ -100,4 +100,19 @@ class BatchStockService {
 
     return selected;
   }
+
+  /// Deduct quantities from allocated batches inside an active database transaction.
+  Future<void> deductAllocatedBatches(
+    dynamic txn,
+    List<Map<String, dynamic>> allocatedBatches,
+  ) async {
+    for (final b in allocatedBatches) {
+      final batchId = b['batch_id'];
+      final double qty = (b['allocated_qty'] as num).toDouble();
+      await txn.rawUpdate(
+        'UPDATE stock_batches SET current_qty = current_qty - ? WHERE id = ?',
+        [qty, batchId],
+      );
+    }
+  }
 }
