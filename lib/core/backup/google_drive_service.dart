@@ -40,18 +40,33 @@ class GoogleDriveService {
     return _currentUser;
   }
 
-  Future<drive.DriveApi?> _getDriveApi() async {
-    final account = _currentUser ?? await signInSilently();
+  Future<drive.DriveApi?> _getDriveApi({bool allowInteractiveAuth = false}) async {
+    GoogleSignInAccount? account = _currentUser ?? await signInSilently();
+    account ??=
+        allowInteractiveAuth ? await _googleSignIn.signIn() : null;
     if (account == null) return null;
+    _currentUser = account;
 
-    final headers = await account.authHeaders;
-    final client = _GoogleAuthClient(headers);
-
-    return drive.DriveApi(client);
+    try {
+      final headers = await account.authHeaders;
+      return drive.DriveApi(_GoogleAuthClient(headers));
+    } catch (_) {
+      if (!allowInteractiveAuth) rethrow;
+      await _googleSignIn.signOut();
+      final refreshed = await _googleSignIn.signIn();
+      if (refreshed == null) return null;
+      _currentUser = refreshed;
+      final headers = await refreshed.authHeaders;
+      return drive.DriveApi(_GoogleAuthClient(headers));
+    }
   }
 
-  Future<String?> uploadBackup(String filePath) async {
-    final driveApi = await _getDriveApi();
+  Future<String?> uploadBackup(
+    String filePath, {
+    bool allowInteractiveAuth = true,
+  }) async {
+    final driveApi =
+        await _getDriveApi(allowInteractiveAuth: allowInteractiveAuth);
     if (driveApi == null)
       throw Exception('Google Drive se connect nahi ho sake.');
 
@@ -68,8 +83,9 @@ class GoogleDriveService {
     return result.id;
   }
 
-  Future<List<drive.File>> listBackups() async {
-    final driveApi = await _getDriveApi();
+  Future<List<drive.File>> listBackups({bool allowInteractiveAuth = true}) async {
+    final driveApi =
+        await _getDriveApi(allowInteractiveAuth: allowInteractiveAuth);
     if (driveApi == null)
       throw Exception('Google Drive se connect nahi ho sake.');
 
@@ -82,8 +98,13 @@ class GoogleDriveService {
     return fileList.files ?? [];
   }
 
-  Future<void> downloadBackup(String fileId, String savePath) async {
-    final driveApi = await _getDriveApi();
+  Future<void> downloadBackup(
+    String fileId,
+    String savePath, {
+    bool allowInteractiveAuth = true,
+  }) async {
+    final driveApi =
+        await _getDriveApi(allowInteractiveAuth: allowInteractiveAuth);
     if (driveApi == null)
       throw Exception('Google Drive se connect nahi ho sake.');
 

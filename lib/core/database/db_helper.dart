@@ -6082,14 +6082,16 @@ class DBHelper {
     int companyId, [
     List<Map<String, String>>? templateCoa,
   ]) async {
-    final existing = await txn.query(
+    final existingRows = await txn.query(
       'chart_of_accounts',
-      columns: ['id'],
+      columns: ['name'],
       where: 'company_id = ?',
       whereArgs: [companyId],
-      limit: 1,
     );
-    if (existing.isNotEmpty) return;
+    final existingNames = existingRows
+        .map((r) => (r['name'] as String?)?.trim().toLowerCase())
+        .whereType<String>()
+        .toSet();
 
     // Per-category COA wins if the template provided one; otherwise fall
     // back to the static default list. Each entry must have code+name+type.
@@ -6103,6 +6105,8 @@ class DBHelper {
       final name = account['name'];
       final type = account['type'];
       if (code == null || name == null || type == null) continue;
+      final normalizedName = name.trim().toLowerCase();
+      if (existingNames.contains(normalizedName)) continue;
       await txn.insert('chart_of_accounts', {
         'company_id': companyId,
         'code': code,
@@ -6110,6 +6114,7 @@ class DBHelper {
         'type': type,
         'created_at': now,
       });
+      existingNames.add(normalizedName);
     }
   }
 

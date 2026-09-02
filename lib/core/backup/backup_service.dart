@@ -248,7 +248,8 @@ class BackupService {
 
       if (await GoogleDriveService.isAutoUploadEnabled()) {
         if (await GoogleDriveService.instance.isSignedIn()) {
-          await GoogleDriveService.instance.uploadBackup(savedPath);
+          await GoogleDriveService.instance
+              .uploadBackup(savedPath, allowInteractiveAuth: false);
         }
       }
     } catch (_) {}
