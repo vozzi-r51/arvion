@@ -184,7 +184,8 @@ class AutoSyncScheduler {
         }
       }
       final zipPath = await BackupService.createBackupZip();
-      await GoogleDriveService.instance.uploadBackup(zipPath);
+      await GoogleDriveService.instance
+          .uploadBackup(zipPath, allowInteractiveAuth: false);
       await recordSyncResult(ok: true, message: null);
       return true;
     } catch (e) {
@@ -275,7 +276,8 @@ void autoSyncDispatcher() {
       }
 
       final zipPath = await BackupService.createBackupZip();
-      await GoogleDriveService.instance.uploadBackup(zipPath);
+      await GoogleDriveService.instance
+          .uploadBackup(zipPath, allowInteractiveAuth: false);
       await AutoSyncScheduler.recordSyncResult(ok: true, message: null);
       return true;
     } catch (e) {
